@@ -1,51 +1,50 @@
 // src/services/api.js
 import axios from 'axios'
 
-// Ajusta esta URL según tu backend
-const API_URL = 'http://localhost:4000/api'
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 12000
 })
 
-// Interceptor para agregar el token automáticamente
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
+    config.headers = config.headers || {}
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
-})
+}, (err) => Promise.reject(err))
 
-// Interceptor para manejar errores de autenticación
+// Response interceptor: maneja 401 (salir) excepto en login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 🔥 EXCEPCIÓN: No redirigir para errores de login
     const isLoginEndpoint = error.config?.url?.includes('/auth/login')
-    
     if (error.response?.status === 401 && !isLoginEndpoint) {
-      // Token expirado o inválido (solo para endpoints que NO son login)
       localStorage.removeItem('token')
       localStorage.removeItem('usuario')
-      window.location.href = '/'
+      window.location.href = '/login' 
     }
-    
     return Promise.reject(error)
   }
 )
 
-// Servicio de Autenticación
+// Servicios 
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
-  getUsers: () => api.get('/auth/register')
+  getUsers: () => api.get('/auth/register'),
+  // opcionales para más endpoints:
+  getUser: (id) => api.get(`/auth/${id}`),
+  updateUser: (id, data) => api.put(`/auth/${id}`, data),
+  deleteUser: (id) => api.delete(`/auth/${id}`)
 }
 
-// Servicio de Logs
 export const logsService = {
   getLogs: (filters = {}) => {
     const params = new URLSearchParams()
@@ -55,7 +54,6 @@ export const logsService = {
   }
 }
 
-// Servicio de Dirigentes
 export const dirigentesService = {
   getDirigentes: () => api.get('/dirigentes'),
   createDirigente: (data) => api.post('/dirigentes', data),
@@ -63,34 +61,33 @@ export const dirigentesService = {
   deleteDirigente: (id) => api.delete(`/dirigentes/${id}`)
 }
 
-// Servicio de Formación
-export const formationService = {
-  getCursos: () => api.get('/formation/cursos'),
-  createCurso: (data) => api.post('/formation/cursos', data),
-  createModulo: (cursoId, data) => api.post(`/formation/cursos/${cursoId}/modulos`, data),
-  registrarAsistencia: (data) => api.post('/formation/asistencias', data)
+export const formacionService = {
+  getCursos: () => api.get('/formacion/cursos'),
+  createCurso: (data) => api.post('/formacion/cursos', data),
+  createModulo: (cursoId, data) => api.post(`/formacion/cursos/${cursoId}/modulos`, data),
+  registrarAsistencia: (data) => api.post('/formacion/asistencias', data)
 }
 
-// Servicio de Seguimiento
 export const seguimientoService = {
   getSeguimientos: () => api.get('/seguimiento'),
   getSeguimiento: (id) => api.get(`/seguimiento/${id}`),
   crearEntrega: (id, data) => api.post(`/seguimiento/${id}/entregas`, data),
   actualizarResultado: (id, data) => api.put(`/seguimiento/${id}/resultado`, data),
   getReincorporaciones: () => api.get('/seguimiento/reincorporacion'),
-  // Rutas públicas
   enviarFormularioPublico: (data) => api.post('/seguimiento/public', data),
   enviarReincorporacion: (data) => api.post('/seguimiento/reincorporacion', data)
 }
 
-// Servicio de Registro
 export const registroService = {
   getSolicitudes: () => api.get('/registro'),
   actualizarSolicitud: (id, data) => api.put(`/registro/${id}`, data),
   actualizarDirigente: (id, data) => api.put(`/registro/dirigente/${id}`, data),
   eliminarSolicitud: (id) => api.delete(`/registro/${id}`),
-  // Ruta pública
   enviarSolicitudPublica: (data) => api.post('/registro/public', data)
+}
+
+export const dashboardService = {
+  getSummary: (params = {}) => api.get('/admin/summary', { params })
 }
 
 export default api

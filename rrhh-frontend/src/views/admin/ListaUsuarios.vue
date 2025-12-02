@@ -592,18 +592,21 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { authService } from '../../services/api' // <-- usa el servicio central
 
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
 const rutaActiva = ref('admin/lista-usuarios')
 const comisionesAbierto = ref(false)
 const loading = ref(false)
+
 const mostrarModalCrear = ref(false)
 const creandoUsuario = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const filtroBusqueda = ref('')
 const filtroRol = ref('')
+
 const mostrarModalEditar = ref(false)
 const editandoUsuario = ref(false)
 const errorMessageEditar = ref('')
@@ -612,6 +615,16 @@ const mostrarResetPassword = ref(false)
 const nuevaContrasena = ref('')
 const confirmarContrasena = ref('')
 
+const usuarios = ref([])
+
+// Nuevo usuario (form)
+const nuevoUsuario = ref({
+  nombre: '',
+  correo: '',
+  contrasena: '',
+  cargo: '',
+  rol_id: ''
+})
 
 const usuarioEditando = ref({
   id: '',
@@ -621,7 +634,6 @@ const usuarioEditando = ref({
   rol_id: ''
 })
 
-// Mapeo de roles nombre -> id para la edición
 const mapeoRoles = {
   'admin': '1',
   'responsable_registro': '2',
@@ -633,350 +645,31 @@ const mapeoRoles = {
   'invitado': '8'
 }
 
-const editarUsuario = (usuario) => {
-  // Preparar datos para edición
-  usuarioEditando.value = {
-    id: usuario.id,
-    nombre: usuario.nombre,
-    correo: usuario.correo,
-    cargo: usuario.cargo || '',
-    rol_id: mapeoRoles[usuario.rol_nombre] || ''
-  }
-  
-  // Resetear estados
-  mostrarResetPassword.value = false
-  nuevaContrasena.value = ''
-  confirmarContrasena.value = ''
-  errorMessageEditar.value = ''
-  successMessageEditar.value = ''
-  
-  mostrarModalEditar.value = true
-}
-
-const cerrarModalEditar = () => {
-  mostrarModalEditar.value = false
-  usuarioEditando.value = {
-    id: '',
-    nombre: '',
-    correo: '',
-    cargo: '',
-    rol_id: ''
-  }
-  mostrarResetPassword.value = false
-  nuevaContrasena.value = ''
-  confirmarContrasena.value = ''
-  errorMessageEditar.value = ''
-  successMessageEditar.value = ''
-}
-
-const actualizarUsuario = async () => {
-  // Validaciones básicas
-  if (!usuarioEditando.value.nombre || !usuarioEditando.value.correo || !usuarioEditando.value.rol_id) {
-    errorMessageEditar.value = 'Por favor completa todos los campos obligatorios'
-    return
-  }
-
-  // Validar contraseña si se está reseteando
-  if (mostrarResetPassword.value) {
-    if (!nuevaContrasena.value || !confirmarContrasena.value) {
-      errorMessageEditar.value = 'Ambos campos de contraseña son obligatorios para resetear'
-      return
-    }
-    if (nuevaContrasena.value.length < 6) {
-      errorMessageEditar.value = 'La contraseña debe tener al menos 6 caracteres'
-      return
-    }
-    if (nuevaContrasena.value !== confirmarContrasena.value) {
-      errorMessageEditar.value = 'Las contraseñas no coinciden'
-      return
-    }
-  }
-
-  editandoUsuario.value = true
-  errorMessageEditar.value = ''
-  successMessageEditar.value = ''
-
-  try {
-    // Simulación de actualización - después reemplazar con API real
-    await simularActualizacionUsuario()
-    
-    successMessageEditar.value = 'Usuario actualizado exitosamente'
-    
-    // Esperar un momento antes de cerrar el modal
-    setTimeout(() => {
-      cerrarModalEditar()
-      // Recargar la lista de usuarios
-      cargarUsuarios()
-    }, 1500)
-    
-  } catch (error) {
-    errorMessageEditar.value = error.message || 'Error al actualizar el usuario'
-  } finally {
-    editandoUsuario.value = false
-  }
-}
-
-const simularActualizacionUsuario = () => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Simular validación de correo único (excluyendo el usuario actual)
-      const correoExistente = usuarios.value.find(u => 
-        u.correo === usuarioEditando.value.correo && u.id !== usuarioEditando.value.id
-      )
-      if (correoExistente) {
-        reject(new Error('El correo electrónico ya está registrado por otro usuario'))
-        return
-      }
-
-      // Actualizar usuario en la lista
-      const index = usuarios.value.findIndex(u => u.id === usuarioEditando.value.id)
-      if (index !== -1) {
-        const rolNombre = obtenerNombreRol(usuarioEditando.value.rol_id)
-        
-        usuarios.value[index] = {
-          ...usuarios.value[index],
-          nombre: usuarioEditando.value.nombre,
-          correo: usuarioEditando.value.correo,
-          cargo: usuarioEditando.value.cargo,
-          rol_nombre: rolNombre
-        }
-        
-        // Simular que la contraseña fue actualizada si se solicitó
-        if (mostrarResetPassword.value) {
-          console.log(`Contraseña actualizada para usuario ${usuarioEditando.value.id}`)
-        }
-        
-        resolve(usuarios.value[index])
-      } else {
-        reject(new Error('Usuario no encontrado'))
-      }
-    }, 1000)
-  })
-}
-
-
-const nuevoUsuario = ref({
-  nombre: '',
-  correo: '',
-  contrasena: '',
-  cargo: '',
-  rol_id: ''
-})
-
-// Agrega estas funciones
-const abrirModalCrear = () => {
-  mostrarModalCrear.value = true
-  resetearFormulario()
-}
-
-const cerrarModal = () => {
-  mostrarModalCrear.value = false
-  resetearFormulario()
-}
-
-const resetearFormulario = () => {
-  nuevoUsuario.value = {
-    nombre: '',
-    correo: '',
-    contrasena: '',
-    cargo: '',
-    rol_id: ''
-  }
-  errorMessage.value = ''
-  successMessage.value = ''
-}
-
-const crearUsuario = async () => {
-  // Validaciones básicas
-  if (!nuevoUsuario.value.nombre || !nuevoUsuario.value.correo || !nuevoUsuario.value.contrasena || !nuevoUsuario.value.rol_id) {
-    errorMessage.value = 'Por favor completa todos los campos obligatorios'
-    return
-  }
-
-  if (nuevoUsuario.value.contrasena.length < 6) {
-    errorMessage.value = 'La contraseña debe tener al menos 6 caracteres'
-    return
-  }
-
-  creandoUsuario.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  try {
-    // Simulación de creación - después reemplazar con API real
-    await simularCreacionUsuario()
-    
-    successMessage.value = 'Usuario creado exitosamente'
-    
-    // Esperar un momento antes de cerrar el modal
-    setTimeout(() => {
-      cerrarModal()
-      // Recargar la lista de usuarios
-      cargarUsuarios()
-    }, 1500)
-    
-  } catch (error) {
-    errorMessage.value = error.message || 'Error al crear el usuario'
-  } finally {
-    creandoUsuario.value = false
-  }
-}
-
-const simularCreacionUsuario = () => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Simular validación de correo único
-      const correoExistente = usuarios.value.find(u => u.correo === nuevoUsuario.value.correo)
-      if (correoExistente) {
-        reject(new Error('El correo electrónico ya está registrado'))
-        return
-      }
-
-      // Crear nuevo usuario
-      const nuevoId = Math.max(...usuarios.value.map(u => u.id)) + 1
-      const rolNombre = obtenerNombreRol(nuevoUsuario.value.rol_id)
-      
-      const usuarioCreado = {
-        id: nuevoId,
-        nombre: nuevoUsuario.value.nombre,
-        correo: nuevoUsuario.value.correo,
-        cargo: nuevoUsuario.value.cargo,
-        rol_nombre: rolNombre
-      }
-
-      usuarios.value.unshift(usuarioCreado)
-      resolve(usuarioCreado)
-    }, 1000)
-  })
-}
-
-const obtenerNombreRol = (rolId) => {
-  const roles = {
-    '1': 'admin',
-    '2': 'responsable_registro',
-    '3': 'responsable_formation',
-    '4': 'responsable_seguimiento',
-    '5': 'subcomisionado_registro',
-    '6': 'subcomisionado_formation',
-    '7': 'subcomisionado_seguimiento',
-    '8': 'invitado'
-  }
-  return roles[rolId] || 'invitado'
-}
-
-const cargarUsuarios = () => {
-  // Esta función simula cargar usuarios - después se reemplazará con API real
-  console.log('Recargando lista de usuarios...')
-}
-
-
-
-// Datos de ejemplo basados en tu estructura
-const usuarios = ref([
-  {
-    id: 1,
-    nombre: 'Administrador Principal',
-    correo: 'admin@scout.com',
-    cargo: 'Administrador del Sistema',
-    rol_nombre: 'admin'
-  },
-  {
-    id: 2,
-    nombre: 'María García López',
-    correo: 'registro@scout.com', 
-    cargo: 'Comisionado de Registro y Habilitación',
-    rol_nombre: 'responsable_registro'
-  },
-  {
-    id: 3,
-    nombre: 'Carlos Rodríguez',
-    correo: 'formacion@scout.com',
-    cargo: 'Comisionado de Formación',
-    rol_nombre: 'responsable_formation'
-  },
-  {
-    id: 4,
-    nombre: 'Ana Martínez',
-    correo: 'seguimiento@scout.com',
-    cargo: 'Comisionado de Seguimiento',
-    rol_nombre: 'responsable_seguimiento'
-  },
-  {
-    id: 5,
-    nombre: 'Pedro Sánchez',
-    correo: 'subregistro@scout.com',
-    cargo: 'Subcomisionado de Registro',
-    rol_nombre: 'subcomisionado_registro'
-  }
-])
-
-// Computed para usuarios filtrados
-const usuariosFiltrados = computed(() => {
-  return usuarios.value.filter(usuario => {
-    const coincideBusqueda = !filtroBusqueda.value || 
-      usuario.nombre.toLowerCase().includes(filtroBusqueda.value.toLowerCase()) ||
-      usuario.correo.toLowerCase().includes(filtroBusqueda.value.toLowerCase()) ||
-      (usuario.cargo && usuario.cargo.toLowerCase().includes(filtroBusqueda.value.toLowerCase()))
-    
-    const coincideRol = !filtroRol.value || usuario.rol_nombre === filtroRol.value
-    
-    return coincideBusqueda && coincideRol
-  })
-})
-
-onMounted(() => {
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-  nombreResponsable.value = usuario.nombre || 'Administrador'
-})
-
-// Función para formatear nombres de rol
-const formatRolNombre = (rol) => {
-  const nombres = {
-    'admin': 'Administrador',
-    'responsable_registro': 'Responsable Registro',
-    'responsable_formation': 'Responsable Formación',
-    'responsable_seguimiento': 'Responsable Seguimiento',
-    'subcomisionado_registro': 'Subcomisionado Registro',
-    'subcomisionado_formation': 'Subcomisionado Formación',
-    'subcomisionado_seguimiento': 'Subcomisionado Seguimiento',
-    'invitado': 'Invitado'
-  }
-  return nombres[rol] || rol
-}
-
-// Función para colores de badges según el rol
-const getBadgeClasses = (rol) => {
-  const clases = {
-    'admin': 'bg-red-100 text-red-800',
-    'responsable_registro': 'bg-blue-100 text-blue-800',
-    'responsable_formation': 'bg-green-100 text-green-800', 
-    'responsable_seguimiento': 'bg-purple-100 text-purple-800',
-    'subcomisionado_registro': 'bg-blue-50 text-blue-700',
-    'subcomisionado_formation': 'bg-green-50 text-green-700',
-    'subcomisionado_seguimiento': 'bg-purple-50 text-purple-700',
-    'invitado': 'bg-gray-100 text-gray-800'
-  }
-  return clases[rol] || 'bg-gray-100 text-gray-800'
-}
-
+// -----------------------------
+// Funciones de navegación / UI
+// -----------------------------
 const toggleComisiones = () => {
   comisionesAbierto.value = !comisionesAbierto.value
 }
 
 const navegarA = (destino) => {
+  // Actualiza ruta activa para el estilo del nav
   rutaActiva.value = destino
   comisionesAbierto.value = false
-  
-  // Manejar todas las rutas correctamente
+
+  if (!destino) return
+  // Rutas mapeadas
   if (destino === 'admin') {
     router.push('/admin')
-  } else if (destino === 'admin/lista-usuarios') {
-    // Ya estamos aquí, no hacer nada
     return
-  } else if (destino === 'admin/logs') {
-    router.push('/admin/logs')
   }
-  // Para otras rutas que no existen aún, mantenemos en la misma página
+  // Si ya es path absoluto
+  if (destino.startsWith('/')) {
+    router.push(destino)
+    return
+  }
+  // Caso general
+  router.push(`/${destino}`)
 }
 
 const navegarAComision = (comision) => {
@@ -988,56 +681,220 @@ const navegarAComision = (comision) => {
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  router.push('/') // o '/login' según prefieras
 }
 
+// -----------------------------
+// Helpers de presentación
+// -----------------------------
+const getBadgeClasses = (rolNombre) => {
+  const key = (rolNombre || '').toString().toLowerCase()
+  switch (true) {
+    case /admin|administrador/.test(key):
+      return 'bg-red-100 text-red-800'
+    case /responsable.*registro/.test(key):
+      return 'bg-yellow-100 text-yellow-800'
+    case /responsable.*formation|responsable.*formaci[oó]n/.test(key):
+      return 'bg-blue-100 text-blue-800'
+    case /responsable.*seguimiento/.test(key):
+      return 'bg-green-100 text-green-800'
+    case /subcomisionado/.test(key):
+      return 'bg-gray-100 text-gray-800'
+    case /invitado/.test(key):
+      return 'bg-indigo-100 text-indigo-800'
+    default:
+      return 'bg-gray-100 text-gray-800'
+  }
+}
+
+const formatRolNombre = (rolNombre) => {
+  if (!rolNombre) return ''
+  return rolNombre.replace(/_|-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+// Cargar usuarios desde backend
+const cargarUsuarios = async () => {
+  loading.value = true
+  try {
+    const res = await authService.getUsers()
+    usuarios.value = res.data || []
+  } catch (err) {
+    console.error('Error cargando usuarios:', err)
+    alert('No se pudo cargar la lista de usuarios. Verifica el backend.')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Crear usuario real (POST /auth/register)
+const crearUsuario = async () => {
+  if (!nuevoUsuario.value.nombre || !nuevoUsuario.value.correo || !nuevoUsuario.value.contrasena || !nuevoUsuario.value.rol_id) {
+    errorMessage.value = 'Por favor completa todos los campos obligatorios'
+    return
+  }
+  creandoUsuario.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+  try {
+    const payload = {
+      nombre: nuevoUsuario.value.nombre,
+      correo: nuevoUsuario.value.correo,
+      contrasena: nuevoUsuario.value.contrasena,
+      rol_id: parseInt(nuevoUsuario.value.rol_id, 10),
+      cargo: nuevoUsuario.value.cargo
+    }
+    const res = await authService.register(payload)
+    successMessage.value = res.data?.message || 'Usuario creado'
+    // recargar lista
+    await cargarUsuarios()
+    // limpiar y cerrar modal
+    setTimeout(() => {
+      cerrarModal()
+    }, 800)
+  } catch (err) {
+    console.error('Error creando usuario:', err.response?.data || err)
+    errorMessage.value = err.response?.data?.error || 'Error al crear usuario'
+  } finally {
+    creandoUsuario.value = false
+  }
+}
+
+//EliminarUsuario 
 const eliminarUsuario = async (usuario) => {
   if (usuario.rol_nombre === 'admin') {
     alert('No se puede eliminar un usuario administrador')
     return
   }
 
-  if (!confirm(`¿Estás seguro de eliminar a ${usuario.nombre}?\nEsta acción no se puede deshacer.`)) {
-    return
-  }
+  const confirmar = confirm(`¿Estás seguro de eliminar a ${usuario.nombre}?`)
+  if (!confirmar) return
 
   try {
-    // Simulación de eliminación - después reemplazar con API real
-    await simularEliminacionUsuario(usuario.id)
-    
-    // Recargar lista
-    cargarUsuarios()
-    
-    alert(`Usuario ${usuario.nombre} eliminado exitosamente`)
-    
-  } catch (error) {
-    alert(`Error al eliminar usuario: ${error.message}`)
+    // Mostrar indicador (opcional): podrías tener un estado para deshabilitar botones mientras borra
+    console.log(`🔴 Solicitando eliminación del usuario id=${usuario.id}`)
+
+    // Usa el servicio central (axios) que ya añade Authorization
+    const res = await authService.deleteUser(usuario.id)
+
+    // Axios res.status suele ser 200 o 204
+    console.log('Respuesta DELETE:', res)
+    alert(res.data?.message || 'Usuario eliminado correctamente')
+
+    // Refrescar lista
+    await cargarUsuarios()
+  } catch (err) {
+    // err puede ser network o respuesta del servidor
+    console.error('Error eliminando usuario (frontend):', err)
+
+    // Si es respuesta del servidor con body
+    const status = err.response?.status
+    const data = err.response?.data
+
+    if (status === 409) {
+      // Violación FK o recurso relacionado
+      alert(data?.error || 'No se puede eliminar el usuario porque hay registros relacionados.')
+      if (data?.detail) console.log('Detalle Postgres:', data.detail)
+    } else if (status === 404) {
+      alert(data?.error || 'Usuario no encontrado (ya eliminado?)')
+      await cargarUsuarios()
+    } else if (status === 401) {
+      // El interceptor en api.js redirige a /login, pero por si acaso:
+      alert('No autorizado. Inicia sesión de nuevo.')
+      localStorage.removeItem('token')
+      localStorage.removeItem('usuario')
+      router.push('/login')
+    } else if (status === 403) {
+      alert(data?.error || 'No tienes permisos para eliminar usuarios.')
+    } else if (!status) {
+      // network error
+      alert('Error de conexión. Verifica tu backend y conexión a internet.')
+    } else {
+      // error desconocido del servidor
+      alert(data?.error || 'Error al eliminar usuario. Revisa la consola del servidor.')
+    }
   }
 }
 
-const simularEliminacionUsuario = (usuarioId) => {
-  return new Promise((resolve, reject) => {
+
+// Edición - abrir modal con datos
+const editarUsuario = (usuario) => {
+  usuarioEditando.value = {
+    id: usuario.id,
+    nombre: usuario.nombre,
+    correo: usuario.correo,
+    cargo: usuario.cargo || '',
+    rol_id: mapeoRoles[usuario.rol_nombre] || ''
+  }
+  mostrarModalEditar.value = true
+}
+
+// Actualizar usuario - aquí asumo que crearás una ruta PUT /auth/:id en backend
+const actualizarUsuario = async () => {
+  if (!usuarioEditando.value.nombre || !usuarioEditando.value.correo || !usuarioEditando.value.rol_id) {
+    errorMessageEditar.value = 'Completa los campos obligatorios'
+    return
+  }
+  editandoUsuario.value = true
+  try {
+    const payload = {
+      nombre: usuarioEditando.value.nombre,
+      correo: usuarioEditando.value.correo,
+      rol_id: parseInt(usuarioEditando.value.rol_id, 10),
+      cargo: usuarioEditando.value.cargo
+    }
+    await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'}/auth/${usuarioEditando.value.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(payload)
+    })
+    successMessageEditar.value = 'Usuario actualizado correctamente'
     setTimeout(() => {
-      const index = usuarios.value.findIndex(u => u.id === usuarioId)
-      if (index !== -1) {
-        usuarios.value.splice(index, 1)
-        resolve()
-      } else {
-        reject(new Error('Usuario no encontrado'))
-      }
+      cerrarModalEditar()
+      cargarUsuarios()
     }, 800)
-  })
-}
-
-// Manejar click fuera del dropdown
-const handleClickOutside = (event) => {
-  const dropdown = event.target.closest('.relative')
-  if (!dropdown) {
-    comisionesAbierto.value = false
+  } catch (err) {
+    console.error('Error actualizando usuario:', err)
+    errorMessageEditar.value = 'Error al actualizar usuario'
+  } finally {
+    editandoUsuario.value = false
   }
 }
+
+const abrirModalCrear = () => {
+  mostrarModalCrear.value = true
+  resetearFormulario()
+}
+const cerrarModal = () => {
+  mostrarModalCrear.value = false
+  resetearFormulario()
+}
+const resetearFormulario = () => {
+  nuevoUsuario.value = { nombre: '', correo: '', contrasena: '', cargo: '', rol_id: '' }
+  errorMessage.value = ''
+  successMessage.value = ''
+}
+const cerrarModalEditar = () => {
+  mostrarModalEditar.value = false
+  usuarioEditando.value = { id: '', nombre: '', correo: '', cargo: '', rol_id: '' }
+  errorMessageEditar.value = ''
+  successMessageEditar.value = ''
+}
+
+const usuariosFiltrados = computed(() => {
+  return usuarios.value.filter(usuario => {
+    const q = filtroBusqueda.value.toLowerCase()
+    const matchQ = !q || usuario.nombre.toLowerCase().includes(q) || usuario.correo.toLowerCase().includes(q) || (usuario.cargo && usuario.cargo.toLowerCase().includes(q))
+    const matchRol = !filtroRol.value || usuario.rol_nombre === filtroRol.value
+    return matchQ && matchRol
+  })
+})
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+  nombreResponsable.value = usuario.nombre || 'Administrador'
+  cargarUsuarios()
 })
 </script>

@@ -1,25 +1,21 @@
+// src/stores/userStore.js
 import { defineStore } from "pinia";
-import axios from "axios";
+import { authService } from "../services/api";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
     usuario: null,
-    token: null,
-    baseUrl: "http://localhost:4000/api",
+    token: null
   }),
 
   actions: {
     async login(correo, contrasena) {
       try {
-        const res = await axios.post(`${this.baseUrl}/auth/login`, {
-          correo,
-          contrasena,
-        });
+        const res = await authService.login({ correo, contrasena });
 
         this.usuario = res.data.usuario;
         this.token = res.data.token;
 
-        // Guardar en localStorage para persistencia
         localStorage.setItem("token", this.token);
         localStorage.setItem("usuario", JSON.stringify(this.usuario));
 
@@ -33,7 +29,8 @@ export const useUserStore = defineStore("user", {
     logout() {
       this.usuario = null;
       this.token = null;
-      localStorage.clear();
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
     },
 
     cargarSesion() {
@@ -43,6 +40,6 @@ export const useUserStore = defineStore("user", {
         this.token = token;
         this.usuario = JSON.parse(usuario);
       }
-    },
+    }
   },
 });

@@ -31,11 +31,8 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex space-x-8">
           <button 
-            @click="navegarA('inicio')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'inicio' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+            @click="() => navegarA('inicio')"
+            :class="navClass('inicio')"
           >
             Inicio
           </button>
@@ -44,10 +41,7 @@
           <div class="relative">
             <button 
               @click="toggleComisiones"
-              :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center', 
-                      comisionesAbierto 
-                      ? 'border-[#009d71] text-[#009d71]' 
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+              :class="comisionesButtonClass()"
             >
               Comisiones
               <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +53,7 @@
             <div v-if="comisionesAbierto" class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10">
               <div class="py-1">
                 <button 
-                  @click="navegarAComision('seguimiento')"
+                  @click="() => navegarAComision('seguimiento')"
                   class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
                 >
                   <div class="font-medium">Seguimiento</div>
@@ -67,7 +61,7 @@
                 </button>
                 
                 <button 
-                  @click="navegarAComision('formacion')"
+                  @click="() => navegarAComision('formacion')"
                   class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
                 >
                   <div class="font-medium">Formación</div>
@@ -75,7 +69,7 @@
                 </button>
                 
                 <button 
-                  @click="navegarAComision('registro')"
+                  @click="() => navegarAComision('registro')"
                   class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition duration-200"
                 >
                   <div class="font-medium">Registro y Habilitación</div>
@@ -86,21 +80,15 @@
           </div>
 
           <button 
-            @click="navegarA('admin/lista-usuarios')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'admin/lista-usuarios' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+            @click="() => navegarA('admin/lista-usuarios')"
+            :class="navClass('admin/lista-usuarios')"
           >
             Lista de usuarios
           </button>
           
           <button 
-            @click="navegarA('admin/logs')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'logs' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+            @click="() => navegarA('admin/logs')"
+            :class="navClass('admin/logs')"
           >
             Logs del sistema
           </button>
@@ -172,9 +160,9 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           <div 
-            @click="navegarA('admin/lista-usuarios')"
+            @click="() => navegarA('admin/lista-usuarios')"
             class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
           >
             <div class="flex items-center">
@@ -191,7 +179,7 @@
           </div>
 
           <div 
-            @click="navegarA('admin/logs')"
+            @click="() => navegarA('admin/logs')"
             class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
           >
             <div class="flex items-center">
@@ -203,40 +191,6 @@
               <div class="ml-4">
                 <h3 class="text-lg font-semibold text-gray-800">Logs del Sistema</h3>
                 <p class="text-sm text-gray-600 mt-1">Ver actividad del sistema</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            @click="navegarAComision('seguimiento')"
-            class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
-          >
-            <div class="flex items-center">
-              <div class="bg-purple-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-800">Reportes</h3>
-                <p class="text-sm text-gray-600 mt-1">Generar reportes</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            @click="navegarAComision('registro')"
-            class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
-          >
-            <div class="flex items-center">
-              <div class="bg-orange-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-800">Habilitaciones</h3>
-                <p class="text-sm text-gray-600 mt-1">Gestionar habilitaciones</p>
               </div>
             </div>
           </div>
@@ -266,39 +220,66 @@ const comisionesAbierto = ref(false)
 
 // Cargar datos del usuario
 onMounted(() => {
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-  nombreResponsable.value = usuario.nombre || 'Administrador'
+  try {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+    nombreResponsable.value = usuario?.nombre || 'Administrador'
+  } catch (e) {
+    nombreResponsable.value = 'Administrador'
+  }
 })
 
 const toggleComisiones = () => {
   comisionesAbierto.value = !comisionesAbierto.value
 }
 
+// Helper para clases del nav (evita repetir lógica en template)
+const navClass = (destino) => {
+  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
+  if (rutaActiva.value === destino) return `${base} border-[#009d71] text-[#009d71]`
+  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
+}
+
+// Clase específica para el botón "Comisiones"
+const comisionesButtonClass = () => {
+  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center'
+  if (comisionesAbierto.value) return `${base} border-[#009d71] text-[#009d71]`
+  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
+}
+
 const navegarA = (destino) => {
+  // Establecemos rutaActiva para estilos
   rutaActiva.value = destino
+
+  // cerrar dropdown
   comisionesAbierto.value = false
   
+  // Normalizamos destinos
+  if (!destino) return
+
+  // Inicio => /admin
   if (destino === 'inicio') {
+    router.push('/admin').catch(()=>{})
     return
   }
-  
-  // Si destino ya empieza con "/", usar directamente, sino agregar "/"
+
+  // Si ya empieza con "/" usar directo
   if (destino.startsWith('/')) {
-    router.push(destino)
-  } else {
-    router.push(`/${destino}`)
+    router.push(destino).catch(()=>{})
+    return
   }
+
+  router.push(`/${destino}`).catch(()=>{})
 }
 
 const navegarAComision = (comision) => {
   comisionesAbierto.value = false
   rutaActiva.value = comision
-  router.push(`/${comision}`)
+  router.push(`/${comision}`).catch(()=>{})
 }
 
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  router.push('/').catch(()=>{})
 }
 </script>

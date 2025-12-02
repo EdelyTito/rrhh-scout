@@ -159,7 +159,7 @@ const routes = [
     props: true
   },
   
-  // Invitado
+  // Invitado - publicas
   {
     path: '/formulario-aprobaciones',
     name: 'FormularioAprobacionesPublico',
@@ -175,11 +175,42 @@ const routes = [
     name: 'FormularioHabilitacionDirigentesPublico',
     component: FormularioHabilitacionDirigentesPublico
   },
+
+  //fallback
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
+  }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// Guard global
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.meta?.requiresAuth
+  if (!requiresAuth) return next()
+
+  // Leer token y usuario desde localStorage
+  const token = localStorage.getItem('token')
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
+
+  if (!token || !usuario) {
+    return next({ path: '/' })
+  }
+
+  const allowedRoles = to.meta?.roles || null
+  if (allowedRoles) {
+    const rolNombre = usuario.rol_nombre || usuario.rol || ''
+    if (!allowedRoles.includes(rolNombre) && !allowedRoles.includes(String(usuario.rol_id))) {
+      // rol no permitido
+      return next({ path: '/' })
+    }
+  }
+
+  return next()
 })
 
 export default router

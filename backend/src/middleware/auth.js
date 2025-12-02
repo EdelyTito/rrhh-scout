@@ -2,9 +2,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
-/**
- * Middleware para verificar y decodificar el token JWT
- */
+
 export const verifyToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
 
