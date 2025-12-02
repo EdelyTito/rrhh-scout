@@ -1,0 +1,989 @@
+{
+	"info": {
+		"_postman_id": "747fac2b-576b-4fc2-ba14-2977e2750717",
+		"name": "RRHH_DSLP",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27234379"
+	},
+	"item": [
+		{
+			"name": "Admi(Coordinador)",
+			"item": [
+				{
+					"name": "Registro de usuarios",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Edely Tito\",\r\n  \"correo\": \"edelytito@gmail.com\",\r\n  \"contrasena\": \"123456\",\r\n  \"cargo\": \"Comisionado de Seguimiento\",\r\n  \"rol_id\": 4\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lista de usuarios",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Inicio de sesión",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test script para guardar token y datos del usuario en variables de entorno\r",
+									"try {\r",
+									"  const res = pm.response.json();\r",
+									"\r",
+									"  // Ajusta según tu estructura de respuesta: { token: \"...\", usuario: { id:..., rol_nombre:... } }\r",
+									"  const token = res.token || res.data?.token || null;\r",
+									"  const usuario = res.usuario || res.user || res.data?.usuario || null;\r",
+									"\r",
+									"  if (token) {\r",
+									"    pm.environment.set(\"token_admin\", token);\r",
+									"    console.log(\"token_admin guardado en environment\");\r",
+									"  } else {\r",
+									"    console.warn(\"No se encontró 'token' en la respuesta.\");\r",
+									"  }\r",
+									"\r",
+									"  if (usuario && usuario.id) {\r",
+									"    pm.environment.set(\"user_admin_id\", String(usuario.id));\r",
+									"  }\r",
+									"} catch (e) {\r",
+									"  console.error(\"Error en Test script de login:\", e);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"correo\": \"admin@rrhh.com\",\r\n  \"contrasena\": \"123456\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logs"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Registro_y_habilitación",
+			"item": [
+				{
+					"name": "R-Registro dirigente form público",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n  \"nombre\": \"Feredico Gomez\",\r\n  \"grupo\": \"Grupo Scout Abc\",\r\n  \"correo\": \"grumiawfedego@gmail.com\",\r\n  \"documento_url\": \"https://mi-prueba-de-documento.pdf\",\r\n  \"observaciones\": \"Solicitud inicial de registro.\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/registro/public",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"registro",
+								"public"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "R-Listar solicitudes registro",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/registro",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"registro"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "R-Actualizar estado de solicitud",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"estado\": \"habilitado\",\r\n  \"observaciones\": \"Documentación revisada correctamente.\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/registro/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"registro",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "R-Eliminar solicitud de registro",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/registro/3",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"registro",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "R-Ver dirigentes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dirigentes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dirigentes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "R-Crear dirigente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Alvaro Diaz\",\r\n  \"grupo\": \"Grupo Scout Gatos\",\r\n  \"estado\": \"Activo\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/dirigentes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dirigentes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "R-Actualizar dirigente",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Alvarito Diaz\",\r\n  \"grupo\": \"Grupo Scout Centrales\",\r\n  \"estado\": \"Activo\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/dirigentes/6",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dirigentes",
+								"6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "R-Eliminar dirigente",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dirigentes/2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dirigentes",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Formación",
+			"item": [
+				{
+					"name": "F-Crear nuevo curso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Primeros auxilios\",\r\n  \"descripcion\": \"Para primeros auxilios de 3 módulos\",\r\n  \"fecha_inicio\": \"2025-11-15\",\r\n  \"fecha_fin\": \"2025-11-17\",\r\n  \"modalidad\": \"Presencial\",\r\n  \"lugar\": \"Centro La Paz\",\r\n  \"cupo\": 10\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "F-Listar cursos",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "F-Editar curso",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Batería de Módulos para Primeros auxilios\",\r\n  \"descripcion\": \"Tendrá 3 módulos para primeros auxilios\",\r\n  \"fecha_inicio\": \"2025-11-16\",\r\n  \"fecha_fin\": \"2025-11-18\",\r\n  \"modalidad\": \"Presencial\",\r\n  \"lugar\": \"Sede Scout La Paz\",\r\n  \"cupo\": 15\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "F-Eliminar curso",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "F-Crear módulo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"titulo\": \"Módulo 1: Vendas para heridas\",\r\n  \"descripcion\": \"Aprender cómo colocar vendas\",\r\n  \"duracion_horas\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos/4/modulos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos",
+								"4",
+								"modulos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "F-Registrar asistencia",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"modulos_curso_id\": 3,\r\n  \"nombre_participante\": \"Ariana Gomez\",\r\n  \"grupo\": \"Grupo Scout Gatos\",\r\n  \"presente\": true,\r\n  \"pago_cuota\": false,\r\n  \"observaciones\": \"Participación activa pero no pagó\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/formacion/asistencias",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"asistencias"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "F-Listar asistencias",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/formacion/asistencias",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"asistencias"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Seguimiento",
+			"item": [
+				{
+					"name": "S-Registro postulación form público",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre_participante\": \"Jose Pedro\",\r\n  \"grupo\": \"Grupo Scout Jesus\",\r\n  \"correo\": \"jopemiaw@gmail.com\",\r\n  \"tipo_im\": \"IM3\",\r\n  \"documento_url\": \"https://mi-paas.com/docs/juanperez_IM2.pdf\",\r\n  \"observaciones\": \"Entrega inicial\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/seguimiento/public",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento",
+								"public"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "S-Listar postulaciones",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/seguimiento",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "S-Nueva entrega o devolución",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"etapa\": \"segunda entrega\",\r\n  \"documento_url\": \"https://mi-paas.com/docs/juanperez_IM2_segunda.pdf\",\r\n  \"observaciones\": \"Se corrigió el documento según observaciones\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/seguimiento/7/entregas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento",
+								"7",
+								"entregas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "S-Ver postulaciones con entregas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/seguimiento/7",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento",
+								"7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "S-Actualizar resultado final",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"resultado_final\": \"aprobado\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/seguimiento/7/resultado",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento",
+								"7",
+								"resultado"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "S-Eliminar postulación",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/seguimiento/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "S-Registro PP o Reincorporación público",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Mauricio Loredo\",\r\n  \"grupo\": \"Grupo Scout Halcones\",\r\n  \"tipo\": \"periodo de prueba\",\r\n  \"motivo\": \"Nuevo dirigente incorporado por primera vez\",\r\n  \"documento_url\": \"https://mi-paas.com/docs/luis_garcia_pp.pdf\",\r\n  \"archivo_formulario\": \"https://mi-paas.com/formularios/form_pp.pdf\",\r\n  \"archivo_carta_respaldo\": \"https://mi-paas.com/cartas/carta_luis.pdf\",\r\n  \"telefono\": \"78945612\",\r\n  \"correo\": \"maulomiawgmiaw@gmail.com\",\r\n  \"fecha_inicio\": \"2025-11-01\",\r\n  \"fecha_fin\": \"2026-05-01\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/seguimiento/reincorporacion",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento",
+								"reincorporacion"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "S-Listar PP o reincorporaciones",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_admin}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/seguimiento/reincorporacion",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"seguimiento",
+								"reincorporacion"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pruebas",
+			"item": [
+				{
+					"name": "Petición sin token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Token expirado",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sX2lkIjoxLCJyb2xfbm9tYnJlIjoiYWRtaW4iLCJjb3JyZW8iOiJhZG1pbkBycmhoLmNvbSIsIm5vbWJyZSI6IkVkZWx5IFRpdG8iLCJjYXJnbyI6IkNvb3JkaW5hZG9yIGRlIFJSSEgiLCJpYXQiOjE3NjIyMDYxOTUsImV4cCI6MTc2MjIyMDU5NX0.5oAFz3LXTBggMzLMMjcKL0QkSy4wZIVsgx_JdH--hvU",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Petición token incorrecto",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer 1234",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/formacion/cursos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"formacion",
+								"cursos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "P-inyección sql de form público",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"'; DROP TABLE usuarios; --\",\r\n  \"grupo\": \"Test SQL\",\r\n  \"correo\": \"ataque@test.com\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/registro/public",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"registro",
+								"public"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "P-Validación de datos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

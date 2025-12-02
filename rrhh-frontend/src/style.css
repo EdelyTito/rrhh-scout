@@ -1,0 +1,15 @@
+/* src/style.css */
+/* Elimina todo el contenido anterior y pon solo esto: */
+
+/* Estilos globales básicos */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Reset para que la app ocupe toda la pantalla */
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
