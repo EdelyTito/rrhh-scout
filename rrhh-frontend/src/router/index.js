@@ -25,10 +25,14 @@ import PeriodoPruebaLista from '../views/seguimiento/PeriodoPruebaLista.vue'
 import RegistroDashboard from '../views/registro/RegistroDashboard.vue' 
 import SolicitudesPendientesRegistro from '../views/registro/SolicitudesPendientesRegistro.vue'
 import DetalleSolicitud from '../views/registro/DetalleSolicitud.vue'
+import ListaDirigentesHabilitados from '../views/registro/ListaDirigentesHabilitados.vue'
+import DetalleDirigenteRegistro from '../views/registro/DetalleDirigenteRegistro.vue'
+import EditarDirigenteRegistro from '../views/registro/EditarDirigenteRegistro.vue'
 
 // Invitado
 import FormularioAprobacionesPublico from '../views/invitado/FormularioAprobacionesPublico.vue'
 import FormularioPPoReincorporacionPublico from '../views/invitado/FormularioPPoReincorporacionPublico.vue'
+import FormularioHabilitacionDirigentesPublico from '../views/invitado/FormularioHabilitacionDirigentesPublico.vue'
 
 
 
@@ -120,7 +124,7 @@ const routes = [
     props: true
   },
 
-  // Registro y habilitación - COMENTADO TEMPORALMENTE
+  // Registro y habilitación
   {
     path: '/registro',
     name: 'RegistroDashboard',
@@ -137,6 +141,23 @@ const routes = [
     component: DetalleSolicitud,
     props: true
   },
+  {
+    path: '/registro/dirigentes-habilitados',
+    name: 'ListaDirigentesHabilitados',
+    component: ListaDirigentesHabilitados
+  },
+  {
+    path: '/registro/dirigente/:id',
+    name: 'DetalleDirigenteRegistro',
+    component: DetalleDirigenteRegistro,
+    props: true
+  },
+  {
+    path: '/registro/dirigente/:id/editar',
+    name: 'EditarDirigenteRegistro',
+    component: EditarDirigenteRegistro,
+    props: true
+  },
   
   // Invitado
   {
@@ -148,6 +169,11 @@ const routes = [
     path: '/formulario-ppreincorporacion',
     name: 'FormularioPPoReincorporacionPublico',
     component: FormularioPPoReincorporacionPublico
+  },
+  {
+    path: '/formulario-habilitacion-dirigentes',
+    name: 'FormularioHabilitacionDirigentesPublico',
+    component: FormularioHabilitacionDirigentesPublico
   },
 ]
 
