@@ -254,7 +254,7 @@ const navegarA = (destino) => {
 
 const verCurso = (id) => {
   // Navegar a vista detalle del curso
-  router.push(`/formacion/curso/${id}`)
+  router.push(`/formacion/detalle-curso/${id}`)
 }
 
 const editarCurso = (id) => {

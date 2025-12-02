@@ -22,7 +22,9 @@ import ListaDirigentes from '../views/seguimiento/ListaDirigentes.vue'
 import PeriodoPruebaLista from '../views/seguimiento/PeriodoPruebaLista.vue'
 
 // Registro y habilitación
-// import Registro from '../views/registro/RegistroDashboard.vue' // Comentado temporalmente
+import RegistroDashboard from '../views/registro/RegistroDashboard.vue' 
+import SolicitudesPendientesRegistro from '../views/registro/SolicitudesPendientesRegistro.vue'
+import DetalleSolicitud from '../views/registro/DetalleSolicitud.vue'
 
 // Invitado
 import FormularioAprobacionesPublico from '../views/invitado/FormularioAprobacionesPublico.vue'
@@ -37,6 +39,7 @@ const routes = [
     name: 'Login',
     component: Login
   },
+
   // Admin
   {
     path: '/admin',
@@ -53,6 +56,7 @@ const routes = [
     name: 'LogsSistema',
     component: LogsSistema
   },
+
   // Seguimiento
   {
     path: '/seguimiento',
@@ -74,6 +78,7 @@ const routes = [
     name: 'PeriodoPruebaLista',
     component: PeriodoPruebaLista
   },
+
   // Formación
   {
     path: '/formacion',
@@ -116,11 +121,23 @@ const routes = [
   },
 
   // Registro y habilitación - COMENTADO TEMPORALMENTE
-  // {
-  //   path: '/registro',
-  //   name: 'Registro',
-  //   component: () => import('../views/registro/RegistroDashboard.vue')
-  // },
+  {
+    path: '/registro',
+    name: 'RegistroDashboard',
+    component: RegistroDashboard
+  },
+  {
+    path: '/registro/solicitudes-pendientes',
+    name: 'SolicitudesPendientesRegistro',
+    component: SolicitudesPendientesRegistro
+  },
+  {
+    path: '/registro/solicitud/:id',
+    name: 'DetalleSolicitud',
+    component: DetalleSolicitud,
+    props: true
+  },
+  
   // Invitado
   {
     path: '/formulario-aprobaciones',
