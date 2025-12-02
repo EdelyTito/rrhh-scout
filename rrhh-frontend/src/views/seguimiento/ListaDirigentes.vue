@@ -41,9 +41,9 @@
           </button>
           
           <button 
-            @click="navegarA('solicitudes')"
+            @click="navegarA('solicitudes-pendientes')"
             :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'solicitudes' 
+                    rutaActiva === 'solicitudes-pendientes' 
                     ? 'border-[#009d71] text-[#009d71]' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
           >
@@ -51,9 +51,9 @@
           </button>
           
           <button 
-            @click="navegarA('dirigentes')"
+            @click="navegarA('lista-dirigentes')"
             :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'dirigentes' 
+                    rutaActiva === 'lista-dirigentes' 
                     ? 'border-[#009d71] text-[#009d71]' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
           >
@@ -338,7 +338,7 @@ export default {
     const router = useRouter()
     
     const nombreResponsable = ref('Responsable de Seguimiento')
-    const rutaActiva = ref('dirigentes')
+    const rutaActiva = ref('lista-dirigentes')
 
     // Filtros
     const filtros = ref({

@@ -86,9 +86,9 @@
           </div>
 
           <button 
-            @click="navegarA('lista-usuarios')"
+            @click="navegarA('admin/lista-usuarios')"
             :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'lista-usuarios' 
+                    rutaActiva === 'admin/lista-usuarios' 
                     ? 'border-[#009d71] text-[#009d71]' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
           >
@@ -96,7 +96,7 @@
           </button>
           
           <button 
-            @click="navegarA('logs')"
+            @click="navegarA('admin/logs')"
             :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
                     rutaActiva === 'logs' 
                     ? 'border-[#009d71] text-[#009d71]' 
@@ -174,7 +174,7 @@
         <!-- Quick Actions -->
         <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div 
-            @click="navegarA('lista-usuarios')"
+            @click="navegarA('admin/lista-usuarios')"
             class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
           >
             <div class="flex items-center">
@@ -191,7 +191,7 @@
           </div>
 
           <div 
-            @click="navegarA('logs')"
+            @click="navegarA('admin/logs')"
             class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
           >
             <div class="flex items-center">
@@ -256,7 +256,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -277,10 +277,17 @@ const toggleComisiones = () => {
 const navegarA = (destino) => {
   rutaActiva.value = destino
   comisionesAbierto.value = false
+  
   if (destino === 'inicio') {
     return
   }
-  router.push(`/${destino}`)
+  
+  // Si destino ya empieza con "/", usar directamente, sino agregar "/"
+  if (destino.startsWith('/')) {
+    router.push(destino)
+  } else {
+    router.push(`/${destino}`)
+  }
 }
 
 const navegarAComision = (comision) => {
@@ -294,20 +301,4 @@ const cerrarSesion = () => {
   localStorage.removeItem('token')
   router.push('/')
 }
-
-// Manejar click fuera del dropdown para cerrarlo
-const handleClickOutside = (event) => {
-  const dropdown = event.target.closest('.relative')
-  if (!dropdown) {
-    comisionesAbierto.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>

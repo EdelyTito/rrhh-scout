@@ -51,12 +51,12 @@ const routes = [
     component: AdminDashboard
   },
   {
-    path: '/lista-usuarios',
+    path: '/admin/lista-usuarios',
     name: 'ListaUsuarios',
     component: ListaUsuarios
   },
   {
-    path: '/logs',
+    path: '/admin/logs',
     name: 'LogsSistema',
     component: LogsSistema
   },
@@ -68,17 +68,17 @@ const routes = [
     component: Seguimiento
   },
   {
-    path: '/solicitudes-pendientes',
+    path: '/seguimiento/solicitudes-pendientes',
     name: 'SolicitudesPendientes',
     component: SolicitudesPendientes
   },
   {
-    path: '/lista-dirigentes',
+    path: '/seguimiento/lista-dirigentes',
     name: 'ListaDirigentes',
     component: ListaDirigentes
   },
   {
-    path: '/periodo-prueba',
+    path: '/seguimiento/periodo-prueba',
     name: 'PeriodoPruebaLista',
     component: PeriodoPruebaLista
   },

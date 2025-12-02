@@ -81,9 +81,9 @@
           </div>
 
           <button 
-            @click="navegarA('lista-usuarios')"
+            @click="navegarA('admin/lista-usuarios')"
             :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'lista-usuarios' 
+                    rutaActiva === 'admin/lista-usuarios' 
                     ? 'border-[#009d71] text-[#009d71]' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
           >
@@ -91,9 +91,9 @@
           </button>
           
           <button 
-            @click="navegarA('logs')"
+            @click="navegarA('admin/logs')"
             :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'logs' 
+                    rutaActiva === 'admin/logs' 
                     ? 'border-[#009d71] text-[#009d71]' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
           >
@@ -364,7 +364,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
-const rutaActiva = ref('logs')
+const rutaActiva = ref('admin/logs')
 const comisionesAbierto = ref(false)
 const loading = ref(false)
 
@@ -540,10 +540,13 @@ const toggleComisiones = () => {
 const navegarA = (destino) => {
   rutaActiva.value = destino
   comisionesAbierto.value = false
+  
   if (destino === 'admin') {
     router.push('/admin')
-  } else if (destino === 'lista-usuarios') {
-    router.push('/lista-usuarios')
+  } else if (destino === 'admin/lista-usuarios') {
+    router.push('/admin/lista-usuarios')
+  } else if (destino === 'admin/logs') {
+    router.push('/admin/logs')
   }
 }
 
