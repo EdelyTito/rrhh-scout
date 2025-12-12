@@ -1,5 +1,5 @@
 /**
- * Middleware para verificar si el usuario tiene uno de los roles permitidos
+ * 
  * @param  {...number} allowedRoles - IDs de los roles que pueden acceder
  */
 export const authorizeRoles = (...allowedRoles) => {
@@ -12,7 +12,7 @@ export const authorizeRoles = (...allowedRoles) => {
     }
 
     if (!allowedRoles.includes(userRoleId)) {
-      console.warn(`🚫 Acceso denegado para ${userName} (Rol ID ${userRoleId})`);
+      console.warn(`Acceso denegado para ${userName} (Rol ID ${userRoleId})`);
       return res.status(403).json({ error: "No tienes permisos para esta acción" });
     }
 

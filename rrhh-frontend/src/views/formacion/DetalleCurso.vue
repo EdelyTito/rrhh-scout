@@ -1,7 +1,5 @@
-<!-- DetalleCurso.vue - Versión corregida -->
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header específico para Formación (responsable) -->
     <header class="bg-[#009d71] shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
@@ -78,9 +76,6 @@
               @click="gestionarModulos"
               class="bg-[#009d71] text-white px-4 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 font-medium flex items-center space-x-2"
             >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
               <span>Gestionar Módulos</span>
             </button>
           </div>
@@ -217,79 +212,63 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { formacionService } from '../../services/api'
 
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
+
 const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('detalle-curso')
 
-// Datos del curso (simulados según página 19 del Figma)
-const curso = ref({
-  id: 1,
-  nombre: 'Introductorio 2025',
-  tipo: 'Curso Introductorio',
-  estado: 'finalizado',
-  fecha: '20 y 21 de febrero',
-  descripcion: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-  modulos: [
-    {
-      id: 1,
-      nombre: 'Liderazgo Scout',
-      descripcion: 'Fundamentos del liderazgo en el escultismo',
-      dirigente: 'Juan Pérez',
-      duracion: '2 horas'
-    },
-    {
-      id: 2,
-      nombre: 'Metodología Scout',
-      descripcion: 'Sistema de patrullas y progresión personal',
-      dirigente: 'María Gómez',
-      duracion: '3 horas'
-    },
-    {
-      id: 3,
-      nombre: 'Seguridad Scout',
-      descripcion: 'Protocolos de seguridad y primeros auxilios',
-      dirigente: 'Carlos Rodríguez',
-      duracion: '4 horas'
-    }
-  ]
-})
+const curso = ref({ modulos: [] })
+const cargando = ref(false)
+const error = ref('')
 
-// Cargar datos del usuario
+const cursoId = computed(() => route.params.id)
+
+const cargarDatos = async () => {
+  cargando.value = true
+  error.value = ''
+  try {
+    const [cursoRes, modRes] = await Promise.all([
+      formacionService.getCurso(cursoId.value),
+      formacionService.getModulos(cursoId.value),
+    ])
+
+    curso.value = cursoRes.data || { modulos: [] }
+
+    const modulosData = Array.isArray(modRes.data) ? modRes.data : []
+    curso.value.modulos = modulosData
+
+  } catch (err) {
+    console.error('Error cargando detalle de curso:', err)
+    error.value = 'No se pudo cargar el curso. Intenta nuevamente.'
+    curso.value = { modulos: [] }
+  } finally {
+    cargando.value = false
+  }
+}
+
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Formación'
-  
-  // Simular carga de datos del curso según ID de la ruta
-  const cursoId = route.params.id
-  if (cursoId) {
-    console.log(`Cargando datos del curso ${cursoId}`)
-    // Aquí iría la lógica para cargar el curso específico
-  }
+  cargarDatos()
 })
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  
-  switch(destino) {
-    case 'inicio-formacion':
-      router.push('/formacion')
-      break
-    case 'lista-cursos':
-      router.push('/formacion/lista-cursos')
-      break
-  }
+  if (destino === 'lista-cursos') router.push('/formacion/lista-cursos')
+  if (destino === 'inicio-formacion') router.push('/formacion')
 }
 
 const editarCurso = () => {
-  router.push(`/formacion/editar-curso/${curso.value.id}`)
+  router.push(`/formacion/editar-curso/${cursoId.value}`)
 }
 
 const gestionarModulos = () => {
-  router.push(`/formacion/curso/${curso.value.id}/modulos`)
+  router.push(`/formacion/curso/${cursoId.value}/modulos`)
 }
 
 const verAsistenciasModulo = (moduloId) => {
@@ -297,25 +276,23 @@ const verAsistenciasModulo = (moduloId) => {
 }
 
 const editarModulo = (moduloId) => {
-  // Esto ya está manejado en GestionModulos.vue
-  router.push(`/formacion/curso/${curso.value.id}/modulos`)
+  alert('Edición de módulo aún no implementada en backend.')
+}
+
+const eliminarCurso = async () => {
+  if (!confirm('¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.')) return
+  alert('Eliminar curso no implementado en backend — acción simulada.')
+  router.push('/formacion/lista-cursos')
 }
 
 const volverALista = () => {
   router.push('/formacion/lista-cursos')
 }
 
-const eliminarCurso = () => {
-  if (confirm('¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.')) {
-    // Lógica para eliminar el curso
-    console.log(`Curso ${curso.value.id} eliminado`)
-    router.push('/formacion/lista-cursos')
-  }
-}
-
 const cerrarSesion = () => {
-  localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  localStorage.removeItem('usuario')
+  router.push('/login')
 }
 </script>
+

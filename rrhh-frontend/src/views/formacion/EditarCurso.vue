@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header específico para Formación (responsable) -->
     <header class="bg-[#009d71] shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
@@ -210,111 +209,112 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { formacionService } from '../../services/api'
 
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
+
 const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('editar-curso')
+const cargando = ref(false)
 const guardando = ref(false)
+const error = ref('')
+const mensaje = ref('')
 
-// Datos del formulario
+const cursoId = computed(() => route.params.id)
+
 const formulario = ref({
   nombre: '',
-  tipo: '',
-  estado: '',
-  fecha: '',
-  descripcion: ''
+  descripcion: '',
+  fecha_inicio: '',
+  fecha_fin: '',
+  modalidad: '',
+  lugar: '',
+  cupo: '',
 })
+
+const cargarCurso = async () => {
+  cargando.value = true
+  error.value = ''
+  try {
+    const res = await formacionService.getCurso(cursoId.value)
+    const c = res.data
+    formulario.value = {
+      nombre: c.nombre || '',
+      descripcion: c.descripcion || '',
+      fecha_inicio: c.fecha_inicio ? c.fecha_inicio.substring(0, 10) : '',
+      fecha_fin: c.fecha_fin ? c.fecha_fin.substring(0, 10) : '',
+      modalidad: c.modalidad || '',
+      lugar: c.lugar || '',
+      cupo: c.cupo || '',
+    }
+  } catch (err) {
+    console.error('Error cargando curso para edición:', err)
+    error.value = 'No se pudo cargar el curso.'
+  } finally {
+    cargando.value = false
+  }
+}
 
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Formación'
-  
-  // Cargar datos del curso según ID
-  const cursoId = route.params.id
-  cargarCurso(cursoId)
+  cargarCurso()
 })
 
-const cargarCurso = (id) => {
-  // Simular carga de datos (en producción sería una API)
-  const cursosEjemplo = [
-    {
-      id: 1,
-      nombre: 'Introductorio 2025',
-      tipo: 'Curso Introductorio',
-      estado: 'finalizado',
-      fecha: '20 y 21 de febrero',
-      descripcion: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.'
-    }
-  ]
-  
-  const curso = cursosEjemplo.find(c => c.id == id)
-  if (curso) {
-    formulario.value = { ...curso }
-  }
-}
-
-const navegarA = (destino) => {
-  switch(destino) {
-    case 'inicio-formacion':
-      router.push('/formacion')
-      break
-    case 'lista-cursos':
-      router.push('/formacion/lista-cursos')
-      break
-  }
-}
-
-const volverAlDetalle = () => {
-  router.push(`/formacion/detalle-curso/${route.params.id}`)
-}
-
 const guardarCambios = async () => {
-  // Validación básica
-  if (!formulario.value.nombre || !formulario.value.tipo || 
-      !formulario.value.estado || !formulario.value.descripcion) {
-    alert('Por favor complete todos los campos obligatorios')
+  if (!formulario.value.nombre || !formulario.value.descripcion) {
+    error.value = 'Nombre y descripción son obligatorios.'
     return
   }
 
   guardando.value = true
+  error.value = ''
+  mensaje.value = ''
 
   try {
-    // Simular guardado en API
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    console.log('Curso actualizado:', formulario.value)
-    alert('¡Curso actualizado exitosamente!')
-    
-    // Redirigir al detalle
-    router.push(`/formacion/detalle-curso/${route.params.id}`)
-    
-  } catch (error) {
-    console.error('Error:', error)
-    alert('Error al actualizar el curso')
+    const payload = {
+      nombre: formulario.value.nombre,
+      descripcion: formulario.value.descripcion,
+      fecha_inicio: formulario.value.fecha_inicio || null,
+      fecha_fin: formulario.value.fecha_fin || null,
+      modalidad: formulario.value.modalidad || null,
+      lugar: formulario.value.lugar || null,
+      cupo: formulario.value.cupo ? Number(formulario.value.cupo) : null,
+    }
+
+    const res = await formacionService.updateCurso(cursoId.value, payload)
+    console.log('Curso actualizado:', res.data)
+    mensaje.value = 'Curso actualizado correctamente.'
+    setTimeout(() => {
+      router.push(`/formacion/detalle-curso/${cursoId.value}`)
+    }, 800)
+  } catch (err) {
+    console.error('Error al actualizar curso:', err)
+    error.value = err.response?.data?.error || 'Error al actualizar el curso.'
   } finally {
     guardando.value = false
   }
 }
 
-const eliminarCurso = () => {
-  if (confirm('¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.')) {
-    console.log(`Curso ${route.params.id} eliminado`)
-    router.push('/formacion/lista-cursos')
+const cancelar = () => {
+  if (confirm('¿Cancelar los cambios? Se perderán las modificaciones no guardadas.')) {
+    router.push(`/formacion/detalle-curso/${cursoId.value}`)
   }
 }
 
-const cancelar = () => {
-  if (confirm('¿Cancelar cambios? Los cambios no guardados se perderán.')) {
-    router.push(`/formacion/detalle-curso/${route.params.id}`)
-  }
+const navegarA = (destino) => {
+  rutaActiva.value = destino
+  if (destino === 'lista-cursos') router.push('/formacion/lista-cursos')
+  if (destino === 'inicio-formacion') router.push('/formacion')
 }
 
 const cerrarSesion = () => {
-  localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  localStorage.removeItem('usuario')
+  router.push('/login')
 }
 </script>
+

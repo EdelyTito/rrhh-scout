@@ -340,17 +340,14 @@ const router = useRouter()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('solicitudes-pendientes-registro')
 
-// Filtros
 const filtroGrupo = ref('')
 const filtroRama = ref('')
 const filtroFecha = ref('')
 const paginaActual = ref(1)
 const itemsPorPagina = 10
 
-// Selección masiva
 const solicitudesSeleccionadas = ref([])
 
-// Datos de solicitudes pendientes (según página 21 del PDF)
 const solicitudesPendientes = ref([
   {
     id: 1,
@@ -431,40 +428,32 @@ const solicitudesPendientes = ref([
   }
 ])
 
-// Estadísticas
 const estadisticas = ref({
   hoy: 2,
   semana: 8,
   tiempoPromedio: 18
 })
 
-// Cargar datos del usuario
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
 })
 
-// Computed properties
 const solicitudesFiltradas = computed(() => {
   let filtradas = [...solicitudesPendientes.value]
   
-  // Aplicar filtro por grupo
   if (filtroGrupo.value) {
     filtradas = filtradas.filter(s => s.grupo === filtroGrupo.value)
   }
   
-  // Aplicar filtro por rama
   if (filtroRama.value) {
     filtradas = filtradas.filter(s => s.rama === filtroRama.value)
   }
   
-  // Aplicar filtro por fecha (esto es un ejemplo simple)
   if (filtroFecha.value) {
-    // En una implementación real, aquí habría lógica para filtrar por fecha
     filtradas = filtradas.filter(s => s.diasPendiente > 7) // Ejemplo
   }
   
-  // Paginación
   const inicio = (paginaActual.value - 1) * itemsPorPagina
   return filtradas.slice(inicio, inicio + itemsPorPagina)
 })
@@ -483,7 +472,6 @@ const totalPaginas = computed(() => {
   return Math.ceil(solicitudesPendientes.value.length / itemsPorPagina)
 })
 
-// Métodos
 const navegarA = (destino) => {
   rutaActiva.value = destino
   
@@ -492,7 +480,6 @@ const navegarA = (destino) => {
       router.push('/registro')
       break
     case 'solicitudes-pendientes-registro':
-      // Ya estamos aquí
       break
     case 'lista-dirigentes-habilitados':
       router.push('/registro/dirigentes-habilitados')
@@ -585,7 +572,6 @@ const cambiarPagina = (nuevaPagina) => {
 
 const exportarExcel = () => {
   alert('Exportando datos a Excel...')
-  // Aquí iría la lógica para exportar a Excel
 }
 
 const descargarFormatos = () => {
@@ -608,7 +594,3 @@ const cerrarSesion = () => {
   router.push('/')
 }
 </script>
-
-<style scoped>
-/* Estilos específicos para la vista de solicitudes pendientes */
-</style>

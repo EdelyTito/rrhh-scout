@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header específico para Formación (responsable) -->
     <header class="bg-[#009d71] shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
@@ -215,20 +214,6 @@
                   placeholder="Ej: 2"
                 >
               </div>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Orden en el curso *
-                </label>
-                <input 
-                  v-model="formulario.orden"
-                  type="number" 
-                  min="1"
-                  required
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                  placeholder="Ej: 1"
-                >
-              </div>
             </div>
             
             <div class="flex justify-end space-x-4 pt-4">
@@ -273,155 +258,136 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { formacionService } from '../../services/api'
 
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
+
 const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('gestion-modulos')
+
+const curso = ref({ id: null, nombre: '', modulos: [] })
+const modulos = ref([])
+const cargando = ref(false)
+const error = ref('')
 const guardando = ref(false)
-const modoEdicion = ref(false)
-const moduloEditando = ref(null)
 
-// Datos del curso (simulados)
-const curso = ref({
-  id: 1,
-  nombre: 'Introductorio 2025'
-})
-
-// Lista de módulos
-const modulos = ref([
-  {
-    id: 1,
-    nombre: 'Liderazgo Scout',
-    descripcion: 'Fundamentos del liderazgo en el escultismo',
-    dirigente: 'Juan Pérez',
-    duracion: '2 horas',
-    orden: 1
-  },
-  {
-    id: 2,
-    nombre: 'Metodología Scout',
-    descripcion: 'Sistema de patrullas y progresión personal',
-    dirigente: 'María Gómez',
-    duracion: '3 horas',
-    orden: 2
-  }
-])
-
-// Formulario
 const formulario = ref({
   nombre: '',
   descripcion: '',
-  dirigente: '',
-  duracion: '',
-  orden: ''
+  duracion: '', 
+  dirigente: ''
 })
+
+const cursoId = computed(() => route.params.cursoId || route.params.id) 
+
+function mapModuloBackendToUI(m) {
+  return {
+    id: m.id,
+    nombre: m.titulo ?? m.nombre ?? 'Sin título',
+    descripcion: m.descripcion ?? '',
+    duracion: m.duracion_horas ? `${m.duracion_horas} h` : (m.duracion ?? ''),
+    dirigente: m.dirigente ?? m.responsable ?? '—'
+  }
+}
+
+const cargarDatos = async () => {
+  cargando.value = true
+  error.value = ''
+  try {
+    const [cursoRes, modRes] = await Promise.all([
+      formacionService.getCurso(cursoId.value),
+      formacionService.getModulos(cursoId.value)
+    ])
+
+    curso.value = cursoRes?.data ? { ...cursoRes.data, modulos: [] } : { id: cursoId.value, nombre: '', modulos: [] }
+
+    const rawMods = Array.isArray(modRes?.data) ? modRes.data : []
+    modulos.value = rawMods.map(mapModuloBackendToUI)
+
+    curso.value.modulos = modulos.value
+  } catch (err) {
+    console.error('Error cargando módulos:', err)
+    error.value = 'No se pudo cargar la información del curso.'
+    curso.value = { id: cursoId.value, nombre: '', modulos: [] }
+    modulos.value = []
+  } finally {
+    cargando.value = false
+  }
+}
 
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Formación'
-  
-  // Ordenar módulos por orden
-  modulos.value.sort((a, b) => a.orden - b.orden)
+  cargarDatos()
 })
 
-const navegarA = (destino) => {
-  switch(destino) {
-    case 'inicio-formacion':
-      router.push('/formacion')
-      break
-    case 'lista-cursos':
-      router.push('/formacion/lista-cursos')
-      break
-  }
-}
-
-const volverAlCurso = () => {
-  router.push(`/formacion/detalle-curso/${curso.value.id}`)
-}
-
-const editarModulo = (id) => {
-  const modulo = modulos.value.find(m => m.id === id)
-  if (modulo) {
-    formulario.value = { ...modulo }
-    modoEdicion.value = true
-    moduloEditando.value = id
-  }
-}
-
-const registrarAsistencias = (moduloId) => {
-  router.push(`/formacion/modulo/${moduloId}/asistencias`)
-}
-
-const eliminarModulo = (id) => {
-  if (confirm('¿Está seguro de eliminar este módulo?')) {
-    modulos.value = modulos.value.filter(m => m.id !== id)
-  }
-}
 
 const guardarModulo = async () => {
-  if (!formulario.value.nombre || !formulario.value.descripcion || 
-      !formulario.value.dirigente || !formulario.value.duracion || 
-      !formulario.value.orden) {
-    alert('Por favor complete todos los campos obligatorios')
+  if (!formulario.value.nombre || !formulario.value.duracion) {
+    alert('Debe completar el nombre del módulo y la duración (horas).')
     return
   }
 
   guardando.value = true
-
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    if (modoEdicion.value && moduloEditando.value) {
-      // Actualizar módulo existente
-      const index = modulos.value.findIndex(m => m.id === moduloEditando.value)
-      if (index !== -1) {
-        modulos.value[index] = { ...formulario.value, id: moduloEditando.value }
-      }
-    } else {
-      // Agregar nuevo módulo
-      const nuevoModulo = {
-        ...formulario.value,
-        id: Date.now()
-      }
-      modulos.value.push(nuevoModulo)
+    const payload = {
+      titulo: formulario.value.nombre,
+      descripcion: formulario.value.descripcion || '',
+      duracion_horas: Number(formulario.value.duracion)
     }
-    
-    // Ordenar por orden
-    modulos.value.sort((a, b) => a.orden - b.orden)
-    
-    // Limpiar formulario
-    resetFormulario()
-    
-  } catch (error) {
-    console.error('Error:', error)
-    alert('Error al guardar el módulo')
+
+    const res = await formacionService.createModulo(cursoId.value, payload)
+
+    const nuevoModuloBackend = res.data
+    const nuevoUI = mapModuloBackendToUI(nuevoModuloBackend)
+
+    modulos.value.push(nuevoUI)
+    curso.value.modulos = modulos.value
+
+    formulario.value = { nombre: '', descripcion: '', duracion: '', dirigente: '' }
+  } catch (err) {
+    console.error('Error creando módulo:', err)
+    alert(err.response?.data?.error || 'Error al crear módulo.')
   } finally {
     guardando.value = false
   }
 }
 
-const cancelarEdicion = () => {
-  resetFormulario()
+const editarModulo = (moduloId) => {
+  alert('Edición de módulo aún no implementada en backend.')
+}
+const eliminarModulo = (moduloId) => {
+  if (!confirm('¿Seguro eliminar módulo? (simulado en frontend)')) return
+  modulos.value = modulos.value.filter(m => m.id !== moduloId)
+  curso.value.modulos = modulos.value
 }
 
-const resetFormulario = () => {
-  formulario.value = {
-    nombre: '',
-    descripcion: '',
-    dirigente: '',
-    duracion: '',
-    orden: ''
-  }
-  modoEdicion.value = false
-  moduloEditando.value = null
+
+const registrarAsistencias = (modulo) => {
+  router.push({
+    name: 'RegistroAsistenciasFormacion', 
+    params: { moduloId: String(modulo.id) },
+    query: { moduloNombre: modulo.nombre, cursoNombre: curso.value?.nombre || '' }
+  })
 }
 
+
+const volverAlCurso = () => {
+  router.push(`/formacion/detalle-curso/${cursoId.value}`)
+}
+const navegarA = (destino) => {
+  rutaActiva.value = destino
+  if (destino === 'detalle-curso') router.push(`/formacion/detalle-curso/${cursoId.value}`)
+  if (destino === 'lista-cursos') router.push('/formacion/lista-cursos')
+}
 const cerrarSesion = () => {
-  localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  localStorage.removeItem('usuario')
+  router.push('/login')
 }
 </script>
+
+

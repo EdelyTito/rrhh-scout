@@ -25,7 +25,7 @@
           <button @click="navegarA('admin')" :class="navClass('admin')">Inicio</button>
 
           <div class="relative">
-            <button @click="toggleComisiones" :class="comisionesButtonClass">
+            <button @click="toggleComisiones" :class="comisionesButtonClass()">
               Comisiones
               <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -260,15 +260,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { logsService } from '../../services/api' // ajusta ruta si hace falta
-
+import { logsService } from '../../services/api'
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
 const rutaActiva = ref('admin/logs')
 const comisionesAbierto = ref(false)
 const loading = ref(false)
 
-// filtros
 const filtroTabla = ref('')
 const filtroUsuario = ref('')
 const filtroAccion = ref('')
@@ -276,16 +274,12 @@ const filtroFecha = ref('')
 
 const logs = ref([])
 
-// -----------------------------
-// NAV HELPERS
-// -----------------------------
 const navClass = (destino) => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
   if (rutaActiva.value === destino) return `${base} border-[#009d71] text-[#009d71]`
   return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
 }
 
-// Clase específica para el botón "Comisiones" (la plantilla usa comisionesButtonClass)
 const comisionesButtonClass = () => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center'
   if (comisionesAbierto.value) return `${base} border-[#009d71] text-[#009d71]`
@@ -320,12 +314,9 @@ const navegarAComision = (comision) => {
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/') // o '/login'
+  router.push('/') 
 }
 
-// -----------------------------
-// Cargar logs
-// -----------------------------
 const cargarLogs = async () => {
   loading.value = true
   try {
@@ -339,13 +330,9 @@ const cargarLogs = async () => {
   }
 }
 
-// -----------------------------
-// Computeds auxiliares requeridos por la plantilla
-// -----------------------------
 const usuariosUnicos = computed(() => {
   const map = new Map()
   logs.value.forEach(l => {
-    // evitar mezclar ?? y ||
     const rawId = (l.usuario_id !== undefined && l.usuario_id !== null) ? l.usuario_id
                 : (l.usuario && l.usuario.id !== undefined ? l.usuario.id : undefined)
     const id = rawId !== undefined ? rawId : (l.usuario_nombre ?? (typeof l.usuario === 'string' ? l.usuario : undefined))
@@ -373,9 +360,7 @@ const logsHoy = computed(() => {
   })
 })
 
-// -----------------------------
-// Filtrado principal (sin mezclar ?? y || en la misma expresión)
-// -----------------------------
+
 const logsFiltrados = computed(() => {
   return logs.value.filter(log => {
     const coincideTabla = !filtroTabla.value || (log.tabla_afectada || '').toLowerCase().includes(filtroTabla.value.toLowerCase())
@@ -388,7 +373,6 @@ const logsFiltrados = computed(() => {
 
     const coincideAccion = !filtroAccion.value || (log.accion || '').toLowerCase().includes(filtroAccion.value.toLowerCase())
 
-    // Filtro por fecha
     let coincideFecha = true
     if (filtroFecha.value) {
       const fecha = new Date(log.fecha_accion || log.created_at || log.fecha || null)
@@ -415,9 +399,6 @@ const logsFiltrados = computed(() => {
   })
 })
 
-// -----------------------------
-// Helpers UI
-// -----------------------------
 const getAccionBadgeClasses = (accion) => {
   const k = (accion || '').toString().toLowerCase()
   if (k.includes('login')) return 'bg-green-100 text-green-800'
@@ -441,12 +422,10 @@ const formatTiempoTranscurrido = (fechaStr) => {
   return `hace ${dias} d`
 }
 
-// Formatea fecha legible para la tabla (función requerida por la plantilla)
 const formatFecha = (fechaStr) => {
   if (!fechaStr) return ''
   const fecha = new Date(fechaStr)
   if (isNaN(fecha)) return ''
-  // Formato corto: dd/mm/yyyy hh:mm
   const dd = String(fecha.getDate()).padStart(2, '0')
   const mm = String(fecha.getMonth() + 1).padStart(2, '0')
   const yyyy = fecha.getFullYear()
@@ -455,9 +434,7 @@ const formatFecha = (fechaStr) => {
   return `${dd}/${mm}/${yyyy} ${hh}:${min}`
 }
 
-// -----------------------------
-// Acciones relacionadas (placeholders)
-// -----------------------------
+
 const exportarLogs = () => {
   alert('Función exportar aún no implementada.')
 }
@@ -474,7 +451,6 @@ const cargarMasLogs = async () => {
   alert('Cargar más logs: no implementado (aquí iría paginación).')
 }
 
-// -----------------------------
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Administrador'

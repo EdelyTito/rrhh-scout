@@ -1,4 +1,3 @@
-// src/config/db.js
 import pkg from "pg";
 import dotenv from "dotenv";
 dotenv.config();
@@ -11,7 +10,6 @@ const pool = new Pool({
   password: (process.env.DB_PASSWORD || "").trim(),
   database: (process.env.DB_NAME || "rrhh_scout").trim(),
   port: parseInt(process.env.DB_PORT || "5432", 10),
-  // opcional: puedes agregar ssl: { rejectUnauthorized: false } si usas cloud PG con TLS
 });
 
 export { pool };

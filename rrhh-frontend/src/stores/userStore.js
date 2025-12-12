@@ -1,4 +1,3 @@
-// src/stores/userStore.js
 import { defineStore } from "pinia";
 import { authService } from "../services/api";
 
@@ -21,7 +20,7 @@ export const useUserStore = defineStore("user", {
 
         return true;
       } catch (err) {
-        console.error("❌ Error en login:", err.response?.data || err);
+        console.error("Error en login:", err.response?.data || err);
         return false;
       }
     },

@@ -1,4 +1,3 @@
-// src/routes/seguimiento.routes.js
 import express from "express";
 import { pool } from "../config/db.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -9,7 +8,7 @@ import { registrarLog } from "../utils/logger.js";
 const router = express.Router();
 
 //
-// 🟢 RUTA PÚBLICA — Envío de formulario IM / Paxtu / Koodoo
+// RUTA PÚBLICA — Envío de formulario IM / Paxtu / Koodoo
 //
 router.post("/public", async (req, res) => {
   try {
@@ -43,7 +42,7 @@ router.post("/public", async (req, res) => {
     if (correo) {
       await sendEmail(
         correo,
-        "📬 Formulario recibido - Seguimiento Scout",
+        "Formulario recibido - Seguimiento Scout",
         `<p>Hola ${nombre_participante},</p>
          <p>Tu formulario <strong>${tipo_im}</strong> ha sido recibido exitosamente.</p>
          <p>El equipo RRAA revisará tu documentación y se comunicará contigo.</p>
@@ -56,14 +55,13 @@ router.post("/public", async (req, res) => {
       seguimiento_id: resultSeg.rows[0].id,
     });
   } catch (err) {
-    console.error("❌ Error al registrar formulario público:", err);
+    console.error("Error al registrar formulario público:", err);
     res.status(500).json({ error: "Error al registrar formulario público" });
   }
 });
 
 //
-// 🟢 RUTA PÚBLICA — Reincorporación o Periodo de Prueba
-// (⚠️ SE MUEVE ANTES DE LA RUTA DINÁMICA /:id)
+// RUTA PÚBLICA — Reincorporación o Periodo de Prueba
 //
 router.post("/reincorporacion", async (req, res) => {
   try {
@@ -98,13 +96,13 @@ router.post("/reincorporacion", async (req, res) => {
       reincorporacion_id: result.rows[0].id,
     });
   } catch (err) {
-    console.error("❌ Error al registrar reincorporación:", err);
+    console.error("Error al registrar reincorporación:", err);
     res.status(500).json({ error: "Error al registrar reincorporación" });
   }
 });
 
 //
-// 🔒 LISTAR REINCORPORACIONES
+// LISTAR REINCORPORACIONES
 //
 router.get("/reincorporacion", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
   try {
@@ -124,13 +122,13 @@ router.get("/reincorporacion", verifyToken, authorizeRoles(1, 4, 7), async (req,
 
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener reincorporaciones:", err);
+    console.error("Error al obtener reincorporaciones:", err);
     res.status(500).json({ error: "Error al obtener reincorporaciones" });
   }
 });
 
 //
-// 🔒 LISTAR TODOS LOS SEGUIMIENTOS
+//LISTAR TODOS LOS SEGUIMIENTOS
 //
 router.get("/", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
   try {
@@ -141,13 +139,13 @@ router.get("/", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
     `);
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener seguimientos:", err);
+    console.error("Error al obtener seguimientos:", err);
     res.status(500).json({ error: "Error al obtener seguimientos" });
   }
 });
 
 //
-// 🔒 REGISTRAR NUEVA ENTREGA / DEVOLUCIÓN
+//REGISTRAR NUEVA ENTREGA / DEVOLUCIÓN
 //
 router.post("/:id/entregas", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
   try {
@@ -178,13 +176,13 @@ router.post("/:id/entregas", verifyToken, authorizeRoles(1, 4, 7), async (req, r
 
     res.status(201).json(entrega.rows[0]);
   } catch (err) {
-    console.error("❌ Error al registrar entrega:", err);
+    console.error("Error al registrar entrega:", err);
     res.status(500).json({ error: "Error al registrar entrega" });
   }
 });
 
 //
-// 🔒 CAMBIAR RESULTADO FINAL DEL PROCESO
+//CAMBIAR RESULTADO FINAL DEL PROCESO
 //
 router.put("/:id/resultado", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
   try {
@@ -209,14 +207,13 @@ router.put("/:id/resultado", verifyToken, authorizeRoles(1, 4, 7), async (req, r
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error("❌ Error al actualizar resultado final:", err);
+    console.error("Error al actualizar resultado final:", err);
     res.status(500).json({ error: "Error al actualizar resultado final" });
   }
 });
 
 //
-// 🔒 DETALLE DE SEGUIMIENTO (con entregas)
-// ⚠️ ESTA DEBE IR AL FINAL para no interferir con /reincorporacion
+//DETALLE DE SEGUIMIENTO (con entregas)
 //
 router.get("/:id", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
   try {
@@ -233,13 +230,13 @@ router.get("/:id", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
 
     res.json({ seguimiento: seguimiento.rows[0], entregas: entregas.rows });
   } catch (err) {
-    console.error("❌ Error al obtener detalle del seguimiento:", err);
+    console.error("Error al obtener detalle del seguimiento:", err);
     res.status(500).json({ error: "Error al obtener detalle del seguimiento" });
   }
 });
 
 //
-// 🔒 ELIMINAR UN SEGUIMIENTO (solo admin)
+//ELIMINAR UN SEGUIMIENTO (solo admin)
 //
 router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
   try {
@@ -257,7 +254,7 @@ router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
 
     res.json({ message: "Seguimiento eliminado correctamente" });
   } catch (err) {
-    console.error("❌ Error al eliminar seguimiento:", err);
+    console.error("Error al eliminar seguimiento:", err);
     res.status(500).json({ error: "Error al eliminar seguimiento" });
   }
 });

@@ -258,7 +258,6 @@ export default {
   setup() {
     const enviando = ref(false)
     
-    // Datos del formulario
     const formulario = ref({
       grupoScout: '',
       nombreCompleto: '',
@@ -268,28 +267,24 @@ export default {
       fechaFinalizacion: ''
     })
 
-    // Archivos subidos
     const archivos = ref({
       carnetIdentidad: null,
       cartaRespaldo: null
     })
 
-    // Lista de dirigentes adicionales
     const dirigentesAdicionales = ref([])
 
-    // Métodos
     const agregarDirigente = () => {
       dirigentesAdicionales.value.push({
         nombreCompleto: '',
         ci: '',
-        id: Date.now() // ID temporal
+        id: Date.now() 
       })
     }
 
     const manejarArchivo = (event, tipo) => {
       const file = event.target.files[0]
       if (file) {
-        // Validar tamaño (10MB máximo)
         if (file.size > 10 * 1024 * 1024) {
           alert('El archivo es demasiado grande. Máximo 10MB permitido.')
           event.target.value = ''
@@ -346,7 +341,6 @@ export default {
       enviando.value = true
 
       try {
-        // Simular envío a la API
         await new Promise(resolve => setTimeout(resolve, 2000))
         
         console.log('Formulario enviado:', {
@@ -355,10 +349,8 @@ export default {
           archivos: archivos.value
         })
 
-        // Mostrar confirmación
         alert('¡Formulario enviado con éxito! Recibirá un correo de confirmación pronto.')
         
-        // Limpiar formulario
         limpiarFormulario()
         
       } catch (error) {
@@ -386,7 +378,6 @@ export default {
       
       dirigentesAdicionales.value = []
       
-      // Limpiar inputs de archivo
       const fileInputs = document.querySelectorAll('input[type="file"]')
       fileInputs.forEach(input => input.value = '')
     }

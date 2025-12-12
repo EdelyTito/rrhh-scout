@@ -272,7 +272,6 @@ export default {
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('inicio')
 
-    // Stats específicos de Seguimiento
     const stats = ref({
       totalSolicitudes: 10,
       aprobadosNivelII: 78,
@@ -295,7 +294,6 @@ export default {
       { nombre: 'Rovers', cantidad: 12 }
     ])
 
-    // Nombramientos actualizados con ambos niveles de Koodoo
     const nombramientos = ref([
       { tipo: 'Paxtu Grupo', cantidad: 60 },
       { tipo: 'Paxtu Distrito', cantidad: 40 },
@@ -303,7 +301,6 @@ export default {
       { tipo: 'Koodoo Director', cantidad: 9 }
     ])
 
-    // Cargar datos del usuario desde localStorage
     onMounted(() => {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
       nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'

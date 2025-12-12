@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header específico para Formación (responsable) -->
     <header class="bg-[#009d71] shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
@@ -129,13 +128,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Paginación o indicador de más elementos -->
-            <div v-if="dirigentes.length > 5" class="mt-6 pt-4 border-t border-gray-200">
-              <p class="text-sm text-gray-600 text-center">
-                Y {{ dirigentes.length - 5 }} dirigentes más...
-              </p>
-            </div>
           </div>
         </div>
 
@@ -153,93 +145,134 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { formacionService, dirigentesService } from '../../services/api'
 
 const router = useRouter()
 const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('inicio-formacion')
 
-// Datos para estadísticas
 const estadisticasCursos = ref({
-  total: 3,
-  activos: 1,
-  planificados: 1,
-  finalizados: 1
+  total: 0,
+  activos: 0,
+  planificados: 0,
+  finalizados: 0,
 })
 
-// Computed properties para las estadísticas
+const dirigentes = ref([])
+
 const totalCursos = computed(() => estadisticasCursos.value.total)
 const cursosActivos = computed(() => estadisticasCursos.value.activos)
 const cursosPlanificados = computed(() => estadisticasCursos.value.planificados)
 const cursosFinalizados = computed(() => estadisticasCursos.value.finalizados)
 
-// Lista de dirigentes que pueden dar cursos
-const dirigentes = ref([
-  {
-    id: 1,
-    nombre: 'Felipe Aranibar',
-    especialidad: 'Programa de Jóvenes - Lobatos',
-    nivel: 'IM Nivel III'
-  },
-  {
-    id: 2,
-    nombre: 'Nicole Figueroa',
-    especialidad: 'Formador de Líderes',
-    nivel: 'Koodoo Director'
-  },
-  {
-    id: 3,
-    nombre: 'Andres Morales',
-    especialidad: 'Gestión Institucional',
-    nivel: 'Paxtu Distrito'
-  },
-  {
-    id: 4,
-    nombre: 'Alejandro Montaner',
-    especialidad: 'Programa de Jóvenes - Rovers',
-    nivel: 'IM Nivel II'
-  },
-  {
-    id: 5,
-    nombre: 'María Fernanda López',
-    especialidad: 'Formación Introductoria',
-    nivel: 'IM Nivel II'
-  },
-  {
-    id: 6,
-    nombre: 'Carlos Rodríguez',
-    especialidad: 'Seguridad Scout',
-    nivel: 'IM Nivel III'
-  }
-])
+const cargarCursos = async () => {
+  try {
+    const res = await formacionService.getCursos()
+    const cursos = Array.isArray(res.data) ? res.data : []
 
-// Cargar datos del usuario
+    estadisticasCursos.value.total = cursos.length
+
+    estadisticasCursos.value.activos = cursos.filter(c => c.estado === 'activo').length
+    estadisticasCursos.value.planificados = cursos.filter(c => c.estado === 'planificado').length
+    estadisticasCursos.value.finalizados = cursos.filter(c => c.estado === 'finalizado').length
+
+  } catch (err) {
+    console.error('❌ Error cargando cursos en dashboard formación:', err)
+  }
+}
+
+/*const cargarDirigentes = async () => {
+  try {
+    const res = await dirigentesService.getDirigentes()
+    const todos = Array.isArray(res.data) ? res.data : []
+
+    // Si tu backend tiene un flag tipo puede_dar_curso, aquí lo filtras.
+    // Por ahora, mostramos los primeros 6 como ejemplo.
+    dirigentes.value = todos.slice(0, 6).map(d => ({
+      id: d.id,
+      nombre: d.nombre,
+      especialidad: d.especialidad || 'Dirigente',
+      nivel: d.nivel_formacion || '—',
+    }))
+  } catch (err) {
+    console.error('❌ Error cargando dirigentes para formación:', err)
+    // Si falla, podrías dejar unos de ejemplo si quieres.
+  }
+}*/
+
+
+const USE_FAKE_DIRIGENTES = true 
+
+const FAKE_DIRIGENTES = [
+  { id: 'f-01', nombre: 'María Gonzales', especialidad: 'Liderazgo Scout', nivel_formacion: 'Nivel 3' },
+  { id: 'f-02', nombre: 'Carlos Huanca', especialidad: 'Primeros Auxilios', nivel_formacion: 'Nivel 2' },
+  { id: 'f-03', nombre: 'Ana López', especialidad: 'Técnicas de Patrulla', nivel_formacion: 'Nivel 4' },
+  { id: 'f-04', nombre: 'Jorge Mamani', especialidad: 'Orientación y Campismo', nivel_formacion: 'Nivel 3' },
+  { id: 'f-05', nombre: 'Sofía Pacheco', especialidad: 'Formación de Monitores', nivel_formacion: 'Nivel 2' },
+  { id: 'f-06', nombre: 'Andrés Quispe', especialidad: 'Animación y Juegos', nivel_formacion: 'Nivel 1' },
+]
+
+const cargarDirigentes = async () => {
+  try {
+    const res = await dirigentesService.getDirigentes()
+    const todos = Array.isArray(res.data) ? res.data : []
+
+    if (todos.length > 0) {
+      dirigentes.value = todos.slice(0, 6).map(d => ({
+        id: d.id ?? `s-${Math.random().toString(36).slice(2,8)}`,
+        nombre: d.nombre ?? (d.nombre_completo ?? 'Nombre desconocido'),
+        especialidad: d.especialidad ?? d.area ?? 'Dirigente',
+        nivel: d.nivel_formacion ?? d.nivel ?? '—',
+      }))
+      return
+    }
+
+    if (USE_FAKE_DIRIGENTES) {
+      dirigentes.value = FAKE_DIRIGENTES.slice(0, 6)
+      console.warn('Usando dirigentes falsos para desarrollo (cargarDirigentes fallback).')
+      return
+    }
+
+    dirigentes.value = []
+  } catch (err) {
+    console.error('Error cargando dirigentes para formación:', err)
+    if (USE_FAKE_DIRIGENTES) {
+      dirigentes.value = FAKE_DIRIGENTES.slice(0, 6)
+      console.warn('Usando dirigentes falsos por error de conexión al backend.')
+    } else {
+      dirigentes.value = []
+    }
+  }
+}
+
+
+
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Formación'
+
+  cargarCursos()
+  cargarDirigentes()
 })
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  
-  switch(destino) {
+  switch (destino) {
     case 'inicio-formacion':
-      // Ya estamos aquí
       break
     case 'lista-cursos':
-      // Navegar a la lista de cursos (página 17)
       router.push('/formacion/lista-cursos')
       break
   }
 }
 
 const crearNuevoCurso = () => {
-  // Navegar a la vista de creación de cursos (página 18)
   router.push('/formacion/nuevo-curso')
 }
 
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  router.push('/login')
 }
 </script>

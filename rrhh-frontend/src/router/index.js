@@ -1,216 +1,268 @@
 import { createRouter, createWebHistory } from 'vue-router'
+
+//Login
 import Login from '../views/Login.vue'
 
-// Admin:
+// ADMIN
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
 import ListaUsuarios from '../views/admin/ListaUsuarios.vue'
 import LogsSistema from '../views/admin/LogsSistema.vue'
 
-// Formación
+// SEGUIMIENTO
+import SeguimientoDashboard from '../views/seguimiento/SeguimientoDashboard.vue'
+
+// REGISTRO
+import RegistroDashboard from '../views/registro/RegistroDashboard.vue'
+
+// FORMACIÓN 
 import FormacionDashboard from '../views/formacion/FormacionDashboard.vue'
 import ListaCursos from '../views/formacion/ListaCursos.vue'
 import NuevoCurso from '../views/formacion/NuevoCurso.vue'
 import DetalleCurso from '../views/formacion/DetalleCurso.vue'
+import EditarCurso from '../views/formacion/EditarCurso.vue'
 import GestionModulos from '../views/formacion/GestionModulos.vue'
 import RegistroAsistencias from '../views/formacion/RegistroAsistencias.vue'
-import EditarCurso from '../views/formacion/EditarCurso.vue'
 
-// Seguimiento
-import Seguimiento from '../views/seguimiento/SeguimientoDashboard.vue'
-import SolicitudesPendientes from '../views/seguimiento/SolicitudesPendientes.vue'
-import ListaDirigentes from '../views/seguimiento/ListaDirigentes.vue'
-import PeriodoPruebaLista from '../views/seguimiento/PeriodoPruebaLista.vue'
-
-// Registro y habilitación
-import RegistroDashboard from '../views/registro/RegistroDashboard.vue' 
-import SolicitudesPendientesRegistro from '../views/registro/SolicitudesPendientesRegistro.vue'
-import DetalleSolicitud from '../views/registro/DetalleSolicitud.vue'
-import ListaDirigentesHabilitados from '../views/registro/ListaDirigentesHabilitados.vue'
-import DetalleDirigenteRegistro from '../views/registro/DetalleDirigenteRegistro.vue'
-import EditarDirigenteRegistro from '../views/registro/EditarDirigenteRegistro.vue'
-
-// Invitado
+// INVITADO (formularios públicos)
 import FormularioAprobacionesPublico from '../views/invitado/FormularioAprobacionesPublico.vue'
-import FormularioPPoReincorporacionPublico from '../views/invitado/FormularioPPoReincorporacionPublico.vue'
 import FormularioHabilitacionDirigentesPublico from '../views/invitado/FormularioHabilitacionDirigentesPublico.vue'
-
-
+import FormularioPPoReincorporacionPublico from '../views/invitado/FormularioPPoReincorporacionPublico.vue'
 
 const routes = [
-  // Login
   {
     path: '/',
-    name: 'Login',
-    component: Login
+    name: 'Login', 
+    component: Login,
+    meta: {
+      public: true,
+      onlyGuests: true, 
+    },
+  },
+  // ---------- PÚBLICO / INVITADO ----------
+  {
+    path: '/public/aprobaciones',
+    name: 'AprobacionesPublico',
+    component: FormularioAprobacionesPublico,
+    meta: {
+      public: true,
+    },
+  },
+  {
+    path: '/public/habilitacion-dirigentes',
+    name: 'HabilitacionPublico',
+    component: FormularioHabilitacionDirigentesPublico,
+    meta: {
+      public: true,
+    },
+  },
+  {
+    path: '/public/reincorporacion',
+    name: 'ReincorporacionPublico',
+    component: FormularioPPoReincorporacionPublico,
+    meta: {
+      public: true,
+    },
   },
 
-  // Admin
+  // ---------- ADMIN ----------
   {
     path: '/admin',
     name: 'AdminDashboard',
-    component: AdminDashboard
+    component: AdminDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: ['admin'],
+    },
   },
   {
     path: '/admin/lista-usuarios',
     name: 'ListaUsuarios',
-    component: ListaUsuarios
+    component: ListaUsuarios,
+    meta: {
+      requiresAuth: true,
+      roles: ['admin'],
+    },
   },
   {
     path: '/admin/logs',
     name: 'LogsSistema',
-    component: LogsSistema
+    component: LogsSistema,
+    meta: {
+      requiresAuth: true,
+      roles: ['admin'],
+    },
   },
 
-  // Seguimiento
+  // ---------- SEGUIMIENTO ----------
   {
     path: '/seguimiento',
-    name: 'Seguimiento',
-    component: Seguimiento
-  },
-  {
-    path: '/seguimiento/solicitudes-pendientes',
-    name: 'SolicitudesPendientes',
-    component: SolicitudesPendientes
-  },
-  {
-    path: '/seguimiento/lista-dirigentes',
-    name: 'ListaDirigentes',
-    component: ListaDirigentes
-  },
-  {
-    path: '/seguimiento/periodo-prueba',
-    name: 'PeriodoPruebaLista',
-    component: PeriodoPruebaLista
+    name: 'SeguimientoDashboard',
+    component: SeguimientoDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'subcomisionado_seguimiento', 'admin'],
+    },
   },
 
-  // Formación
-  {
-    path: '/formacion',
-    name: 'Formacion',
-    component: FormacionDashboard
-  },
-  {
-    path: '/formacion/lista-cursos',
-    name: 'ListaCursos',
-    component: ListaCursos
-  },
-  {
-    path: '/formacion/nuevo-curso',
-    name: 'NuevoCurso',
-    component: NuevoCurso
-  },
-  {
-    path: '/formacion/detalle-curso/:id',
-    name: 'DetalleCurso',
-    component: DetalleCurso,
-    props: true
-  },
-  {
-    path: '/formacion/curso/:id/modulos',
-    name: 'GestionModulos',
-    component: GestionModulos,
-    props: true
-  },
-  {
-    path: '/formacion/modulo/:id/asistencias',
-    name: 'RegistroAsistencias',
-    component: RegistroAsistencias,
-    props: true
-  },
-  {
-    path: '/formacion/editar-curso/:id',
-    name: 'EditarCurso',
-    component: EditarCurso,
-    props: true
-  },
-
-  // Registro y habilitación
+  // ---------- REGISTRO ----------
   {
     path: '/registro',
     name: 'RegistroDashboard',
-    component: RegistroDashboard
-  },
-  {
-    path: '/registro/solicitudes-pendientes',
-    name: 'SolicitudesPendientesRegistro',
-    component: SolicitudesPendientesRegistro
-  },
-  {
-    path: '/registro/solicitud/:id',
-    name: 'DetalleSolicitud',
-    component: DetalleSolicitud,
-    props: true
-  },
-  {
-    path: '/registro/dirigentes-habilitados',
-    name: 'ListaDirigentesHabilitados',
-    component: ListaDirigentesHabilitados
-  },
-  {
-    path: '/registro/dirigente/:id',
-    name: 'DetalleDirigenteRegistro',
-    component: DetalleDirigenteRegistro,
-    props: true
-  },
-  {
-    path: '/registro/dirigente/:id/editar',
-    name: 'EditarDirigenteRegistro',
-    component: EditarDirigenteRegistro,
-    props: true
-  },
-  
-  // Invitado - publicas
-  {
-    path: '/formulario-aprobaciones',
-    name: 'FormularioAprobacionesPublico',
-    component: FormularioAprobacionesPublico
-  },
-  {
-    path: '/formulario-ppreincorporacion',
-    name: 'FormularioPPoReincorporacionPublico',
-    component: FormularioPPoReincorporacionPublico
-  },
-  {
-    path: '/formulario-habilitacion-dirigentes',
-    name: 'FormularioHabilitacionDirigentesPublico',
-    component: FormularioHabilitacionDirigentesPublico
+    component: RegistroDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin'],
+    },
   },
 
-  //fallback
+  // ---------- FORMACIÓN ----------
+  {
+    path: '/formacion',
+    name: 'FormacionDashboard',
+    component: FormacionDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_formacion', 'subcomisionado_formacion', 'admin'],
+    },
+  },
+  {
+    path: '/formacion/lista-cursos',
+    name: 'ListaCursosFormacion',
+    component: ListaCursos,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_formacion', 'subcomisionado_formacion', 'admin'],
+    },
+  },
+  {
+    path: '/formacion/nuevo-curso',
+    name: 'NuevoCursoFormacion',
+    component: NuevoCurso,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_formacion', 'subcomisionado_formacion', 'admin'],
+    },
+  },
+  {
+    path: '/formacion/detalle-curso/:id',
+    name: 'DetalleCursoFormacion',
+    component: DetalleCurso,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_formacion', 'subcomisionado_formacion', 'admin'],
+    },
+  },
+  {
+    path: '/formacion/editar-curso/:id',
+    name: 'EditarCursoFormacion',
+    component: EditarCurso,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_formacion', 'subcomisionado_formacion', 'admin'],
+    },
+  },
+  {
+    path: '/formacion/curso/:cursoId/modulos',
+    name: 'GestionModulosFormacion',
+    component: GestionModulos,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_formacion', 'subcomisionado_formacion', 'admin'],
+    },
+  },
+  {
+    path: '/formacion/modulo/:moduloId/asistencias',
+    name: 'RegistroAsistenciasFormacion',
+    component: RegistroAsistencias,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_formacion', 'subcomisionado_formacion', 'admin'],
+    },
+  },
+
+  // ---------- Error 404 ----------
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
-  }
+    redirect: '/',
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
-// Guard global
-router.beforeEach((to, from, next) => {
-  const requiresAuth = to.meta?.requiresAuth
-  if (!requiresAuth) return next()
+function rutaPorRol(usuario) {
+  const rol = usuario?.rol_nombre
 
-  // Leer token y usuario desde localStorage
+  if (!rol) return '/'
+
+  if (rol === 'admin') return '/admin'
+  if (rol.includes('seguimiento')) return '/seguimiento'
+  if (rol.includes('formacion') || rol.includes('formación')) {
+    return '/formacion'
+  }
+  if (rol.includes('registro')) return '/registro'
+
+  return '/'
+}
+
+
+router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
 
-  if (!token || !usuario) {
-    return next({ path: '/' })
+  const isPublic = to.matched.some(r => r.meta.public)
+  const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
+
+  if (isPublic) {
+    if (to.matched.some(r => r.meta.onlyGuests) && token && usuario) {
+      const destinoRol = rutaPorRol(usuario)
+
+      if (to.path === destinoRol) {
+        return next()
+      }
+
+      return next(destinoRol)
+    }
+    return next()
   }
 
-  const allowedRoles = to.meta?.roles || null
-  if (allowedRoles) {
-    const rolNombre = usuario.rol_nombre || usuario.rol || ''
-    if (!allowedRoles.includes(rolNombre) && !allowedRoles.includes(String(usuario.rol_id))) {
-      // rol no permitido
-      return next({ path: '/' })
+  if (!requiresAuth) {
+    return next()
+  }
+
+  if (!token || !usuario) {
+    return next({
+      path: '/',
+      query: { redirect: to.fullPath },
+    })
+  }
+
+  const requiredRoles = to.matched
+    .filter(r => Array.isArray(r.meta.roles) && r.meta.roles.length)
+    .flatMap(r => r.meta.roles)
+
+  if (requiredRoles.length > 0) {
+    const userRole = usuario.rol_nombre
+
+    if (userRole === 'admin') {
+      return next()
+    }
+
+    if (!requiredRoles.includes(userRole)) {
+      const destino = rutaPorRol(usuario)
+
+      if (destino === to.path) {
+        return next()
+      }
+
+      return next(destino)
     }
   }
 
   return next()
+
 })
 
 export default router

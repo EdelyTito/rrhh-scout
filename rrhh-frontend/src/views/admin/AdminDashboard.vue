@@ -1,10 +1,8 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header con color verde -->
     <header class="bg-[#009d71] shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-          <!-- Logo y título -->
           <div class="flex items-center space-x-4">
             <img 
               src="/images/rraa.png" 
@@ -218,7 +216,6 @@ const nombreResponsable = ref('Administrador')
 const rutaActiva = ref('inicio')
 const comisionesAbierto = ref(false)
 
-// Cargar datos del usuario
 onMounted(() => {
   try {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
@@ -232,14 +229,12 @@ const toggleComisiones = () => {
   comisionesAbierto.value = !comisionesAbierto.value
 }
 
-// Helper para clases del nav (evita repetir lógica en template)
 const navClass = (destino) => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
   if (rutaActiva.value === destino) return `${base} border-[#009d71] text-[#009d71]`
   return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
 }
 
-// Clase específica para el botón "Comisiones"
 const comisionesButtonClass = () => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center'
   if (comisionesAbierto.value) return `${base} border-[#009d71] text-[#009d71]`
@@ -247,22 +242,16 @@ const comisionesButtonClass = () => {
 }
 
 const navegarA = (destino) => {
-  // Establecemos rutaActiva para estilos
   rutaActiva.value = destino
-
-  // cerrar dropdown
   comisionesAbierto.value = false
   
-  // Normalizamos destinos
   if (!destino) return
 
-  // Inicio => /admin
   if (destino === 'inicio') {
     router.push('/admin').catch(()=>{})
     return
   }
 
-  // Si ya empieza con "/" usar directo
   if (destino.startsWith('/')) {
     router.push(destino).catch(()=>{})
     return

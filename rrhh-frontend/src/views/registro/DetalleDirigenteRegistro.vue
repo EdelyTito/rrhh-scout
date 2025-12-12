@@ -1,4 +1,3 @@
-<!-- src/views/registro/DetalleDirigenteRegistro.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header específico para Registro y Habilitación -->
@@ -402,7 +401,6 @@ const route = useRoute()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('lista-dirigentes-habilitados')
 
-// Datos del dirigente (según página 24 del PDF)
 const dirigente = ref({
   id: 1,
   nombreCompleto: 'Felipe Alejandro Lopez',
@@ -435,7 +433,6 @@ const dirigente = ref({
   diasParaVencer: null
 })
 
-// Historial de cambios
 const historial = ref([
   {
     id: 1,
@@ -451,16 +448,13 @@ const historial = ref([
   }
 ])
 
-// Cargar datos del usuario
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
   
-  // Cargar datos del dirigente según ID de la ruta
   const dirigenteId = route.params.id
   if (dirigenteId) {
     console.log(`Cargando datos del dirigente ${dirigenteId}`)
-    // Aquí iría la lógica para cargar el dirigente específico de la API
   }
 })
 
@@ -499,7 +493,6 @@ const calcularEdad = (fechaNacimiento) => {
 
 const descargarArchivo = (archivo) => {
   if (archivo && archivo.url) {
-    // Simular descarga
     const link = document.createElement('a')
     link.href = archivo.url
     link.download = archivo.nombre
@@ -514,7 +507,6 @@ const descargarArchivo = (archivo) => {
 
 const descargarTodo = () => {
   alert('Descargando todos los archivos del dirigente...')
-  // Aquí iría la lógica para comprimir y descargar todos los archivos
 }
 
 const generarCertificado = () => {

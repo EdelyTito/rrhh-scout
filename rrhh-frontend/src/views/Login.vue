@@ -3,7 +3,6 @@
     class="login-container"
     :style="backgroundStyle"
   >
-    <!-- Fondo semi-transparente para mejor legibilidad -->
     <div class="absolute inset-0 bg-blue-900 bg-opacity-60"></div>
 
     <!-- Card del login -->
@@ -51,7 +50,6 @@
           >
         </div>
 
-        <!-- Mensaje de error mejorado -->
         <div 
           v-if="errorMessage" 
           class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start space-x-2 animate-fade-in"
@@ -129,141 +127,115 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import config from '../config/auth.config'
 import { authService } from '../services/api'
 
 const router = useRouter()
+const route = useRoute()
 
-// Datos del formulario
 const correo = ref('')
 const contrasena = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 const showForgotPassword = ref(false)
 
-// Rutas de las imágenes
+const intentosFallidos = ref(Number(localStorage.getItem('login_attempts')) || 0)
+const bloqueadoHasta = ref(Number(localStorage.getItem('login_block_until')) || 0)
+
 const logo = ref('/images/rraa.png')
 const backgroundImage = ref('/images/distrito.jpg')
 
-// Computed para mostrar sugerencias contextuales
-const showPasswordSuggestions = computed(() => {
-  return errorMessage.value.toLowerCase().includes('contraseña') || 
-         errorMessage.value.toLowerCase().includes('password') ||
-         errorMessage.value.toLowerCase().includes('credenciales')
-})
-
-const showEmailSuggestions = computed(() => {
-  return errorMessage.value.toLowerCase().includes('correo') || 
-         errorMessage.value.toLowerCase().includes('email') ||
-         errorMessage.value.toLowerCase().includes('usuario') ||
-         errorMessage.value.toLowerCase().includes('encontrado')
-})
-
 const backgroundStyle = computed(() => ({
-  backgroundImage: `url(${backgroundImage.value})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat'
+  'background-image': `url(${backgroundImage.value})`,
+  'background-size': 'cover',
+  'background-position': 'center',
+  'background-repeat': 'no-repeat',
 }))
 
-const handleImageError = (event) => {
-  console.log('Error cargando imagen:', event.target.src)
-  if (event.target.alt.includes('Logo')) {
-    event.target.style.display = 'none'
-  }
-}
+const bloqueoActivo = computed(() => Date.now() < bloqueadoHasta.value)
+const tiempoRestante = computed(() => {
+  const diffMs = bloqueadoHasta.value - Date.now()
+  return Math.ceil(diffMs / 60000) // minutos
+})
 
 const handleLogin = async () => {
-  console.log('=== INICIANDO LOGIN ===')
-  
-  // Limpiar errores previos
+  if (bloqueoActivo.value) {
+    errorMessage.value = `El acceso está bloqueado. Intenta nuevamente en ${tiempoRestante.value} minutos.`
+    return
+  }
+
   errorMessage.value = ''
 
-  // Validación básica
-  if (!correo.value || !contrasena.value) {
-    errorMessage.value = 'Por favor completa todos los campos'
-    return
-  }
+  if (!correo.value || !contrasena.value)
+    return errorMessage.value = 'Completa todos los campos.'
 
-  // Validación de formato de email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(correo.value)) {
-    errorMessage.value = 'Por favor ingresa un correo electrónico válido'
-    return
-  }
+  if (!emailRegex.test(correo.value))
+    return errorMessage.value = 'Correo inválido.'
 
   loading.value = true
 
   try {
-    console.log('🔐 Enviando credenciales...')
-    
-    const response = await authService.login({
-      correo: correo.value,
-      contrasena: contrasena.value
-    })
+    const res = await authService.login({ correo: correo.value, contrasena: contrasena.value })
 
-    console.log('✅ LOGIN EXITOSO:', response.data)
+    localStorage.removeItem('login_attempts')
+    localStorage.removeItem('login_block_until')
 
-    // Guardar token y datos del usuario
-    localStorage.setItem('token', response.data.token)
-    localStorage.setItem('usuario', JSON.stringify(response.data.usuario))
+    localStorage.setItem('token', res.data.token)
+    localStorage.setItem('usuario', JSON.stringify(res.data.usuario))
 
-    // Redirigir según el rol del usuario
-    redirectByRole(response.data.usuario.rol_nombre)
+    if (route.query.redirect)
+      return router.push(route.query.redirect.toString())
+
+    return redirectByRole(res.data.usuario.rol_nombre)
 
   } catch (error) {
-    console.log('🔴 ERROR CAPTURADO:')
-    console.log('Status:', error.response?.status)
-    console.log('Data:', error.response?.data)
-    console.log('Mensaje del backend:', error.response?.data?.error)
-    
-    // Manejo específico de diferentes tipos de errores
-    if (error.response?.status === 401) {
-      errorMessage.value = 'Credenciales incorrectas. Verifica tu correo y contraseña.'
-    } else if (error.response?.status === 404) {
-      errorMessage.value = 'Usuario no encontrado. Verifica tu correo electrónico.'
-    } else if (error.response?.status === 403) {
-      errorMessage.value = 'Tu cuenta no tiene permisos para acceder'
-    } else if (error.response?.status >= 500) {
-      errorMessage.value = 'Error del servidor. Por favor, intenta más tarde.'
-    } else if (error.code === 'NETWORK_ERROR' || error.message.includes('Network')) {
-      errorMessage.value = 'Error de conexión. Verifica tu internet.'
-    } else {
-      errorMessage.value = error.response?.data?.error || error.message || 'Error en el inicio de sesión'
+    intentosFallidos.value++
+    localStorage.setItem('login_attempts', intentosFallidos.value)
+
+    if (intentosFallidos.value >= config.MAX_LOGIN_ATTEMPTS) {
+      const lockUntil = Date.now() + (config.LOCK_TIME_MINUTES * 60000)
+      localStorage.setItem('login_block_until', lockUntil)
+      bloqueadoHasta.value = lockUntil
+      contrasena.value = ''
+      loading.value = false
+      return errorMessage.value =
+        'Demasiados intentos fallidos. Acceso bloqueado temporalmente.'
     }
-    
-    // Limpiar contraseña por seguridad
+
+    const status = error.response?.status
+    errorMessage.value =
+      status === 401 ? 'Credenciales incorrectas.'
+      : status === 404 ? 'Usuario no encontrado.'
+      : status === 403 ? 'Acceso denegado.'
+      : status >= 500  ? 'Error del servidor.'
+      : 'Error de conexión.'
+
     contrasena.value = ''
-    
-  } finally {
-    loading.value = false
   }
+
+  loading.value = false
 }
 
-const redirectByRole = (rolNombre) => {
-  const rutasPorRol = {
-    'admin': '/admin',
-    'responsable_registro': '/registro',
-    'responsable_formation': '/formacion', 
-    'responsable_seguimiento': '/seguimiento',
-    'subcomisionado_registro': '/registro',
-    'subcomisionado_formation': '/formacion',
-    'subcomisionado_seguimiento': '/seguimiento',
-    'invitado': '/invitado'
+const redirectByRole = (rol) => {
+  const rutas = {
+    admin: '/admin',
+    responsable_registro: '/registro',
+    responsable_formacion: '/formacion',
+    responsable_seguimiento: '/seguimiento',
+    subcomisionado_registro: '/registro',
+    subcomisionado_formacion: '/formacion',
+    subcomisionado_seguimiento: '/seguimiento',
   }
-
-  const ruta = rutasPorRol[rolNombre] || '/admin'
-  router.push(ruta)
+  router.push(rutas[rol] || '/admin')
 }
 
 const contactAdmin = () => {
-  // Aquí puedes implementar la lógica para contactar al administrador
-  // Por ejemplo, abrir el cliente de email o mostrar información de contacto
-  const adminEmail = 'admin@distritoscout.com'
-  window.location.href = `mailto:${adminEmail}?subject=Solicitud de recuperación de contraseña&body=Hola, necesito ayuda para recuperar mi contraseña. Mi correo es: ${correo.value}`
-  showForgotPassword.value = false
+  window.location.href = `mailto:admin@distritoscout.com?subject=Recuperación&body=Correo: ${correo.value}`
 }
 </script>
+
 
 <style scoped>
 .login-container {
@@ -286,7 +258,6 @@ const contactAdmin = () => {
   z-index: 10;
 }
 
-/* Animación para el mensaje de error */
 @keyframes fade-in {
   from {
     opacity: 0;

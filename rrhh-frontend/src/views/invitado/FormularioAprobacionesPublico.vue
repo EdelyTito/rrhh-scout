@@ -1,9 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Main Content - Sin header separado -->
     <main class="max-w-4xl mx-auto py-8 sm:px-6 lg:px-8">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <!-- Header del Formulario con Logo AL LADO DEL TEXTO -->
         <div class="bg-[#009d71] px-6 py-6">
           <div class="flex items-center space-x-4">
             <!-- Logo -->
@@ -420,7 +418,6 @@ export default {
   setup() {
     const enviando = ref(false)
     
-    // Datos del formulario
     const formulario = ref({
       grupoScout: '',
       nombre1: '',
@@ -434,7 +431,6 @@ export default {
       aceptoTerminos: false
     })
 
-    // Archivos subidos
     const archivos = ref({
       cuadernillo: null,
       informePractica: null,
@@ -445,7 +441,6 @@ export default {
       certificados: null
     })
 
-    // Descripciones de niveles
     const descripcionesNiveles = {
       'IM2': {
         titulo: 'Insignia de Madera Nivel II',
@@ -473,14 +468,13 @@ export default {
       }
     }
 
-    // Computed
     const descripcionNivel = computed(() => {
       return descripcionesNiveles[formulario.value.nivelAprobacion] || null
     })
 
     const progreso = computed(() => {
       let camposCompletados = 0
-      const camposTotales = 8 // Campos obligatorios principales
+      const camposTotales = 8 
       
       if (formulario.value.grupoScout) camposCompletados++
       if (formulario.value.nombre1) camposCompletados++
@@ -494,7 +488,6 @@ export default {
       return Math.round((camposCompletados / camposTotales) * 100)
     })
 
-    // Métodos
     const mostrarRequisitosEspecificos = () => {
       console.log('Nivel seleccionado:', formulario.value.nivelAprobacion)
     }
@@ -502,7 +495,6 @@ export default {
     const manejarArchivo = (event, tipo) => {
       const file = event.target.files[0]
       if (file) {
-        // Validar tamaño (10MB máximo)
         if (file.size > 10 * 1024 * 1024) {
           alert('El archivo es demasiado grande. Máximo 10MB permitido.')
           event.target.value = ''
@@ -515,7 +507,6 @@ export default {
     }
 
     const validarFormulario = () => {
-      // Validaciones básicas
       if (!formulario.value.grupoScout) {
         alert('Por favor seleccione su grupo scout')
         return false
@@ -526,7 +517,6 @@ export default {
         return false
       }
 
-      // Validar archivos requeridos
       if (!archivos.value.cuadernillo) {
         alert('Debe subir el cuadernillo de práctica supervisada')
         return false
@@ -551,7 +541,6 @@ export default {
       enviando.value = true
 
       try {
-        // Simular envío a la API
         await new Promise(resolve => setTimeout(resolve, 2000))
         
         console.log('Formulario enviado:', {
@@ -559,10 +548,8 @@ export default {
           archivos: archivos.value
         })
 
-        // Mostrar confirmación
         alert('¡Solicitud enviada con éxito! Recibirá un correo de confirmación pronto.')
         
-        // Limpiar formulario
         limpiarFormulario()
         
       } catch (error) {
@@ -597,7 +584,6 @@ export default {
         certificados: null
       }
       
-      // Limpiar inputs de archivo
       const fileInputs = document.querySelectorAll('input[type="file"]')
       fileInputs.forEach(input => input.value = '')
     }

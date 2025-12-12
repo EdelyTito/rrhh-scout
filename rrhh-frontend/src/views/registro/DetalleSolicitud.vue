@@ -1,4 +1,3 @@
-<!-- src/views/registro/DetalleSolicitud.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header específico para Registro y Habilitación -->
@@ -359,7 +358,6 @@ const route = useRoute()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('solicitudes-pendientes-registro')
 
-// Datos de la solicitud (según página 22 del PDF)
 const solicitud = ref({
   id: '001',
   estado: 'pendiente',
@@ -390,16 +388,13 @@ const solicitud = ref({
   fechaSolicitud: '25/03/2025'
 })
 
-// Cargar datos del usuario
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
   
-  // Cargar datos de la solicitud según ID de la ruta
   const solicitudId = route.params.id
   if (solicitudId) {
     console.log(`Cargando datos de la solicitud ${solicitudId}`)
-    // Aquí iría la lógica para cargar la solicitud específica de la API
   }
 })
 
@@ -427,7 +422,6 @@ const aprobarSolicitud = () => {
   if (confirm('¿Está seguro de aprobar esta solicitud? El dirigente será habilitado en el sistema.')) {
     solicitud.value.estado = 'aprobada'
     alert('Solicitud aprobada exitosamente')
-    // Aquí iría la lógica para actualizar el estado en la API
   }
 }
 
@@ -436,13 +430,11 @@ const rechazarSolicitud = () => {
   if (motivo && motivo.trim() !== '') {
     solicitud.value.estado = 'rechazada'
     alert(`Solicitud rechazada. Motivo: ${motivo}`)
-    // Aquí iría la lógica para actualizar el estado en la API
   }
 }
 
 const descargarArchivo = (archivo) => {
   if (archivo && archivo.url) {
-    // Simular descarga
     const link = document.createElement('a')
     link.href = archivo.url
     link.download = archivo.nombre
@@ -457,7 +449,6 @@ const descargarArchivo = (archivo) => {
 
 const descargarTodo = () => {
   alert('Descargando todos los archivos de la solicitud...')
-  // Aquí iría la lógica para comprimir y descargar todos los archivos
 }
 
 const imprimirSolicitud = () => {

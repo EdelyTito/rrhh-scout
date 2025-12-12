@@ -1,4 +1,3 @@
-// utils/logger.js
 import { pool } from "../config/db.js";
 
 /**
@@ -6,9 +5,9 @@ import { pool } from "../config/db.js";
  * @param {number} usuarioId - ID del usuario que realiza la acción
  * @param {string} accion - Descripción breve de la acción
  * @param {string} tabla - Nombre de la tabla afectada
- * @param {number|null} registroId - ID del registro afectado (puede ser null)
- * @param {string|null} detalle - Detalle opcional
- * @param {string|null} rol - Nombre del rol del usuario (opcional)
+ * @param {number|null} registroId - ID del registro afectado
+ * @param {string|null} detalle - Detalle
+ * @param {string|null} rol - Nombre del rol del usuario
  */
 export const registrarLog = async (usuarioId, accion, tabla, registroId, detalle, rol = null) => {
   try {
@@ -20,8 +19,8 @@ export const registrarLog = async (usuarioId, accion, tabla, registroId, detalle
       [usuarioId, accionDetallada, tabla, registroId, detalle]
     );
 
-    console.log(`📝 Log registrado por ${rol || "usuario"}: ${accion} (${tabla})`);
+    console.log(`Log registrado por ${rol || "usuario"}: ${accion} (${tabla})`);
   } catch (error) {
-    console.error("❌ Error al registrar log:", error.message);
+    console.error("Error al registrar log:", error.message);
   }
 };

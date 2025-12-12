@@ -1,10 +1,8 @@
-<!-- src/views/invitado/FormularioHabilitacionDirigentes.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <!-- Header del Formulario con Logo -->
         <div class="bg-[#009d71] px-6 py-6">
           <div class="flex items-center space-x-4">
             <!-- Logo -->
@@ -594,12 +592,10 @@ import { ref, computed } from 'vue'
 
 const enviando = ref(false)
 
-// Referencias para inputs de archivo
 const certificadosFormacionInput = ref(null)
 const certificadoNoViolenciaInput = ref(null)
 const valoracionPerfilInput = ref(null)
 
-// Datos del formulario
 const formulario = ref({
   formularioASB: '',
   nombreCompleto: '',
@@ -618,14 +614,12 @@ const formulario = ref({
   gestionInstitucional: 'Ninguno'
 })
 
-// Archivos subidos
 const archivos = ref({
   certificadosFormacion: null,
   certificadoNoViolencia: null,
   valoracionPerfil: null
 })
 
-// Computed: Progreso del formulario
 const progreso = computed(() => {
   let camposCompletados = 0
   const camposTotales = 10 // Campos obligatorios principales
@@ -644,7 +638,6 @@ const progreso = computed(() => {
   return Math.round((camposCompletados / camposTotales) * 100)
 })
 
-// Métodos
 const abrirSubirArchivo = (tipoArchivo) => {
   switch(tipoArchivo) {
     case 'certificadosFormacion':
@@ -662,14 +655,12 @@ const abrirSubirArchivo = (tipoArchivo) => {
 const manejarArchivo = (event, tipo) => {
   const file = event.target.files[0]
   if (file) {
-    // Validar tamaño (5MB máximo)
     if (file.size > 5 * 1024 * 1024) {
       alert('El archivo es demasiado grande. El tamaño máximo es 5MB.')
       event.target.value = ''
       return
     }
     
-    // Validar tipo de archivo
     const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
     if (!tiposPermitidos.includes(file.type)) {
       alert('Formato de archivo no permitido. Solo se aceptan PDF, JPG y PNG.')
@@ -683,7 +674,6 @@ const manejarArchivo = (event, tipo) => {
 }
 
 const validarFormulario = () => {
-  // Validar campos obligatorios
   const camposRequeridos = [
     'formularioASB',
     'nombreCompleto',
@@ -704,7 +694,6 @@ const validarFormulario = () => {
     }
   }
   
-  // Validar archivo obligatorio
   if (!archivos.value.certificadoNoViolencia) {
     alert('Debe subir el Certificado de No Violencia')
     return false
@@ -719,7 +708,6 @@ const enviarFormulario = async () => {
   enviando.value = true
 
   try {
-    // Simular envío a la API
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     console.log('Formulario enviado:', {
@@ -727,10 +715,8 @@ const enviarFormulario = async () => {
       archivos: archivos.value
     })
 
-    // Mostrar confirmación
     alert('¡Formulario enviado con éxito! Recibirá un correo de confirmación pronto.')
     
-    // Limpiar formulario
     limpiarFormulario()
     
   } catch (error) {
@@ -766,7 +752,6 @@ const limpiarFormulario = () => {
     valoracionPerfil: null
   }
   
-  // Limpiar inputs de archivo
   if (certificadosFormacionInput.value) certificadosFormacionInput.value.value = ''
   if (certificadoNoViolenciaInput.value) certificadoNoViolenciaInput.value.value = ''
   if (valoracionPerfilInput.value) valoracionPerfilInput.value.value = ''

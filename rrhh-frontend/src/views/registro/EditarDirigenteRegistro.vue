@@ -1,4 +1,3 @@
-<!-- src/views/registro/EditarDirigenteRegistro.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header específico para Registro y Habilitación -->
@@ -496,39 +495,31 @@ const route = useRoute()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('lista-dirigentes-habilitados')
 
-// Referencias para inputs de archivo
 const certificadoFormacionInput = ref(null)
 const certificadoNoViolenciaInput = ref(null)
 const valoracionPerfilInput = ref(null)
 
-// Datos del formulario (según página 25 del PDF)
 const formulario = ref({
-  // Grupo Scout
   grupoScout: 'Boliviano Israelita',
   
-  // Datos personales
   nombreCompleto: 'Felipe Alejandro Lopez',
   genero: 'Masculino',
   fechaNacimiento: '1990-05-26',
   ci: '2065866',
   
-  // Datos Scout
   anosRegistrados: '10',
   rama: 'Exploradores',
   cargoDistrital: 'Programa',
   distrito: 'Distrito La Paz',
   
-  // Cargos de Grupo
   cargoGrupo1: 'Administración',
   cargoGrupo2: null,
   cargoGrupo3: null,
   
-  // Formación Scout
   programaJovenes: 'Cursado - Insignia de Madera Nivel II',
   formadorLideres: '',
   gestionInstitucional: '',
   
-  // Archivos
   certificadoFormacion: {
     nombre: 'Certificados.pdf',
     url: '/certificados/001.pdf'
@@ -540,16 +531,13 @@ const formulario = ref({
   valoracionPerfil: null
 })
 
-// Cargar datos del usuario
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
   
-  // Cargar datos del dirigente según ID de la ruta
   const dirigenteId = route.params.id
   if (dirigenteId) {
     console.log(`Cargando datos del dirigente ${dirigenteId} para edición`)
-    // Aquí iría la lógica para cargar los datos del dirigente de la API
   }
 })
 
@@ -591,20 +579,17 @@ const abrirSubirArchivo = (tipoArchivo) => {
 const manejarSubidaArchivo = (event, tipoArchivo) => {
   const archivo = event.target.files[0]
   if (archivo) {
-    // Validar tamaño (5MB máximo)
     if (archivo.size > 5 * 1024 * 1024) {
       alert('El archivo es demasiado grande. El tamaño máximo es 5MB.')
       return
     }
     
-    // Validar tipo de archivo
     const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
     if (!tiposPermitidos.includes(archivo.type)) {
       alert('Formato de archivo no permitido. Solo se aceptan PDF, JPG y PNG.')
       return
     }
     
-    // Actualizar el formulario
     switch(tipoArchivo) {
       case 'certificadoFormacion':
         formulario.value.certificadoFormacion = {
@@ -632,7 +617,6 @@ const manejarSubidaArchivo = (event, tipoArchivo) => {
 
 const verArchivo = (archivo) => {
   if (archivo && archivo.url) {
-    // Abrir en nueva pestaña o descargar
     window.open(archivo.url, '_blank')
   } else {
     alert('Archivo no disponible')
@@ -660,7 +644,6 @@ const validarFormulario = () => {
     }
   }
   
-  // Validar archivos
   if (!formulario.value.certificadoNoViolencia.url) {
     alert('El Certificado de No Violencia es requerido.')
     return false
@@ -678,7 +661,6 @@ const guardarCambios = () => {
     console.log('Guardando cambios:', formulario.value)
     alert('Cambios guardados exitosamente')
     
-    // Redirigir al detalle del dirigente
     const dirigenteId = route.params.id
     router.push(`/registro/dirigente/${dirigenteId}`)
   }

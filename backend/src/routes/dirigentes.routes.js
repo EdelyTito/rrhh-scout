@@ -19,7 +19,7 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
     `);
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener dirigentes:", err);
+    console.error("Error al obtener dirigentes:", err);
     res.status(500).json({ error: "Error al obtener dirigentes" });
   }
 });
@@ -100,7 +100,7 @@ router.post("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
 
     res.status(201).json(nuevoDirigente);
   } catch (err) {
-    console.error("❌ Error al crear dirigente:", err);
+    console.error("Error al crear dirigente:", err);
     res.status(500).json({ error: "Error interno al crear dirigente" });
   }
 });
@@ -178,7 +178,7 @@ router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
 
     res.json(dirigenteActualizado);
   } catch (err) {
-    console.error("❌ Error al actualizar dirigente:", err);
+    console.error("Error al actualizar dirigente:", err);
     res.status(500).json({ error: "Error interno al actualizar dirigente" });
   }
 });
@@ -202,7 +202,7 @@ router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
 
     res.json({ message: "Dirigente eliminado correctamente" });
   } catch (err) {
-    console.error("❌ Error al eliminar dirigente:", err);
+    console.error("Error al eliminar dirigente:", err);
     res.status(500).json({ error: "Error interno al eliminar dirigente" });
   }
 });

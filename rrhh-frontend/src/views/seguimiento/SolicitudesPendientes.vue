@@ -302,14 +302,12 @@ export default {
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('solicitudes')
 
-    // Filtros
     const filtros = ref({
       nivel: '',
       grupo: '',
       estado: ''
     })
 
-    // Datos de ejemplo
     const solicitudes = ref([
       {
         id: 1,
@@ -357,7 +355,6 @@ export default {
       return [...new Set(solicitudes.value.map(s => s.grupo))]
     })
 
-    // Solicitudes filtradas
     const solicitudesFiltradas = computed(() => {
       return solicitudes.value.filter(solicitud => {
         const nivelMatch = !filtros.value.nivel || 
@@ -369,7 +366,6 @@ export default {
       })
     })
 
-    // Clases para badges
     const nivelBadgeClass = (nivel) => {
       const classes = {
         'IM Nivel II': 'bg-blue-100 text-blue-800',
@@ -391,7 +387,6 @@ export default {
       return classes[estado] || 'bg-gray-100 text-gray-800'
     }
 
-    // Funciones
     const formatFecha = (fecha) => {
       return new Date(fecha).toLocaleDateString('es-ES')
     }
@@ -410,14 +405,12 @@ export default {
 
     const verDetalle = (id) => {
       console.log('Ver detalle de solicitud:', id)
-      // router.push(`/seguimiento/solicitud/${id}`)
       alert(`Ver detalle de solicitud ${id}`)
     }
 
     const aprobarSolicitud = (id) => {
       if (confirm('¿Estás seguro de aprobar esta solicitud?')) {
         console.log('Aprobando solicitud:', id)
-        // Aquí iría la lógica para aprobar
         alert(`Solicitud ${id} aprobada`)
       }
     }
@@ -425,7 +418,6 @@ export default {
     const rechazarSolicitud = (id) => {
       if (confirm('¿Estás seguro de rechazar esta solicitud?')) {
         console.log('Rechazando solicitud:', id)
-        // Aquí iría la lógica para rechazar
         alert(`Solicitud ${id} rechazada`)
       }
     }
@@ -450,7 +442,6 @@ export default {
       router.push('/login')
     }
 
-    // Cargar datos del usuario
     onMounted(() => {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
       nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'

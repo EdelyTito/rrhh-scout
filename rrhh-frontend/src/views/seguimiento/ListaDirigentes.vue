@@ -340,14 +340,12 @@ export default {
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('lista-dirigentes')
 
-    // Filtros
     const filtros = ref({
       busqueda: '',
       nivel: '',
       grupo: ''
     })
 
-    // Datos de ejemplo
     const dirigentes = ref([
       {
         id: 1,
@@ -405,7 +403,6 @@ export default {
       return [...new Set(dirigentes.value.map(d => d.grupo))]
     })
 
-    // Dirigentes filtrados
     const dirigentesFiltrados = computed(() => {
       return dirigentes.value.filter(dirigente => {
         const busquedaMatch = !filtros.value.busqueda || 
@@ -425,7 +422,6 @@ export default {
       })
     })
 
-    // Estadísticas
     const totalDirigentes = computed(() => dirigentes.value.length)
 
     const contarPorNivel = (nivel) => {
@@ -436,7 +432,6 @@ export default {
       ).length
     }
 
-    // Funciones
     const aplicarFiltros = () => {
       console.log('Aplicando filtros:', filtros.value)
     }
@@ -451,27 +446,23 @@ export default {
 
     const verDirigente = (id) => {
       console.log('Ver dirigente:', id)
-      // router.push(`/seguimiento/dirigente/${id}`)
       alert(`Ver perfil del dirigente ${id}`)
     }
 
     const editarDirigente = (id) => {
       console.log('Editar dirigente:', id)
-      // router.push(`/seguimiento/dirigente/${id}/editar`)
       alert(`Editar dirigente ${id}`)
     }
 
     const eliminarDirigente = (id) => {
       if (confirm('¿Estás seguro de eliminar este dirigente?')) {
         console.log('Eliminando dirigente:', id)
-        // Aquí iría la lógica para eliminar
         alert(`Dirigente ${id} eliminado`)
       }
     }
 
     const nuevoDirigente = () => {
       console.log('Nuevo dirigente')
-      // router.push('/seguimiento/dirigentes/nuevo')
       alert('Crear nuevo dirigente')
     }
 
@@ -495,7 +486,6 @@ export default {
       router.push('/login')
     }
 
-    // Cargar datos del usuario
     onMounted(() => {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
       nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'

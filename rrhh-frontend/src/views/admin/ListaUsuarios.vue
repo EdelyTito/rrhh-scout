@@ -139,10 +139,10 @@
                 <option value="">Todos los roles</option>
                 <option value="admin">Administrador</option>
                 <option value="responsable_registro">Responsable Registro</option>
-                <option value="responsable_formation">Responsable Formación</option>
+                <option value="responsable_formacion">Responsable Formación</option>
                 <option value="responsable_seguimiento">Responsable Seguimiento</option>
                 <option value="subcomisionado_registro">Subcomisionado Registro</option>
-                <option value="subcomisionado_formation">Subcomisionado Formación</option>
+                <option value="subcomisionado_formacion">Subcomisionado Formación</option>
                 <option value="subcomisionado_seguimiento">Subcomisionado Seguimiento</option>
                 <option value="invitado">Invitado</option>
               </select>
@@ -417,7 +417,6 @@
 
         <!-- Formulario de Edición -->
         <form @submit.prevent="actualizarUsuario" class="space-y-4">
-        <!-- ID (solo lectura) -->
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
             ID Usuario
@@ -592,7 +591,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { authService } from '../../services/api' // <-- usa el servicio central
+import { authService } from '../../services/api'
 
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
@@ -617,7 +616,6 @@ const confirmarContrasena = ref('')
 
 const usuarios = ref([])
 
-// Nuevo usuario (form)
 const nuevoUsuario = ref({
   nombre: '',
   correo: '',
@@ -637,38 +635,31 @@ const usuarioEditando = ref({
 const mapeoRoles = {
   'admin': '1',
   'responsable_registro': '2',
-  'responsable_formation': '3',
+  'responsable_formacion': '3',
   'responsable_seguimiento': '4',
   'subcomisionado_registro': '5',
-  'subcomisionado_formation': '6',
+  'subcomisionado_formacion': '6',
   'subcomisionado_seguimiento': '7',
   'invitado': '8'
 }
 
-// -----------------------------
-// Funciones de navegación / UI
-// -----------------------------
 const toggleComisiones = () => {
   comisionesAbierto.value = !comisionesAbierto.value
 }
 
 const navegarA = (destino) => {
-  // Actualiza ruta activa para el estilo del nav
   rutaActiva.value = destino
   comisionesAbierto.value = false
 
   if (!destino) return
-  // Rutas mapeadas
   if (destino === 'admin') {
     router.push('/admin')
     return
   }
-  // Si ya es path absoluto
   if (destino.startsWith('/')) {
     router.push(destino)
     return
   }
-  // Caso general
   router.push(`/${destino}`)
 }
 
@@ -681,12 +672,9 @@ const navegarAComision = (comision) => {
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/') // o '/login' según prefieras
+  router.push('/')
 }
 
-// -----------------------------
-// Helpers de presentación
-// -----------------------------
 const getBadgeClasses = (rolNombre) => {
   const key = (rolNombre || '').toString().toLowerCase()
   switch (true) {
@@ -694,7 +682,7 @@ const getBadgeClasses = (rolNombre) => {
       return 'bg-red-100 text-red-800'
     case /responsable.*registro/.test(key):
       return 'bg-yellow-100 text-yellow-800'
-    case /responsable.*formation|responsable.*formaci[oó]n/.test(key):
+    case /responsable.*formacion|responsable.*formaci[oó]n/.test(key):
       return 'bg-blue-100 text-blue-800'
     case /responsable.*seguimiento/.test(key):
       return 'bg-green-100 text-green-800'
@@ -712,7 +700,6 @@ const formatRolNombre = (rolNombre) => {
   return rolNombre.replace(/_|-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
-// Cargar usuarios desde backend
 const cargarUsuarios = async () => {
   loading.value = true
   try {
@@ -726,7 +713,6 @@ const cargarUsuarios = async () => {
   }
 }
 
-// Crear usuario real (POST /auth/register)
 const crearUsuario = async () => {
   if (!nuevoUsuario.value.nombre || !nuevoUsuario.value.correo || !nuevoUsuario.value.contrasena || !nuevoUsuario.value.rol_id) {
     errorMessage.value = 'Por favor completa todos los campos obligatorios'
@@ -745,9 +731,7 @@ const crearUsuario = async () => {
     }
     const res = await authService.register(payload)
     successMessage.value = res.data?.message || 'Usuario creado'
-    // recargar lista
     await cargarUsuarios()
-    // limpiar y cerrar modal
     setTimeout(() => {
       cerrarModal()
     }, 800)
@@ -759,7 +743,6 @@ const crearUsuario = async () => {
   }
 }
 
-//EliminarUsuario 
 const eliminarUsuario = async (usuario) => {
   if (usuario.rol_nombre === 'admin') {
     alert('No se puede eliminar un usuario administrador')
@@ -770,35 +753,27 @@ const eliminarUsuario = async (usuario) => {
   if (!confirmar) return
 
   try {
-    // Mostrar indicador (opcional): podrías tener un estado para deshabilitar botones mientras borra
-    console.log(`🔴 Solicitando eliminación del usuario id=${usuario.id}`)
+    console.log(`Solicitando eliminación del usuario id=${usuario.id}`)
 
-    // Usa el servicio central (axios) que ya añade Authorization
     const res = await authService.deleteUser(usuario.id)
 
-    // Axios res.status suele ser 200 o 204
     console.log('Respuesta DELETE:', res)
     alert(res.data?.message || 'Usuario eliminado correctamente')
 
-    // Refrescar lista
     await cargarUsuarios()
   } catch (err) {
-    // err puede ser network o respuesta del servidor
     console.error('Error eliminando usuario (frontend):', err)
 
-    // Si es respuesta del servidor con body
     const status = err.response?.status
     const data = err.response?.data
 
     if (status === 409) {
-      // Violación FK o recurso relacionado
       alert(data?.error || 'No se puede eliminar el usuario porque hay registros relacionados.')
       if (data?.detail) console.log('Detalle Postgres:', data.detail)
     } else if (status === 404) {
       alert(data?.error || 'Usuario no encontrado (ya eliminado?)')
       await cargarUsuarios()
     } else if (status === 401) {
-      // El interceptor en api.js redirige a /login, pero por si acaso:
       alert('No autorizado. Inicia sesión de nuevo.')
       localStorage.removeItem('token')
       localStorage.removeItem('usuario')
@@ -806,17 +781,14 @@ const eliminarUsuario = async (usuario) => {
     } else if (status === 403) {
       alert(data?.error || 'No tienes permisos para eliminar usuarios.')
     } else if (!status) {
-      // network error
       alert('Error de conexión. Verifica tu backend y conexión a internet.')
     } else {
-      // error desconocido del servidor
       alert(data?.error || 'Error al eliminar usuario. Revisa la consola del servidor.')
     }
   }
 }
 
 
-// Edición - abrir modal con datos
 const editarUsuario = (usuario) => {
   usuarioEditando.value = {
     id: usuario.id,
@@ -828,7 +800,6 @@ const editarUsuario = (usuario) => {
   mostrarModalEditar.value = true
 }
 
-// Actualizar usuario - aquí asumo que crearás una ruta PUT /auth/:id en backend
 const actualizarUsuario = async () => {
   if (!usuarioEditando.value.nombre || !usuarioEditando.value.correo || !usuarioEditando.value.rol_id) {
     errorMessageEditar.value = 'Completa los campos obligatorios'

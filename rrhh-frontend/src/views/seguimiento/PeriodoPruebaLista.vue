@@ -328,14 +328,12 @@ export default {
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('periodo-prueba')
 
-    // Filtros
     const filtros = ref({
       tipo: '',
       grupo: '',
       estado: ''
     })
 
-    // Datos de ejemplo
     const registros = ref([
       {
         id: 1,
@@ -384,7 +382,6 @@ export default {
       return [...new Set(registros.value.map(r => r.grupo))]
     })
 
-    // Registros filtrados
     const registrosFiltrados = computed(() => {
       return registros.value.filter(registro => {
         const tipoMatch = !filtros.value.tipo || registro.tipo === filtros.value.tipo
@@ -395,7 +392,6 @@ export default {
       })
     })
 
-    // Estadísticas
     const totalRegistros = computed(() => registros.value.length)
 
     const contarPorTipo = (tipo) => {
@@ -406,7 +402,6 @@ export default {
       return registros.value.filter(r => r.estado === estado).length
     }
 
-    // Clases para badges
     const tipoBadgeClass = (tipo) => {
       const classes = {
         'periodo de prueba': 'bg-blue-100 text-blue-800',
@@ -425,7 +420,6 @@ export default {
       return classes[estado] || 'bg-gray-100 text-gray-800'
     }
 
-    // Funciones
     const formatFecha = (fecha) => {
       return new Date(fecha).toLocaleDateString('es-ES')
     }
@@ -444,14 +438,12 @@ export default {
 
     const verRegistro = (id) => {
       console.log('Ver registro:', id)
-      // router.push(`/seguimiento/periodo-prueba/${id}`)
       alert(`Ver detalle del registro ${id}`)
     }
 
     const aprobarRegistro = (id) => {
       if (confirm('¿Estás seguro de aprobar este registro?')) {
         console.log('Aprobando registro:', id)
-        // Aquí iría la lógica para aprobar
         alert(`Registro ${id} aprobado`)
       }
     }
@@ -459,7 +451,6 @@ export default {
     const rechazarRegistro = (id) => {
       if (confirm('¿Estás seguro de rechazar este registro?')) {
         console.log('Rechazando registro:', id)
-        // Aquí iría la lógica para rechazar
         alert(`Registro ${id} rechazado`)
       }
     }
@@ -467,14 +458,12 @@ export default {
     const finalizarPeriodo = (id) => {
       if (confirm('¿Estás seguro de finalizar este período de prueba?')) {
         console.log('Finalizando período:', id)
-        // Aquí iría la lógica para finalizar
         alert(`Período de prueba ${id} finalizado`)
       }
     }
 
     const nuevoRegistro = () => {
       console.log('Nuevo registro')
-      // router.push('/seguimiento/periodo-prueba/nuevo')
       alert('Crear nuevo registro de período de prueba/reincorporación')
     }
 
@@ -498,7 +487,6 @@ export default {
       router.push('/login')
     }
 
-    // Cargar datos del usuario
     onMounted(() => {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
       nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'

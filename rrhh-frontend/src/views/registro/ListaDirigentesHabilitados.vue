@@ -1,4 +1,3 @@
-<!-- src/views/registro/ListaDirigentesHabilitados.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header específico para Registro y Habilitación -->
@@ -315,14 +314,12 @@ const router = useRouter()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('lista-dirigentes-habilitados')
 
-// Filtros
 const filtroBusqueda = ref('')
 const filtroGrupo = ref('')
 const filtroRama = ref('')
 const paginaActual = ref(1)
 const itemsPorPagina = 10
 
-// Datos de dirigentes habilitados (según página 23 del PDF)
 const dirigentesHabilitados = ref([
   {
     id: 1,
@@ -417,7 +414,6 @@ const dirigentesHabilitados = ref([
   }
 ])
 
-// Estadísticas
 const estadisticas = ref({
   vigentes: 5,
   proximosVencer: 2,
@@ -425,17 +421,14 @@ const estadisticas = ref({
   porcentajeHabilitados: 40
 })
 
-// Cargar datos del usuario
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
 })
 
-// Computed properties
 const dirigentesFiltrados = computed(() => {
   let filtrados = [...dirigentesHabilitados.value]
   
-  // Aplicar filtro de búsqueda
   if (filtroBusqueda.value) {
     const busqueda = filtroBusqueda.value.toLowerCase()
     filtrados = filtrados.filter(d => 
@@ -445,17 +438,14 @@ const dirigentesFiltrados = computed(() => {
     )
   }
   
-  // Aplicar filtro por grupo
   if (filtroGrupo.value) {
     filtrados = filtrados.filter(d => d.grupo === filtroGrupo.value)
   }
   
-  // Aplicar filtro por rama
   if (filtroRama.value) {
     filtrados = filtrados.filter(d => d.rama === filtroRama.value)
   }
   
-  // Paginación
   const inicio = (paginaActual.value - 1) * itemsPorPagina
   return filtrados.slice(inicio, inicio + itemsPorPagina)
 })
@@ -474,7 +464,6 @@ const totalPaginas = computed(() => {
   return Math.ceil(dirigentesHabilitados.value.length / itemsPorPagina)
 })
 
-// Métodos
 const navegarA = (destino) => {
   rutaActiva.value = destino
   
@@ -486,7 +475,6 @@ const navegarA = (destino) => {
       router.push('/registro/solicitudes-pendientes')
       break
     case 'lista-dirigentes-habilitados':
-      // Ya estamos aquí
       break
   }
 }

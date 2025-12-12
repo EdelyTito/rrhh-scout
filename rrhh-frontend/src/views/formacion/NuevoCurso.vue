@@ -280,13 +280,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { formacionService } from '../../services/api'
 
 const router = useRouter()
 const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('nuevo-curso')
 const guardando = ref(false)
 
-// Datos del formulario
 const formulario = ref({
   nombre: '',
   tipo: '',
@@ -298,7 +298,6 @@ const formulario = ref({
   ]
 })
 
-// Cargar datos del usuario
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Formación'
@@ -306,8 +305,7 @@ onMounted(() => {
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  
-  switch(destino) {
+  switch (destino) {
     case 'inicio-formacion':
       router.push('/formacion')
       break
@@ -322,79 +320,55 @@ const agregarModulo = () => {
 }
 
 const eliminarModulo = (index) => {
-  if (formulario.value.modulos.length > 1) {
-    formulario.value.modulos.splice(index, 1)
-  }
-}
-
-const validarFormulario = () => {
-  if (!formulario.value.nombre.trim()) {
-    alert('Por favor ingrese el nombre del curso')
-    return false
-  }
-  
-  if (!formulario.value.tipo) {
-    alert('Por favor seleccione el tipo de curso')
-    return false
-  }
-  
-  if (!formulario.value.cantidadModulos || parseInt(formulario.value.cantidadModulos) < 1) {
-    alert('Por favor ingrese una cantidad válida de módulos')
-    return false
-  }
-  
-  if (!formulario.value.descripcion.trim()) {
-    alert('Por favor ingrese la descripción del curso')
-    return false
-  }
-  
-  // Validar que todos los módulos tengan nombre y dirigente
-  for (let i = 0; i < formulario.value.modulos.length; i++) {
-    const modulo = formulario.value.modulos[i]
-    if (!modulo.nombre.trim() || !modulo.dirigente.trim()) {
-      alert(`Por favor complete todos los campos del Módulo ${i + 1}`)
-      return false
-    }
-  }
-  
-  return true
+  if (formulario.value.modulos.length === 1) return
+  formulario.value.modulos.splice(index, 1)
 }
 
 const guardarCurso = async () => {
-  if (!validarFormulario()) return
-  
-  guardando.value = true
+  if (!formulario.value.nombre || !formulario.value.tipo || !formulario.value.descripcion) {
+    alert('Por favor completa al menos nombre, tipo y descripción del curso.')
+    return
+  }
 
+  guardando.value = true
   try {
-    // Simular guardado en la API
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Preparar datos para enviar
-    const cursoData = {
-      ...formulario.value,
-      id: Date.now(), // ID temporal
-      fechaCreacion: new Date().toISOString(),
-      estado: 'planificado'
+    const descripcionExtendida = `
+${formulario.value.descripcion}
+
+Tipo: ${formulario.value.tipo}
+Cantidad de módulos: ${formulario.value.cantidadModulos || 'N/D'}
+Cantidad de paralelos: ${formulario.value.cantidadParalelos || '0'}
+
+Módulos:
+${formulario.value.modulos.map((m, i) => `  ${i + 1}. ${m.nombre} - ${m.dirigente}`).join('\n')}
+`.trim()
+
+    const payload = {
+      nombre: formulario.value.nombre,
+      descripcion: descripcionExtendida,
+      fecha_inicio: null,
+      fecha_fin: null,
+      modalidad: formulario.value.tipo,
+      lugar: null,
+      cupo: formulario.value.cantidadModulos ? Number(formulario.value.cantidadModulos) : null,
     }
-    
-    console.log('Curso guardado:', cursoData)
-    
-    // Mostrar confirmación
-    alert('¡Curso creado exitosamente!')
-    
-    // Redirigir a la lista de cursos
+
+    const res = await formacionService.createCurso(payload)
+    console.log('Curso creado:', res.data)
+
+    alert('¡Curso creado correctamente!')
     router.push('/formacion/lista-cursos')
-    
+
   } catch (error) {
-    console.error('Error al guardar el curso:', error)
-    alert('Error al guardar el curso. Por favor intente nuevamente.')
+    console.error('Error al crear curso:', error)
+    alert(error.response?.data?.error || 'Error al crear el curso')
   } finally {
     guardando.value = false
   }
 }
 
 const cancelar = () => {
-  if (confirm('¿Está seguro de cancelar? Los cambios no guardados se perderán.')) {
+  if (confirm('¿Cancelar creación? Los datos no guardados se perderán.')) {
     router.push('/formacion/lista-cursos')
   }
 }
@@ -402,6 +376,7 @@ const cancelar = () => {
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  router.push('/login')
 }
 </script>
+

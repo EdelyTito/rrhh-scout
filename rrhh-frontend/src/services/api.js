@@ -1,4 +1,3 @@
-// src/services/api.js
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
@@ -20,7 +19,6 @@ api.interceptors.request.use((config) => {
   return config
 }, (err) => Promise.reject(err))
 
-// Response interceptor: maneja 401 (salir) excepto en login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -39,7 +37,6 @@ export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   getUsers: () => api.get('/auth/register'),
-  // opcionales para más endpoints:
   getUser: (id) => api.get(`/auth/${id}`),
   updateUser: (id, data) => api.put(`/auth/${id}`, data),
   deleteUser: (id) => api.delete(`/auth/${id}`)
@@ -63,10 +60,16 @@ export const dirigentesService = {
 
 export const formacionService = {
   getCursos: () => api.get('/formacion/cursos'),
+  getCurso: (id) => api.get(`/formacion/cursos/${id}`),             
+  updateCurso: (id, data) => api.put(`/formacion/cursos/${id}`, data),
+  deleteCurso: (id) => api.delete(`/formacion/cursos/${id}`),
+  getModulos: (cursoId) => api.get(`/formacion/cursos/${cursoId}/modulos`), 
   createCurso: (data) => api.post('/formacion/cursos', data),
   createModulo: (cursoId, data) => api.post(`/formacion/cursos/${cursoId}/modulos`, data),
+  getAsistencias: (moduloId) => api.get(`/formacion/modulos/${moduloId}/asistencias`), 
   registrarAsistencia: (data) => api.post('/formacion/asistencias', data)
 }
+
 
 export const seguimientoService = {
   getSeguimientos: () => api.get('/seguimiento'),

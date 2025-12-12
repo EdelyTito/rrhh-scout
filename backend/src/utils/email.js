@@ -1,4 +1,3 @@
-// src/utils/email.js
 import nodemailer from "nodemailer";
 
 export const sendEmail = async (to, subject, html) => {
@@ -18,8 +17,8 @@ export const sendEmail = async (to, subject, html) => {
       html,
     });
 
-    console.log("📩 Correo enviado a:", to);
+    console.log("Correo enviado a:", to);
   } catch (error) {
-    console.error("❌ Error al enviar correo:", error);
+    console.error("Error al enviar correo:", error);
   }
 };

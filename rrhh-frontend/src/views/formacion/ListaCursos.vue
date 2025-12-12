@@ -69,40 +69,39 @@
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nombre del curso
                   </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipo de curso
                   </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cantidad de módulos
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fecha del curso
                   </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-for="curso in cursos" :key="curso.id" class="hover:bg-gray-50 transition duration-150">
+                  
+                  <!-- NOMBRE -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm font-medium text-gray-900">{{ curso.nombre }}</div>
                   </td>
+
+                  <!-- TIPO -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">{{ curso.tipo }}</div>
-                    <div class="text-xs text-gray-500">{{ curso.subtipo }}</div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ curso.modulos }}</div>
-                    <div v-if="curso.paralelos" class="text-xs text-gray-500">{{ curso.paralelos }}</div>
-                  </td>
+
+                  <!-- FECHA -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">{{ curso.fecha }}</div>
-                    <div class="text-xs text-gray-500">{{ curso.estadoFecha }}</div>
                   </td>
+
+                  <!-- ACCIONES -->
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button 
                       @click="verCurso(curso.id)"
@@ -110,12 +109,14 @@
                     >
                       Ver
                     </button>
+
                     <button 
                       @click="editarCurso(curso.id)"
                       class="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       Editar
                     </button>
+
                     <button 
                       @click="eliminarCurso(curso.id)"
                       class="text-red-600 hover:text-red-900"
@@ -123,8 +124,10 @@
                       Eliminar
                     </button>
                   </td>
+
                 </tr>
               </tbody>
+
             </table>
           </div>
 
@@ -164,96 +167,82 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { formacionService } from '../../services/api'
 
 const router = useRouter()
 const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('lista-cursos')
 
-// Lista de cursos (según página 17 del Figma)
-const cursos = ref([
-  {
-    id: 1,
-    nombre: 'Batería 1-2025',
-    tipo: 'Batería de módulos',
-    subtipo: '',
-    modulos: '10 módulos',
-    paralelos: 'y 2 paralelos',
-    fecha: '13 de abril al 16 de abril',
-    estadoFecha: 'Programado'
-  },
-  {
-    id: 2,
-    nombre: 'Introductorio 2025',
-    tipo: 'Curso Introductorio',
-    subtipo: '',
-    modulos: '8 módulos',
-    paralelos: '',
-    fecha: '20 y 21 de febrero',
-    estadoFecha: 'Finalizado'
-  },
-  {
-    id: 3,
-    nombre: 'IMs Nivel II Lobatos',
-    tipo: 'IMs Nivel II',
-    subtipo: '',
-    modulos: '12 módulos',
-    paralelos: 'y 2 paralelos',
-    fecha: 'por definir',
-    estadoFecha: 'Por programar'
-  },
-  {
-    id: 4,
-    nombre: 'IMs Nivel III Exploradores',
-    tipo: 'IMs Nivel III',
-    subtipo: '',
-    modulos: '15 módulos',
-    paralelos: 'y 3 paralelos',
-    fecha: '15 de junio al 20 de junio',
-    estadoFecha: 'Programado'
-  },
-  {
-    id: 5,
-    nombre: 'Paxtu Nivel Grupo',
-    tipo: 'Paxtu Nivel Grupo',
-    subtipo: 'Gestión Institucional',
-    modulos: '10 módulos',
-    paralelos: '',
-    fecha: '5 de mayo al 10 de mayo',
-    estadoFecha: 'Programado'
-  },
-  {
-    id: 6,
-    nombre: 'Koodoo Adjunto',
-    tipo: 'Koodoo Adjunto',
-    subtipo: 'Formación de Formadores',
-    modulos: '14 módulos',
-    paralelos: '',
-    fecha: 'por definir',
-    estadoFecha: 'Por programar'
-  }
-])
+const cursos = ref([])
+const cargando = ref(false)
+const error = ref('')
 
-// Cargar datos del usuario
+const formatISODate = (iso, withTime = false) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d)) return ''
+  if (withTime) {
+    const datePart = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    const timePart = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    return `${datePart} ${timePart}`
+  }
+  return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+const formatRangoFechas = (fi, ff) => {
+  if (!fi && !ff) return 'Por definir'
+  if (fi && !ff) return formatISODate(fi)
+  if (!fi && ff) return formatISODate(ff)
+  return `${formatISODate(fi)} al ${formatISODate(ff)}`
+}
+
+
+const cargarCursos = async () => {
+  cargando.value = true
+  error.value = ''
+  try {
+    const res = await formacionService.getCursos()
+    const data = Array.isArray(res.data) ? res.data : []
+
+    cursos.value = data.map(curso => {
+      const fecha = formatRangoFechas(curso.fecha_inicio, curso.fecha_fin)
+
+      return {
+        id:        curso.id,
+        nombre:    curso.nombre,
+        tipo:      curso.modalidad || 'Curso',
+        fecha,
+        estadoFecha: curso.estado || 'Sin estado',
+      }
+    })
+  } catch (err) {
+    console.error('Error cargando cursos:', err)
+    error.value = 'No se pudieron cargar los cursos. Intenta nuevamente.'
+    cursos.value = []
+  } finally {
+    cargando.value = false
+  }
+}
+
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Formación'
+  cargarCursos()
 })
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  
-  switch(destino) {
+  switch (destino) {
     case 'inicio-formacion':
       router.push('/formacion')
       break
     case 'lista-cursos':
-      // Ya estamos aquí
+      // ya estamos aquí
       break
   }
 }
 
 const verCurso = (id) => {
-  // Navegar a vista detalle del curso
   router.push(`/formacion/detalle-curso/${id}`)
 }
 
@@ -261,22 +250,19 @@ const editarCurso = (id) => {
   router.push(`/formacion/editar-curso/${id}`)
 }
 
-const eliminarCurso = (id) => {
-  if (confirm('¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.')) {
-    // Lógica para eliminar curso
-    cursos.value = cursos.value.filter(curso => curso.id !== id)
-    console.log(`Curso ${id} eliminado`)
-  }
+const eliminarCurso = async (id) => {
+  if (!confirm('¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.')) return
+  cursos.value = cursos.value.filter(curso => curso.id !== id)
+  console.log(`Curso ${id} eliminado (solo en frontend)`)
 }
 
 const crearNuevoCurso = () => {
-  // Navegar a la vista de creación de cursos (página 18)
   router.push('/formacion/nuevo-curso')
 }
 
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
-  router.push('/')
+  router.push('/login')
 }
 </script>

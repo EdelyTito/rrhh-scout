@@ -8,7 +8,7 @@ import { registrarLog } from "../utils/logger.js";
 const router = express.Router();
 
 //
-// 🌍 RUTA PÚBLICA — Envío de solicitud de registro o habilitación
+// RUTA PÚBLICA — Envío de solicitud de registro o habilitación
 //
 router.post("/public", async (req, res) => {
   try {
@@ -32,7 +32,7 @@ router.post("/public", async (req, res) => {
       archivo_certificado_no_violencia
     } = req.body;
 
-    // 1️⃣ Crear dirigente
+    // Crear dirigente
     const resultDirigente = await pool.query(
       `INSERT INTO dirigentes (
         nombre, ci, fecha_nacimiento, genero, telefono, correo, direccion, grupo,
@@ -50,14 +50,14 @@ router.post("/public", async (req, res) => {
 
     const dirigente_id = resultDirigente.rows[0].id;
 
-    // 2️⃣ Crear solicitud
+    //Crear solicitud
     const resultSol = await pool.query(
       `INSERT INTO solicitudes_registro (dirigente_id, correo, telefono, estado)
        VALUES ($1, $2, $3, 'pendiente') RETURNING id`,
       [dirigente_id, correo, telefono]
     );
 
-    // 3️⃣ Enviar correo de confirmación
+    //Enviar correo de confirmación
     if (correo) {
       await sendEmail(
         correo,
@@ -74,16 +74,16 @@ router.post("/public", async (req, res) => {
       solicitud_id: resultSol.rows[0].id,
     });
   } catch (err) {
-    console.error("❌ Error al registrar solicitud:", err);
+    console.error("Error al registrar solicitud:", err);
     res.status(500).json({ error: "Error al registrar solicitud pública" });
   }
 });
 
 //
-// 🔒 RUTAS PRIVADAS — Solo para admin y responsables
+//RUTAS PRIVADAS — Solo para admin y responsables
 //
 
-// 🟢 Listar todas las solicitudes
+//Listar todas las solicitudes
 router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
   try {
     const result = await pool.query(`
@@ -100,17 +100,16 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
     `);
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener solicitudes:", err);
+    console.error("Error al obtener solicitudes:", err);
     res.status(500).json({ error: "Error al obtener solicitudes" });
   }
 });
 
-// 🟠 Actualizar estado de solicitud (Revisión / Aprobación / Rechazo)
+// Actualizar estado de solicitud (Revisión / Aprobación / Rechazo)
 router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 🧩 Manejo seguro del body incluso si viene vacío
     const { estado = "pendiente", observaciones = "" } = req.body || {};
 
     if (!["pendiente", "habilitado", "rechazado"].includes(estado)) {
@@ -145,13 +144,13 @@ router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ Error al actualizar solicitud:", err);
+    console.error("Error al actualizar solicitud:", err);
     res.status(500).json({ error: "Error al actualizar solicitud" });
   }
 });
 
 
-// 🔴 Eliminar solicitud (solo admin)
+// Eliminar solicitud (solo admin)
 router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
   try {
     const { id } = req.params;
@@ -168,7 +167,7 @@ router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
 
     res.json({ message: "Solicitud eliminada correctamente" });
   } catch (err) {
-    console.error("❌ Error al eliminar solicitud:", err);
+    console.error("Error al eliminar solicitud:", err);
     res.status(500).json({ error: "Error al eliminar solicitud" });
   }
 });
@@ -176,7 +175,6 @@ router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
 
 //
 // 🟢 EDITAR DATOS DE UN DIRIGENTE (uso interno)
-// Solo el comisionado o subcomisionado puede hacerlo.
 //
 router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
   try {
@@ -201,7 +199,6 @@ router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, r
       archivo_certificado_no_violencia
     } = req.body;
 
-    // 🧩 Actualiza todos los datos del dirigente
     const result = await pool.query(
       `UPDATE dirigentes
        SET
@@ -249,7 +246,6 @@ router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, r
 
     const dirigenteActualizado = result.rows[0];
 
-    // 🧠 Registrar log de la acción
     await registrarLog(
       req.user.id,
       "Actualizó datos del dirigente (verificación ASB)",
@@ -264,7 +260,7 @@ router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, r
       dirigente: dirigenteActualizado,
     });
   } catch (err) {
-    console.error("❌ Error al actualizar dirigente:", err);
+    console.error("Error al actualizar dirigente:", err);
     res.status(500).json({ error: "Error al actualizar los datos del dirigente" });
   }
 });

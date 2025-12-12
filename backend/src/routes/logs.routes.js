@@ -1,4 +1,3 @@
-// src/routes/logs.routes.js
 import express from "express";
 import { pool } from "../config/db.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -7,7 +6,7 @@ import { authorizeRoles } from "../middleware/authorize.js";
 const router = express.Router();
 
 //
-// 🔒 OBTENER TODOS LOS LOGS (solo roles con permisos de gestión)
+// OBTENER TODOS LOS LOGS (solo roles con permisos de gestión)
 //
 router.get("/", verifyToken, authorizeRoles(1, 2, 3, 4, 5, 6, 7), async (req, res) => {
   try {
@@ -54,7 +53,7 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 3, 4, 5, 6, 7), async (req, re
 
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener logs:", err);
+    console.error("Error al obtener logs:", err);
     res.status(500).json({ error: "Error al obtener logs" });
   }
 });

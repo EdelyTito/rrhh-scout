@@ -1,4 +1,3 @@
-<!-- src/views/registro/RegistroDashboard.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header específico para Registro y Habilitación -->
@@ -287,7 +286,6 @@ const router = useRouter()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('inicio-registro')
 
-// Cargar datos del usuario
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
@@ -318,7 +316,3 @@ const cerrarSesion = () => {
   router.push('/')
 }
 </script>
-
-<style scoped>
-/* Estilos específicos para la vista de Registro y Habilitación */
-</style>
