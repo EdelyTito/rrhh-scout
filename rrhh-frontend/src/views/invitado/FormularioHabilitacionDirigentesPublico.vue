@@ -589,6 +589,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { registroService } from '../../services/api'
 
 const enviando = ref(false)
 
@@ -704,19 +705,29 @@ const validarFormulario = () => {
 
 const enviarFormulario = async () => {
   if (!validarFormulario()) return
-
+  
   enviando.value = true
-
+  
   try {
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    const formData = new FormData()
     
-    console.log('Formulario enviado:', {
-      ...formulario.value,
-      archivos: archivos.value
+    Object.keys(formulario.value).forEach(key => {
+      formData.append(key, formulario.value[key])
     })
-
-    alert('¡Formulario enviado con éxito! Recibirá un correo de confirmación pronto.')
     
+    if (archivos.value.certificadosFormacion) {
+      formData.append('archivo_certificado_formacion', archivos.value.certificadosFormacion)
+    }
+    if (archivos.value.certificadoNoViolencia) {
+      formData.append('archivo_certificado_no_violencia', archivos.value.certificadoNoViolencia)
+    }
+    if (archivos.value.valoracionPerfil) {
+      formData.append('archivo_valoracion_perfil', archivos.value.valoracionPerfil)
+    }
+    
+    await registroService.enviarSolicitudPublica(formData)
+    
+    alert('¡Formulario enviado con éxito! Recibirá un correo de confirmación pronto.')
     limpiarFormulario()
     
   } catch (error) {

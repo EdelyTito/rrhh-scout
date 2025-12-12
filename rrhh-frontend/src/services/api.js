@@ -10,6 +10,20 @@ const api = axios.create({
   timeout: 12000
 })
 
+const apiFormData = axios.create({
+  baseURL: API_URL,
+  timeout: 30000
+})
+
+apiFormData.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers = config.headers || {}
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -23,10 +37,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isLoginEndpoint = error.config?.url?.includes('/auth/login')
-    if (error.response?.status === 401 && !isLoginEndpoint) {
+    if (error.response?.status === 401 && !isLoginEndpoint) { 
       localStorage.removeItem('token')
       localStorage.removeItem('usuario')
-      window.location.href = '/login' 
+      window.location.href = '/'
     }
     return Promise.reject(error)
   }
@@ -86,7 +100,10 @@ export const registroService = {
   actualizarSolicitud: (id, data) => api.put(`/registro/${id}`, data),
   actualizarDirigente: (id, data) => api.put(`/registro/dirigente/${id}`, data),
   eliminarSolicitud: (id) => api.delete(`/registro/${id}`),
-  enviarSolicitudPublica: (data) => api.post('/registro/public', data)
+  enviarSolicitudPublica: (data) => apiFormData.post('/registro/public', data),
+  getDirigentesHabilitados: () => {return api.get('/registro/dirigentes-habilitados');},
+  actualizarEstadoDirigente: (id, data) => {return api.put(`/dirigentes/${id}`, data);},
+  getTodasSolicitudes: () => {return api.get('/registro/todas');},
 }
 
 export const dashboardService = {

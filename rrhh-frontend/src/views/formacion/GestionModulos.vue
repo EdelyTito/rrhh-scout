@@ -367,11 +367,7 @@ const eliminarModulo = (moduloId) => {
 
 
 const registrarAsistencias = (modulo) => {
-  router.push({
-    name: 'RegistroAsistenciasFormacion', 
-    params: { moduloId: String(modulo.id) },
-    query: { moduloNombre: modulo.nombre, cursoNombre: curso.value?.nombre || '' }
-  })
+  router.push({ name: 'RegistroAsistenciasFormacion', params: { moduloId: String(moduloId) } })
 }
 
 

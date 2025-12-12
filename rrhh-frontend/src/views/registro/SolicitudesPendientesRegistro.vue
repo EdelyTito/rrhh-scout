@@ -90,233 +90,260 @@
           </div>
         </div>
 
-        <!-- Filtros -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Filtro por grupo -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Grupo Scout</label>
-              <select 
-                v-model="filtroGrupo"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-              >
-                <option value="">Todos los grupos</option>
-                <option v-for="grupo in gruposUnicos" :key="grupo" :value="grupo">
-                  {{ grupo }}
-                </option>
-              </select>
+        <!-- Estado de carga -->
+        <div v-if="cargando" class="flex justify-center items-center h-64">
+          <div class="text-center">
+            <svg class="animate-spin h-12 w-12 text-[#009d71] mx-auto" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-4 text-gray-600">Cargando solicitudes...</p>
+          </div>
+        </div>
+
+        <!-- Contenido cuando no está cargando -->
+        <div v-else>
+          <!-- Filtros -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <!-- Filtro por grupo -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Grupo Scout</label>
+                <select 
+                  v-model="filtroGrupo"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
+                >
+                  <option value="">Todos los grupos</option>
+                  <option v-for="grupo in gruposUnicos" :key="grupo" :value="grupo">
+                    {{ grupo }}
+                  </option>
+                </select>
+              </div>
+              
+              <!-- Filtro por rama -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Rama</label>
+                <select 
+                  v-model="filtroRama"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
+                >
+                  <option value="">Todas las ramas</option>
+                  <option v-for="rama in ramasUnicas" :key="rama" :value="rama">
+                    {{ rama }}
+                  </option>
+                </select>
+              </div>
+              
+              <!-- Filtro por fecha -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                <select 
+                  v-model="filtroFecha"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
+                >
+                  <option value="">Todas las fechas</option>
+                  <option value="ultima-semana">Última semana</option>
+                  <option value="ultimo-mes">Último mes</option>
+                  <option value="ultimos-3-meses">Últimos 3 meses</option>
+                </select>
+              </div>
+              
+              <!-- Botón de limpiar filtros -->
+              <div class="flex items-end">
+                <button 
+                  @click="limpiarFiltros"
+                  class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition duration-200 font-medium"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
             </div>
-            
-            <!-- Filtro por rama -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Rama</label>
-              <select 
-                v-model="filtroRama"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-              >
-                <option value="">Todas las ramas</option>
-                <option v-for="rama in ramasUnicas" :key="rama" :value="rama">
-                  {{ rama }}
-                </option>
-              </select>
+          </div>
+
+          <!-- Tabla de solicitudes -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Tabla -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nombre
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Rama
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Grupo
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr 
+                    v-for="solicitud in solicitudesFiltradas" 
+                    :key="solicitud.id"
+                    class="hover:bg-gray-50 transition duration-150"
+                  >
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                          <span class="text-sm font-medium text-gray-700">
+                            {{ obtenerIniciales(solicitud.nombre) }}
+                          </span>
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">
+                            {{ solicitud.nombre }}
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            {{ solicitud.ci }}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span :class="[
+                        'px-2 py-1 text-xs font-medium rounded-full',
+                        getColorRama(solicitud.rama)
+                      ]">
+                        {{ solicitud.rama }}
+                        <span v-if="!solicitud.rama || solicitud.rama === 'Sin rama'" 
+                              class="ml-1 text-xs text-red-500">
+                          (!)
+                        </span>
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">
+                        {{ solicitud.grupo}}
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        {{ solicitud.distrito}}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">
+                        {{ solicitud.fecha || 'Fecha no disponible' }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button 
+                        @click="verSolicitud(solicitud.id)"
+                        class="text-[#009d71] hover:text-[#007a5c] mr-3 font-medium"
+                      >
+                        Ver solicitud
+                      </button>
+                      <button 
+                        @click="aprobarRapido(solicitud.id)"
+                        class="text-green-600 hover:text-green-900 mr-3 font-medium"
+                      >
+                        Aprobar
+                      </button>
+                      <button 
+                        @click="rechazarRapido(solicitud.id)"
+                        class="text-red-600 hover:text-red-900 font-medium"
+                      >
+                        Rechazar
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            
-            <!-- Filtro por fecha -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-              <select 
-                v-model="filtroFecha"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-              >
-                <option value="">Todas las fechas</option>
-                <option value="ultima-semana">Última semana</option>
-                <option value="ultimo-mes">Último mes</option>
-                <option value="ultimos-3-meses">Últimos 3 meses</option>
-              </select>
-            </div>
-            
-            <!-- Botón de limpiar filtros -->
-            <div class="flex items-end">
+
+            <!-- Mensaje si no hay solicitudes -->
+            <div 
+              v-if="solicitudesFiltradas.length === 0" 
+              class="text-center py-12"
+            >
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <p class="mt-2 text-gray-500">No hay solicitudes pendientes con los filtros aplicados.</p>
               <button 
                 @click="limpiarFiltros"
-                class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition duration-200 font-medium"
+                class="mt-4 text-[#009d71] hover:text-[#007a5c] font-medium"
               >
                 Limpiar filtros
               </button>
             </div>
-          </div>
-        </div>
 
-        <!-- Tabla de solicitudes -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <!-- Tabla -->
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nombre
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rama
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Grupo
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr 
-                  v-for="solicitud in solicitudesFiltradas" 
-                  :key="solicitud.id"
-                  class="hover:bg-gray-50 transition duration-150"
-                >
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span class="text-sm font-medium text-gray-700">
-                          {{ obtenerIniciales(solicitud.nombre) }}
-                        </span>
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">{{ solicitud.nombre }}</div>
-                        <div class="text-xs text-gray-500">{{ solicitud.ci }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span :class="[
-                      'px-2 py-1 text-xs font-medium rounded-full',
-                      getColorRama(solicitud.rama)
-                    ]">
-                      {{ solicitud.rama }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ solicitud.grupo }}</div>
-                    <div class="text-xs text-gray-500">{{ solicitud.distrito || 'Distrito La Paz' }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ solicitud.fecha }}</div>
-                    <div class="text-xs text-gray-500">{{ calcularDiasPendientes(solicitud.fecha) }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button 
-                      @click="verSolicitud(solicitud.id)"
-                      class="text-[#009d71] hover:text-[#007a5c] mr-3 font-medium"
-                    >
-                      Ver solicitud
-                    </button>
-                    <button 
-                      @click="aprobarRapido(solicitud.id)"
-                      class="text-green-600 hover:text-green-900 mr-3 font-medium"
-                    >
-                      Aprobar
-                    </button>
-                    <button 
-                      @click="rechazarRapido(solicitud.id)"
-                      class="text-red-600 hover:text-red-900 font-medium"
-                    >
-                      Rechazar
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Mensaje si no hay solicitudes -->
-          <div 
-            v-if="solicitudesFiltradas.length === 0" 
-            class="text-center py-12"
-          >
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <p class="mt-2 text-gray-500">No hay solicitudes pendientes con los filtros aplicados.</p>
-            <button 
-              @click="limpiarFiltros"
-              class="mt-4 text-[#009d71] hover:text-[#007a5c] font-medium"
-            >
-              Limpiar filtros
-            </button>
-          </div>
-
-          <!-- Footer de la tabla -->
-          <div v-if="solicitudesFiltradas.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div class="flex justify-between items-center">
-              <div class="text-sm text-gray-500">
-                Mostrando {{ solicitudesFiltradas.length }} de {{ solicitudesPendientes.length }} solicitudes
+            <!-- Footer de la tabla -->
+            <div v-if="solicitudesFiltradas.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div class="flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                  Mostrando {{ solicitudesFiltradas.length }} de {{ solicitudesPendientes.length }} solicitudes
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button 
+                    @click="cambiarPagina(paginaActual - 1)"
+                    :disabled="paginaActual === 1"
+                    :class="[
+                      'px-3 py-1 rounded-lg border border-gray-300 font-medium',
+                      paginaActual === 1 
+                        ? 'text-gray-400 cursor-not-allowed' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    ]"
+                  >
+                    Anterior
+                  </button>
+                  <span class="text-sm text-gray-700">
+                    Página {{ paginaActual }} de {{ totalPaginas }}
+                  </span>
+                  <button 
+                    @click="cambiarPagina(paginaActual + 1)"
+                    :disabled="paginaActual === totalPaginas"
+                    :class="[
+                      'px-3 py-1 rounded-lg border border-gray-300 font-medium',
+                      paginaActual === totalPaginas 
+                        ? 'text-gray-400 cursor-not-allowed' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    ]"
+                  >
+                    Siguiente
+                  </button>
+                </div>
               </div>
-              <div class="flex items-center space-x-2">
-                <button 
-                  @click="cambiarPagina(paginaActual - 1)"
-                  :disabled="paginaActual === 1"
-                  :class="[
-                    'px-3 py-1 rounded-lg border border-gray-300 font-medium',
-                    paginaActual === 1 
-                      ? 'text-gray-400 cursor-not-allowed' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  ]"
-                >
-                  Anterior
-                </button>
-                <span class="text-sm text-gray-700">
-                  Página {{ paginaActual }} de {{ totalPaginas }}
+            </div>
+          </div>
+
+          <!-- Resumen de acciones masivas -->
+          <div v-if="solicitudesSeleccionadas.length > 0" class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-sm font-medium text-blue-900">
+                  {{ solicitudesSeleccionadas.length }} solicitudes seleccionadas
                 </span>
+              </div>
+              <div class="flex space-x-2">
                 <button 
-                  @click="cambiarPagina(paginaActual + 1)"
-                  :disabled="paginaActual === totalPaginas"
-                  :class="[
-                    'px-3 py-1 rounded-lg border border-gray-300 font-medium',
-                    paginaActual === totalPaginas 
-                      ? 'text-gray-400 cursor-not-allowed' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  ]"
+                  @click="aprobarMasivo"
+                  class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 font-medium text-sm"
                 >
-                  Siguiente
+                  Aprobar seleccionadas
+                </button>
+                <button 
+                  @click="rechazarMasivo"
+                  class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 font-medium text-sm"
+                >
+                  Rechazar seleccionadas
+                </button>
+                <button 
+                  @click="limpiarSeleccion"
+                  class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-medium text-sm"
+                >
+                  Limpiar selección
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Resumen de acciones masivas -->
-        <div v-if="solicitudesSeleccionadas.length > 0" class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <svg class="h-5 w-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span class="text-sm font-medium text-blue-900">
-                {{ solicitudesSeleccionadas.length }} solicitudes seleccionadas
-              </span>
-            </div>
-            <div class="flex space-x-2">
-              <button 
-                @click="aprobarMasivo"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 font-medium text-sm"
-              >
-                Aprobar seleccionadas
-              </button>
-              <button 
-                @click="rechazarMasivo"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 font-medium text-sm"
-              >
-                Rechazar seleccionadas
-              </button>
-              <button 
-                @click="limpiarSeleccion"
-                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-medium text-sm"
-              >
-                Limpiar selección
-              </button>
             </div>
           </div>
         </div>
@@ -335,6 +362,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { registroService } from '../../services/api'
 
 const router = useRouter()
 const nombreResponsable = ref('Responsable de Registro')
@@ -348,85 +376,8 @@ const itemsPorPagina = 10
 
 const solicitudesSeleccionadas = ref([])
 
-const solicitudesPendientes = ref([
-  {
-    id: 1,
-    nombre: 'Felipe Alejandro Lopez',
-    ci: '2065866',
-    rama: 'Lobatos',
-    grupo: 'Boliviano Israelita',
-    distrito: 'Distrito La Paz',
-    fecha: '25/03/2025',
-    prioridad: 'alta',
-    diasPendiente: 5
-  },
-  {
-    id: 2,
-    nombre: 'Alejandra Calles',
-    ci: '1854215',
-    rama: 'Pioneros',
-    grupo: 'Amerinst 301',
-    distrito: 'Distrito La Paz',
-    fecha: '02/02/2025',
-    prioridad: 'media',
-    diasPendiente: 28
-  },
-  {
-    id: 3,
-    nombre: 'Luciana Montes',
-    ci: '2045879',
-    rama: 'Exploradores',
-    grupo: 'San Calixto',
-    distrito: 'Distrito La Paz',
-    fecha: '20/01/2025',
-    prioridad: 'baja',
-    diasPendiente: 41
-  },
-  {
-    id: 4,
-    nombre: 'Carlos Mendoza',
-    ci: '1987456',
-    rama: 'Rovers',
-    grupo: 'Boliviano Israelita',
-    distrito: 'Distrito La Paz',
-    fecha: '15/03/2025',
-    prioridad: 'alta',
-    diasPendiente: 10
-  },
-  {
-    id: 5,
-    nombre: 'Ana Rodríguez',
-    ci: '2154879',
-    rama: 'Lobatos',
-    grupo: 'Amerinst 301',
-    distrito: 'Distrito La Paz',
-    fecha: '10/03/2025',
-    prioridad: 'media',
-    diasPendiente: 15
-  },
-  {
-    id: 6,
-    nombre: 'Juan Pérez',
-    ci: '1896547',
-    rama: 'Exploradores',
-    grupo: 'San Calixto',
-    distrito: 'Distrito La Paz',
-    fecha: '28/02/2025',
-    prioridad: 'baja',
-    diasPendiente: 25
-  },
-  {
-    id: 7,
-    nombre: 'María González',
-    ci: '2054871',
-    rama: 'Pioneros',
-    grupo: 'Boliviano Israelita',
-    distrito: 'Distrito La Paz',
-    fecha: '05/03/2025',
-    prioridad: 'alta',
-    diasPendiente: 20
-  }
-])
+const solicitudesPendientes = ref([])
+const cargando = ref(true)
 
 const estadisticas = ref({
   hoy: 2,
@@ -434,11 +385,117 @@ const estadisticas = ref({
   tiempoPromedio: 18
 })
 
-onMounted(() => {
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-  nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
+onMounted(async () => {
+  await cargarSolicitudes()
 })
 
+const cargarSolicitudes = async () => {
+  try {
+    cargando.value = true
+    console.log('Intentando cargar solicitudes desde:', 'http://localhost:4000/api/registro')
+    
+    const response = await registroService.getSolicitudes()
+    
+    console.log('Respuesta recibida del backend:', response)
+    console.log('Datos recibidos:', response.data)
+    
+    // Depuración detallada
+    if (response.data && Array.isArray(response.data)) {
+      console.log('Número de solicitudes:', response.data.length)
+      
+      if (response.data.length > 0) {
+        // Mostrar estructura completa del primer elemento
+        console.log('Estructura completa del primer elemento:')
+        console.table(response.data[0])
+        
+        // Mostrar todos los campos disponibles
+        console.log('Campos disponibles en el primer elemento:')
+        Object.keys(response.data[0]).forEach(key => {
+          console.log(`  ${key}:`, response.data[0][key])
+        })
+      }
+    }
+    
+    solicitudesPendientes.value = (response.data || []).map(solicitud => {
+      const nombreMostrar = solicitud.nombre_completo || 
+                           solicitud.nombre_dirigente || 
+                           solicitud.nombre || 
+                           'Nombre no disponible'
+      
+      const ramaMostrar = solicitud.rama || 'Sin rama'
+      
+      const grupoMostrar = solicitud.grupo || 'Grupo no asignado'
+      
+      const ciMostrar = solicitud.ci || 'CI no disponible'
+      
+      const distritoMostrar = solicitud.distrito || 'Distrito La Paz'
+      
+      let diasPendiente = 0
+      let fechaFormateada = 'Fecha no disponible'
+      
+      if (solicitud.created_at) {
+        try {
+          const fechaCreacion = new Date(solicitud.created_at)
+          fechaFormateada = fechaCreacion.toLocaleDateString('es-ES')
+          const hoy = new Date()
+          diasPendiente = Math.floor((hoy - fechaCreacion) / (1000 * 60 * 60 * 24))
+        } catch (e) {
+          console.error('Error procesando fecha:', e)
+        }
+      }
+      
+      return {
+        id: solicitud.id,
+        nombre: nombreMostrar,
+        nombre_completo: nombreMostrar,
+        ci: ciMostrar,
+        rama: ramaMostrar,
+        grupo: grupoMostrar,
+        distrito: distritoMostrar,
+        fecha: fechaFormateada,
+        estado: solicitud.estado || 'pendiente',
+        diasPendiente: diasPendiente
+      }
+    })
+    
+    console.log('Solicitudes procesadas para frontend:', solicitudesPendientes.value)
+    
+  } catch (error) {
+    console.error('Error detallado al cargar solicitudes:', error)
+    
+    if (error.response) {
+      console.error('Data del error:', error.response.data)
+      console.error('Status:', error.response.status)
+      console.error('Headers:', error.response.headers)
+      
+      alert(`Error ${error.response.status}: ${error.response.data?.error || 'Error del servidor'}`)
+    } else if (error.request) {
+      console.error('No se recibió respuesta:', error.request)
+      alert('Error de conexión: No se pudo conectar con el servidor.')
+    } else {
+      console.error('Error:', error.message)
+      alert(`Error: ${error.message}`)
+    }
+    
+    // Datos de prueba en caso de error
+    solicitudesPendientes.value = [
+      {
+        id: 1,
+        nombre: 'Felipe Alejandro Lopez (Prueba)',
+        nombre_completo: 'Felipe Alejandro Lopez (Prueba)',
+        ci: '2065866',
+        rama: 'Lobatos',
+        grupo: 'Boliviano Israelita',
+        distrito: 'Distrito La Paz',
+        fecha: '2025-03-25',
+        estado: 'pendiente',
+        diasPendiente: 5
+      }
+    ]
+  } finally {
+    cargando.value = false
+  }
+}
 const solicitudesFiltradas = computed(() => {
   let filtradas = [...solicitudesPendientes.value]
   
@@ -449,11 +506,7 @@ const solicitudesFiltradas = computed(() => {
   if (filtroRama.value) {
     filtradas = filtradas.filter(s => s.rama === filtroRama.value)
   }
-  
-  if (filtroFecha.value) {
-    filtradas = filtradas.filter(s => s.diasPendiente > 7) // Ejemplo
-  }
-  
+
   const inicio = (paginaActual.value - 1) * itemsPorPagina
   return filtradas.slice(inicio, inicio + itemsPorPagina)
 })
@@ -488,39 +541,55 @@ const navegarA = (destino) => {
 }
 
 const obtenerIniciales = (nombre) => {
-  return nombre.split(' ')
-    .map(palabra => palabra[0])
+  // Si nombre es undefined, null o vacío, retorna "NN"
+  if (!nombre || typeof nombre !== 'string') {
+    return 'NN'
+  }
+  
+  // Divide el nombre y obtiene las iniciales
+  const partes = nombre.trim().split(' ')
+  
+  // Filtra partes vacías y obtiene las primeras letras
+  const iniciales = partes
+    .filter(parte => parte.length > 0)
+    .map(parte => parte[0].toUpperCase())
     .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  
+  // Retorna máximo 2 iniciales
+  return iniciales.slice(0, 2) || 'NN'
 }
 
 const getColorRama = (rama) => {
-  const colores = {
-    'Lobatos': 'bg-orange-100 text-orange-800',
-    'Exploradores': 'bg-blue-100 text-blue-800',
-    'Pioneros': 'bg-green-100 text-green-800',
-    'Rovers': 'bg-purple-100 text-purple-800'
+  if (!rama || rama === 'Sin rama') {
+    return 'bg-gray-100 text-gray-800'
   }
-  return colores[rama] || 'bg-gray-100 text-gray-800'
-}
-
-const calcularDiasPendientes = (fecha) => {
-  const hoy = new Date()
-  const fechaSolicitud = new Date(fecha.split('/').reverse().join('-'))
-  const diferencia = hoy - fechaSolicitud
-  const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24))
-  return `${dias} días pendiente`
+  
+  const ramaLimpia = rama.toLowerCase().trim()
+  
+  const colores = {
+    'lobatos': 'bg-orange-100 text-orange-800',
+    'exploradores': 'bg-blue-100 text-blue-800',
+    'pioneros': 'bg-green-100 text-green-800',
+    'rovers': 'bg-purple-100 text-purple-800'
+  }
+  
+  return colores[ramaLimpia] || 'bg-gray-100 text-gray-800'
 }
 
 const verSolicitud = (id) => {
   router.push(`/registro/solicitud/${id}`)
 }
 
-const aprobarRapido = (id) => {
+const aprobarRapido = async (id) => {
   if (confirm('¿Está seguro de aprobar esta solicitud?')) {
-    solicitudesPendientes.value = solicitudesPendientes.value.filter(s => s.id !== id)
-    alert('Solicitud aprobada exitosamente')
+    try {
+      await registroService.actualizarSolicitud(id, { estado: 'habilitado' })
+      solicitudesPendientes.value = solicitudesPendientes.value.filter(s => s.id !== id)
+      alert('Solicitud aprobada exitosamente')
+    } catch (error) {
+      console.error('Error al aprobar solicitud:', error)
+      alert('Error al aprobar la solicitud')
+    }
   }
 }
 

@@ -13,6 +13,11 @@ import SeguimientoDashboard from '../views/seguimiento/SeguimientoDashboard.vue'
 
 // REGISTRO
 import RegistroDashboard from '../views/registro/RegistroDashboard.vue'
+import SolicitudesPendientesRegistro from '../views/registro/SolicitudesPendientesRegistro.vue'
+import ListaDirigentesHabilitados from '../views/registro/ListaDirigentesHabilitados.vue'
+import DetalleSolicitud from '../views/registro/DetalleSolicitud.vue'
+import DetalleDirigenteRegistro from '../views/registro/DetalleDirigenteRegistro.vue'
+import EditarDirigenteRegistro from '../views/registro/EditarDirigenteRegistro.vue'
 
 // FORMACIÓN 
 import FormacionDashboard from '../views/formacion/FormacionDashboard.vue'
@@ -104,14 +109,59 @@ const routes = [
     },
   },
 
-  // ---------- REGISTRO ----------
+  // --- REGISTRO ---
   {
     path: '/registro',
     name: 'RegistroDashboard',
     component: RegistroDashboard,
     meta: {
       requiresAuth: true,
-      roles: ['responsable_registro', 'subcomisionado_registro', 'admin'],
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
+    },
+  },
+  {
+    path: '/registro/solicitudes-pendientes',
+    name: 'SolicitudesPendientesRegistro',
+    component: SolicitudesPendientesRegistro,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
+    },
+  },
+  {
+    path: '/registro/dirigentes-habilitados',
+    name: 'ListaDirigentesHabilitados',
+    component: ListaDirigentesHabilitados,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
+    },
+  },
+  {
+    path: '/registro/solicitud/:id',
+    name: 'DetalleSolicitud',
+    component: DetalleSolicitud,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
+    },
+  },
+  {
+    path: '/registro/dirigente/:id',
+    name: 'DetalleDirigenteRegistro',
+    component: DetalleDirigenteRegistro,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
+    },
+  },
+  {
+    path: '/registro/dirigente/:id/editar',
+    name: 'EditarDirigenteRegistro',
+    component: EditarDirigenteRegistro,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
     },
   },
 

@@ -39,6 +39,7 @@ router.post("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
       correo,
       direccion,
       grupo,
+      rama,
       cargo_actual,
       nivel_scout,
       anios_servicio,
@@ -64,7 +65,7 @@ router.post("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
     const result = await pool.query(
       `INSERT INTO dirigentes (
         nombre, ci, fecha_nacimiento, genero, telefono, correo, direccion,
-        grupo, cargo_actual, nivel_scout, anios_servicio, grupo_anterior,
+        grupo, rama, cargo_actual, nivel_scout, anios_servicio, grupo_anterior,
         fecha_ingreso, estado, fecha_actualizacion, id_usuario, distrito,
         archivo_ci_anverso, archivo_ci_reverso, direccion_domicilio,
         archivo_croquis_domicilio, archivo_safe_from_harm,
@@ -75,12 +76,12 @@ router.post("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
         $8,$9,$10,$11,$12,
         $13,$14,NOW(),$15,$16,
         $17,$18,$19,
-        $20,$21,$22,$23
+        $20,$21,$22,$23,$24
       )
       RETURNING *`,
       [
         nombre, ci, fecha_nacimiento, genero, telefono, correo, direccion,
-        grupo, cargo_actual, nivel_scout, anios_servicio, grupo_anterior,
+        grupo, rama, cargo_actual, nivel_scout, anios_servicio, grupo_anterior,
         fecha_ingreso, estado, req.user.id, distrito,
         archivo_ci_anverso, archivo_ci_reverso, direccion_domicilio,
         archivo_croquis_domicilio, archivo_safe_from_harm,
@@ -95,7 +96,7 @@ router.post("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
       "Creó un nuevo dirigente",
       "dirigentes",
       nuevoDirigente.id,
-      `Dirigente: ${nombre}, Grupo: ${grupo}, Estado: ${estado}, Distrito: ${distrito}`
+      `Dirigente: ${nombre}, Grupo: ${grupo}, Rama: ${rama || 'N/A'}, Estado: ${estado}, Distrito: ${distrito}`
     );
 
     res.status(201).json(nuevoDirigente);
@@ -121,6 +122,7 @@ router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
       correo,
       direccion,
       grupo,
+      rama,
       cargo_actual,
       nivel_scout,
       anios_servicio,
@@ -144,18 +146,18 @@ router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
     const result = await pool.query(
       `UPDATE dirigentes SET
         nombre=$1, ci=$2, fecha_nacimiento=$3, genero=$4, telefono=$5, correo=$6,
-        direccion=$7, grupo=$8, cargo_actual=$9, nivel_scout=$10,
-        anios_servicio=$11, grupo_anterior=$12, fecha_ingreso=$13,
-        estado=$14, fecha_actualizacion=NOW(), distrito=$15,
-        archivo_ci_anverso=$16, archivo_ci_reverso=$17,
-        direccion_domicilio=$18, archivo_croquis_domicilio=$19,
-        archivo_safe_from_harm=$20, archivo_codigo_conducta=$21,
-        archivo_certificado_no_violencia=$22
-      WHERE id=$23
+        direccion=$7, grupo=$8, rama=$9, cargo_actual=$10, nivel_scout=$11,
+        anios_servicio=$12, grupo_anterior=$13, fecha_ingreso=$14,
+        estado=$15, fecha_actualizacion=NOW(), distrito=$16,
+        archivo_ci_anverso=$17, archivo_ci_reverso=$18,
+        direccion_domicilio=$19, archivo_croquis_domicilio=$20,
+        archivo_safe_from_harm=$21, archivo_codigo_conducta=$22,
+        archivo_certificado_no_violencia=$23
+      WHERE id=$24
       RETURNING *`,
       [
         nombre, ci, fecha_nacimiento, genero, telefono, correo,
-        direccion, grupo, cargo_actual, nivel_scout,
+        direccion, grupo, rama, cargo_actual, nivel_scout,
         anios_servicio, grupo_anterior, fecha_ingreso,
         estado, distrito,
         archivo_ci_anverso, archivo_ci_reverso,
@@ -173,7 +175,7 @@ router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
       "Actualizó datos de un dirigente",
       "dirigentes",
       id,
-      `Actualización de: ${nombre}, Estado: ${estado}, Distrito: ${distrito}`
+      `Actualización de: ${nombre}, Rama: ${rama || 'N/A'}, Estado: ${estado}, Distrito: ${distrito}`
     );
 
     res.json(dirigenteActualizado);
