@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 //Login
 import Login from '../views/Login.vue'
+import ResetPassword from '../views/ResetPassword.vue'
 
 // ADMIN
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
@@ -45,6 +46,10 @@ const routes = [
       public: true,
       onlyGuests: true, 
     },
+  },
+  {
+    path: '/reset-password',
+    component: ResetPassword
   },
   // ---------- PÚBLICO / INVITADO ----------
   {

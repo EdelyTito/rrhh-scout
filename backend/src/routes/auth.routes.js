@@ -274,7 +274,7 @@ router.post("/forgot-password", async (req, res) => {
       [token, expires, user.id]
     );
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resetLink = `${process.env.FRONTEND_ORIGINS}/reset-password?token=${token}`;
 
     await sendEmail(
       correo,
