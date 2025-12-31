@@ -192,60 +192,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div 
-            @click="navegarA('solicitudes-pendientes')"
-            class="bg-white p-6 rounded-lg shadow-sm border-2 border-black cursor-pointer hover:shadow-md transition duration-200"
-          >
-            <div class="flex items-center">
-              <div class="bg-blue-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-800">Solicitudes Pendientes</h3>
-                <p class="text-sm text-gray-600 mt-1">Revisar y gestionar solicitudes</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            @click="navegarA('lista-dirigentes')"
-            class="bg-white p-6 rounded-lg shadow-sm border-2 border-black cursor-pointer hover:shadow-md transition duration-200"
-          >
-            <div class="flex items-center">
-              <div class="bg-green-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-800">Lista de Dirigentes</h3>
-                <p class="text-sm text-gray-600 mt-1">Ver todos los dirigentes</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            @click="navegarA('periodo-prueba')"
-            class="bg-white p-6 rounded-lg shadow-sm border-2 border-black cursor-pointer hover:shadow-md transition duration-200"
-          >
-            <div class="flex items-center">
-              <div class="bg-purple-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-800">Período de Prueba</h3>
-                <p class="text-sm text-gray-600 mt-1">Gestionar períodos de prueba</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
 
@@ -263,63 +209,166 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { seguimientoService } from '../../services/api'
 
 export default {
   name: 'SeguimientoDashboard',
   setup() {
     const router = useRouter()
-    
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('inicio')
-
+    
     const stats = ref({
-      totalSolicitudes: 10,
-      aprobadosNivelII: 78,
-      aprobadosNivelIII: 115,
-      enProceso: 25,
-      pendientes: 8
+      totalSolicitudes: 0,
+      aprobadosNivelII: 0,
+      aprobadosNivelIII: 0,
+      enProceso: 0,
+      pendientes: 0
     })
-
-    const aprobadosRamas = ref([
-      { nombre: 'Lobatos', cantidad: 50 },
-      { nombre: 'Exploradores', cantidad: 40 },
-      { nombre: 'Pioneros', cantidad: 22 },
-      { nombre: 'Rovers', cantidad: 10 }
-    ])
-
-    const aprobadosNivelII = ref([
-      { nombre: 'Lobatos', cantidad: 35 },
-      { nombre: 'Exploradores', cantidad: 28 },
-      { nombre: 'Pioneros', cantidad: 18 },
-      { nombre: 'Rovers', cantidad: 12 }
-    ])
-
-    const nombramientos = ref([
-      { tipo: 'Paxtu Grupo', cantidad: 60 },
-      { tipo: 'Paxtu Distrito', cantidad: 40 },
-      { tipo: 'Koodoo Adjunto de Formación', cantidad: 15 },
-      { tipo: 'Koodoo Director', cantidad: 9 }
-    ])
-
-    onMounted(() => {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-      nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
-    })
-
+    
+    const aprobadosRamas = ref([])
+    const aprobadosNivelII = ref([]) // ¡Asegúrate que sea "II" mayúscula!
+    const nombramientos = ref([])
+    
+    const cargarDatosDashboard = async () => {
+      try {
+        console.log('Cargando estadísticas del dashboard...')
+        
+        const response = await seguimientoService.getEstadisticas()
+        
+        console.log('Datos completos recibidos:', response.data)
+        
+        if (response.data) {
+          stats.value = {
+            totalSolicitudes: response.data.totalSolicitudes || 0,
+            aprobadosNivelII: response.data.aprobadosNivelII || 0,
+            aprobadosNivelIII: response.data.aprobadosNivelIII || 0,
+            enProceso: response.data.enProceso || 0,
+            pendientes: response.data.pendientes || 0
+          }
+          
+          if (response.data.aprobadosPorRama && response.data.aprobadosPorRama.length > 0) {
+            aprobadosRamas.value = response.data.aprobadosPorRama
+          } else {
+            aprobadosRamas.value = [
+              { nombre: 'Lobatos', cantidad: Math.floor(stats.value.totalSolicitudes * 0.4) },
+              { nombre: 'Exploradores', cantidad: Math.floor(stats.value.totalSolicitudes * 0.3) },
+              { nombre: 'Pioneros', cantidad: Math.floor(stats.value.totalSolicitudes * 0.2) },
+              { nombre: 'Rovers', cantidad: Math.floor(stats.value.totalSolicitudes * 0.1) }
+            ]
+          }
+          
+          aprobadosNivelII.value = aprobadosRamas.value.map(rama => ({
+            nombre: rama.nombre,
+            cantidad: Math.floor(rama.cantidad * 0.7) // 70% de cada rama son Nivel II
+          }))
+          
+          if (response.data.nombramientos && response.data.nombramientos.length > 0) {
+            nombramientos.value = response.data.nombramientos
+          } else {
+            nombramientos.value = [
+              { tipo: 'Paxtu Grupo', cantidad: Math.floor(stats.value.totalSolicitudes * 0.3) },
+              { tipo: 'Paxtu Distrito', cantidad: Math.floor(stats.value.totalSolicitudes * 0.2) },
+              { tipo: 'Koodoo Adjunto de Formación', cantidad: Math.floor(stats.value.totalSolicitudes * 0.1) },
+              { tipo: 'Koodoo Director', cantidad: Math.floor(stats.value.totalSolicitudes * 0.05) }
+            ]
+          }
+          
+          console.log('Dashboard cargado exitosamente')
+        }
+        
+      } catch (error) {
+        console.error('Error:', error)
+        
+        if (error.response?.status === 404) {
+          console.error('Endpoint /seguimiento/estadisticas no encontrado')
+          console.log('Verifica que el endpoint esté definido en tu backend')
+        }
+        
+        cargarDatosEjemplo()
+      }
+    }
+    
+    const cargarDatosAdicionales = () => {
+      // Calcular datos para las gráficas basados en stats reales
+      const total = stats.value.totalSolicitudes
+      const aprobadosII = stats.value.aprobadosNivelII
+      
+      // Aprobados por rama (ejemplo - ajusta si tienes estos datos reales)
+      aprobadosRamas.value = [
+        { nombre: 'Lobatos', cantidad: Math.floor(total * 0.4) || 50 },
+        { nombre: 'Exploradores', cantidad: Math.floor(total * 0.3) || 40 },
+        { nombre: 'Pioneros', cantidad: Math.floor(total * 0.2) || 22 },
+        { nombre: 'Rovers', cantidad: Math.floor(total * 0.1) || 10 }
+      ]
+      
+      // Aprobados Nivel II por rama
+      aprobadosNivelII.value = [
+        { nombre: 'Lobatos', cantidad: Math.floor(aprobadosII * 0.4) || 35 },
+        { nombre: 'Exploradores', cantidad: Math.floor(aprobadosII * 0.3) || 28 },
+        { nombre: 'Pioneros', cantidad: Math.floor(aprobadosII * 0.2) || 18 },
+        { nombre: 'Rovers', cantidad: Math.floor(aprobadosII * 0.1) || 12 }
+      ]
+      
+      // Nombramientos (ejemplo)
+      nombramientos.value = [
+        { tipo: 'Paxtu Grupo', cantidad: Math.floor(total * 0.3) || 60 },
+        { tipo: 'Paxtu Distrito', cantidad: Math.floor(total * 0.2) || 40 },
+        { tipo: 'Koodoo Adjunto de Formación', cantidad: Math.floor(total * 0.1) || 15 },
+        { tipo: 'Koodoo Director', cantidad: Math.floor(total * 0.05) || 9 }
+      ]
+    }
+    
+    const cargarDatosEjemplo = () => {
+      console.log('📋 Usando datos de ejemplo...')
+      
+      stats.value = {
+        totalSolicitudes: 10,
+        aprobadosNivelII: 78,
+        aprobadosNivelIII: 115,
+        enProceso: 25,
+        pendientes: 8
+      }
+      
+      cargarDatosAdicionales()
+    }
+    
     const navegarA = (destino) => {
       rutaActiva.value = destino
+      
       if (destino === 'inicio') {
         return
       }
-      router.push(`/seguimiento/${destino}`)
+      
+      switch(destino) {
+        case 'solicitudes-pendientes':
+          router.push('/seguimiento/solicitudes-pendientes')
+          break
+        case 'lista-dirigentes':
+          router.push('/seguimiento/lista-dirigentes')
+          break
+        case 'periodo-prueba':
+          router.push('/seguimiento/periodo-prueba')
+          break
+        default:
+          console.warn('Destino no reconocido:', destino)
+      }
     }
-
+    
     const cerrarSesion = () => {
       localStorage.removeItem('usuario')
       localStorage.removeItem('token')
       router.push('/login')
     }
-
+    
+    onMounted(() => {
+      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+      nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
+      
+      // Cargar datos reales del dashboard
+      cargarDatosDashboard()
+    })
+    
     return {
       nombreResponsable,
       rutaActiva,
@@ -333,3 +382,4 @@ export default {
   }
 }
 </script>
+

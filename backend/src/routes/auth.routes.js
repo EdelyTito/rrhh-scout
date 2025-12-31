@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 import {verifyToken} from "../middleware/auth.js";
 import { registrarLog } from "../utils/logger.js";
 import {authorizeRoles} from "../middleware/authorize.js";
+import crypto from "crypto";
+import {sendEmail} from "../utils/email.js";
 
 dotenv.config();
 const router = express.Router();
@@ -239,5 +241,106 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Error en el login" });
   }
 });
+
+// ------------------------------------
+// OLVIDÉ MI CONTRASEÑA
+// ------------------------------------
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { correo } = req.body;
+
+    if (!correo) {
+      return res.status(400).json({ error: "Correo requerido" });
+    }
+
+    const userResult = await pool.query(
+      "SELECT id, nombre FROM usuarios WHERE correo = $1",
+      [correo]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    const user = userResult.rows[0];
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    await pool.query(
+      `UPDATE usuarios
+       SET reset_token = $1, reset_token_expira = $2
+       WHERE id = $3`,
+      [token, expires, user.id]
+    );
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    await sendEmail(
+      correo,
+      "Recuperación de contraseña – Sistema Scout RRAA",
+      `
+        <p>Hola <b>${user.nombre}</b>,</p>
+        <p>Solicitaste recuperar tu contraseña.</p>
+        <p>Haz clic en el siguiente enlace:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>Este enlace expira en 1 hora.</p>
+      `
+    );
+
+    await registrarLog(
+      user.id,
+      "Solicitud de recuperación de contraseña",
+      "usuarios",
+      user.id,
+      `Solicitud enviada a ${correo}`,
+      "sistema"
+    );
+
+    res.json({ message: "Correo de recuperación enviado" });
+
+  } catch (err) {
+    console.error("Error forgot-password:", err);
+    res.status(500).json({ error: "Error al procesar la solicitud" });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, nuevaContrasena } = req.body;
+
+    if (!token || !nuevaContrasena) {
+      return res.status(400).json({ error: "Datos incompletos" });
+    }
+
+    const userResult = await pool.query(
+      `SELECT id FROM usuarios
+       WHERE reset_token = $1
+       AND reset_token_expira > NOW()`,
+      [token]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ error: "Token inválido o expirado" });
+    }
+
+    const hashed = await bcrypt.hash(nuevaContrasena, 10);
+
+    await pool.query(
+      `UPDATE usuarios
+       SET contrasena = $1,
+           reset_token = NULL,
+           reset_token_expira = NULL
+       WHERE id = $2`,
+      [hashed, userResult.rows[0].id]
+    );
+
+    res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (err) {
+    console.error("Error reset-password:", err);
+    res.status(500).json({ error: "Error al actualizar contraseña" });
+  }
+});
+
 
 export default router;

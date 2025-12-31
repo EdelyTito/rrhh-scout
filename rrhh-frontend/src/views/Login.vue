@@ -76,9 +76,16 @@
         <div v-if="showForgotPassword" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div class="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 class="text-lg font-bold mb-4">Recuperar contraseña</h3>
-            <p class="text-gray-600 mb-4">
-              Para recuperar tu contraseña, por favor contacta al administrador del sistema.
+            <p class="text-gray-600 mb-3">
+              Ingresa tu correo electrónico y te enviaremos un enlace para recuperar tu contraseña.
             </p>
+            <input
+              v-model="correo"
+              type="email"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
+              placeholder="Correo electrónico"
+              required
+            />
             <div class="flex justify-end space-x-2">
               <button 
                 @click="showForgotPassword = false"
@@ -87,10 +94,10 @@
                 Cerrar
               </button>
               <button 
-                @click="contactAdmin"
+                @click="handleForgotPassword"
                 class="px-4 py-2 bg-[#009d71] text-white rounded-lg hover:bg-[#008060] font-medium"
               >
-                Contactar administrador
+                Enviar correo de recuperación
               </button>
             </div>
           </div>
@@ -231,9 +238,22 @@ const redirectByRole = (rol) => {
   router.push(rutas[rol] || '/admin')
 }
 
-const contactAdmin = () => {
-  window.location.href = `mailto:admin@distritoscout.com?subject=Recuperación&body=Correo: ${correo.value}`
+const handleForgotPassword = async () => {
+  if (!correo.value) {
+    alert('Ingresa tu correo electrónico primero')
+    return
+  }
+
+  try {
+    await authService.forgotPassword(correo.value)
+    alert('Correo enviado. Revisa tu bandeja.')
+    showForgotPassword.value = false
+  } catch (err) {
+    alert(err.response?.data?.error || 'Error al enviar el correo')
+  }
 }
+
+
 </script>
 
 

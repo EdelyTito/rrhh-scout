@@ -36,6 +36,7 @@
           </button>
           
           <!-- Dropdown Comisiones -->
+          <!--
           <div class="relative">
             <button 
               @click="toggleComisiones"
@@ -48,6 +49,7 @@
             </button>
             
             <!-- Dropdown Menu -->
+            <!--
             <div v-if="comisionesAbierto" class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10">
               <div class="py-1">
                 <button 
@@ -76,6 +78,7 @@
               </div>
             </div>
           </div>
+          -->
 
           <button 
             @click="() => navegarA('admin/lista-usuarios')"

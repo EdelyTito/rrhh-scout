@@ -10,6 +10,9 @@ import LogsSistema from '../views/admin/LogsSistema.vue'
 
 // SEGUIMIENTO
 import SeguimientoDashboard from '../views/seguimiento/SeguimientoDashboard.vue'
+import ListaDirigentes from '../views/seguimiento/ListaDirigentes.vue'
+import PeriodoPruebaLista from '../views/seguimiento/PeriodoPruebaLista.vue'
+import SolicitudesPendientes from '../views/seguimiento/SolicitudesPendientes.vue'
 
 // REGISTRO
 import RegistroDashboard from '../views/registro/RegistroDashboard.vue'
@@ -98,15 +101,30 @@ const routes = [
     },
   },
 
-  // ---------- SEGUIMIENTO ----------
+  // --- SEGUIMIENTO ---
   {
     path: '/seguimiento',
     name: 'SeguimientoDashboard',
     component: SeguimientoDashboard,
-    meta: {
-      requiresAuth: true,
-      roles: ['responsable_seguimiento', 'subcomisionado_seguimiento', 'admin'],
-    },
+    meta: { requiresAuth: true, roles: ['responsable_seguimiento', 'subcomisionado_seguimiento', 'admin'] },
+  },
+  {
+    path: '/seguimiento/solicitudes-pendientes',
+    name: 'SolicitudesPendientes',
+    component: SolicitudesPendientes, // Necesitas importar este componente
+    meta: { requiresAuth: true, roles: ['responsable_seguimiento', 'subcomisionado_seguimiento', 'admin'] },
+  },
+  {
+    path: '/seguimiento/lista-dirigentes',
+    name: 'ListaDirigentes',
+    component: ListaDirigentes, // Necesitas importar este componente
+    meta: { requiresAuth: true, roles: ['responsable_seguimiento', 'subcomisionado_seguimiento', 'admin'] },
+  },
+  {
+    path: '/seguimiento/periodo-prueba',
+    name: 'PeriodoPruebaLista',
+    component: PeriodoPruebaLista, // Necesitas importar este componente
+    meta: { requiresAuth: true, roles: ['responsable_seguimiento', 'subcomisionado_seguimiento', 'admin'] },
   },
 
   // --- REGISTRO ---

@@ -11,8 +11,11 @@ const api = axios.create({
 })
 
 const apiFormData = axios.create({
-  baseURL: API_URL,
-  timeout: 30000
+  bbaseURL: API_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'multipart/form-data'
+  }
 })
 
 apiFormData.interceptors.request.use((config) => {
@@ -53,7 +56,9 @@ export const authService = {
   getUsers: () => api.get('/auth/register'),
   getUser: (id) => api.get(`/auth/${id}`),
   updateUser: (id, data) => api.put(`/auth/${id}`, data),
-  deleteUser: (id) => api.delete(`/auth/${id}`)
+  deleteUser: (id) => api.delete(`/auth/${id}`),
+  forgotPassword: (correo) => api.post('/auth/forgot-password', { correo }),
+  resetPassword: (data) => api.post('/auth/reset-password', data)
 }
 
 export const logsService = {
@@ -92,7 +97,8 @@ export const seguimientoService = {
   actualizarResultado: (id, data) => api.put(`/seguimiento/${id}/resultado`, data),
   getReincorporaciones: () => api.get('/seguimiento/reincorporacion'),
   enviarFormularioPublico: (data) => api.post('/seguimiento/public', data),
-  enviarReincorporacion: (data) => api.post('/seguimiento/reincorporacion', data)
+  enviarReincorporacion: (data) => api.post('/seguimiento/reincorporacion', data),
+  getEstadisticas: () => api.get('/seguimiento/estadisticas')
 }
 
 export const registroService = {
@@ -106,8 +112,5 @@ export const registroService = {
   getTodasSolicitudes: () => {return api.get('/registro/todas');},
 }
 
-export const dashboardService = {
-  getSummary: (params = {}) => api.get('/admin/summary', { params })
-}
 
 export default api

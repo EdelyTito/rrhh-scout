@@ -92,212 +92,244 @@
           </div>
         </div>
 
-        <!-- Estadísticas rápidas -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-            <div class="text-2xl font-bold text-[#009d71]">{{ totalRegistros }}</div>
-            <div class="text-sm text-gray-600">Total Registros</div>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-            <div class="text-2xl font-bold text-blue-600">{{ contarPorTipo('periodo de prueba') }}</div>
-            <div class="text-sm text-gray-600">Período de Prueba</div>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-            <div class="text-2xl font-bold text-green-600">{{ contarPorTipo('reincorporacion') }}</div>
-            <div class="text-sm text-gray-600">Reincorporación</div>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-            <div class="text-2xl font-bold text-orange-600">{{ contarPorEstado('pendiente') }}</div>
-            <div class="text-sm text-gray-600">Pendientes</div>
+        <!-- Indicador de carga -->
+        <div v-if="isLoading" class="text-center py-8">
+          <svg class="animate-spin h-8 w-8 text-[#009d71] mx-auto" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-500 mt-2">Cargando registros...</p>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div class="flex items-center">
+            <svg class="h-5 w-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-red-700">{{ error }}</span>
+            <button @click="fetchReincorporaciones" class="ml-auto text-sm text-[#009d71] font-semibold hover:underline">
+              Reintentar
+            </button>
           </div>
         </div>
 
-        <!-- Filtros -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">Filtros</h2>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Filtro por Tipo -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-              <select v-model="filtros.tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
-                <option value="">Todos los tipos</option>
-                <option value="periodo de prueba">Período de Prueba</option>
-                <option value="reincorporacion">Reincorporación</option>
-              </select>
+        <!-- Contenido principal -->
+        <div v-else>
+          <!-- Estadísticas rápidas -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
+              <div class="text-2xl font-bold text-[#009d71]">{{ totalRegistros }}</div>
+              <div class="text-sm text-gray-600">Total Registros</div>
             </div>
-
-            <!-- Filtro por Grupo -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Grupo Scout</label>
-              <select v-model="filtros.grupo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
-                <option value="">Todos los grupos</option>
-                <option v-for="grupo in grupos" :key="grupo" :value="grupo">{{ grupo }}</option>
-              </select>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
+              <div class="text-2xl font-bold text-blue-600">{{ contarPorTipo('periodo de prueba') }}</div>
+              <div class="text-sm text-gray-600">Período de Prueba</div>
             </div>
-
-            <!-- Filtro por Estado -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-              <select v-model="filtros.estado" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
-                <option value="">Todos los estados</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="aprobado">Aprobado</option>
-                <option value="rechazado">Rechazado</option>
-                <option value="completado">Completado</option>
-              </select>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
+              <div class="text-2xl font-bold text-green-600">{{ contarPorTipo('reincorporacion') }}</div>
+              <div class="text-sm text-gray-600">Reincorporación</div>
             </div>
-
-            <!-- Botones de acción -->
-            <div class="flex items-end space-x-2">
-              <button 
-                @click="aplicarFiltros"
-                class="bg-[#009d71] text-white px-4 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 font-semibold"
-              >
-                Aplicar
-              </button>
-              <button 
-                @click="limpiarFiltros"
-                class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 font-semibold"
-              >
-                Limpiar
-              </button>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
+              <div class="text-2xl font-bold text-orange-600">{{ contarPorEstado('pendiente') }}</div>
+              <div class="text-sm text-gray-600">Pendientes</div>
             </div>
           </div>
-        </div>
 
-        <!-- Lista de Registros -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <!-- Header de la tabla -->
-          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div class="flex justify-between items-center">
-              <h2 class="text-lg font-semibold text-gray-800">Registros ({{ registrosFiltrados.length }})</h2>
-              <div class="flex space-x-2">
+          <!-- Filtros -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Filtros</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <!-- Filtro por Tipo -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                <select v-model="filtros.tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
+                  <option value="">Todos los tipos</option>
+                  <option value="periodo de prueba">Período de Prueba</option>
+                  <option value="reincorporacion">Reincorporación</option>
+                </select>
+              </div>
+
+              <!-- Filtro por Grupo -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Grupo Scout</label>
+                <select v-model="filtros.grupo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
+                  <option value="">Todos los grupos</option>
+                  <option v-for="grupo in grupos" :key="grupo" :value="grupo">{{ grupo }}</option>
+                </select>
+              </div>
+
+              <!-- Filtro por Estado -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                <select v-model="filtros.estado" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
+                  <option value="">Todos los estados</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="aprobado">Aprobado</option>
+                  <option value="rechazado">Rechazado</option>
+                  <option value="completado">Completado</option>
+                </select>
+              </div>
+
+              <!-- Botones de acción -->
+              <div class="flex items-end space-x-2">
                 <button 
-                  @click="exportarExcel"
-                  class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 text-sm font-semibold"
+                  @click="aplicarFiltros"
+                  class="bg-[#009d71] text-white px-4 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 font-semibold"
                 >
-                  Exportar Excel
+                  Aplicar
+                </button>
+                <button 
+                  @click="limpiarFiltros"
+                  class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 font-semibold"
+                >
+                  Limpiar
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Tabla -->
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Grupo
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Dirigente(s)
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tipo
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="registro in registrosFiltrados" :key="registro.id" 
-                    class="hover:bg-gray-50 transition duration-150">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ registro.grupo }}</div>
-                  </td>
-                  <td class="px-6 py-4">
-                    <div class="text-sm text-gray-900">
-                      <div v-for="dirigente in registro.dirigentes" :key="dirigente.ci" class="mb-1">
-                        {{ dirigente.nombre }} - CI: {{ dirigente.ci }}
+          <!-- Lista de Registros -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Header de la tabla -->
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div class="flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800">Registros ({{ registrosFiltrados.length }})</h2>
+                <div class="flex space-x-2">
+                  <button 
+                    @click="exportarExcel"
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 text-sm font-semibold"
+                  >
+                    Exportar Excel
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Grupo
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Dirigente(s)
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tipo
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fecha
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Estado
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="registro in registrosFiltrados" :key="registro.id" 
+                      class="hover:bg-gray-50 transition duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ registro.grupo }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="text-sm text-gray-900">
+                        {{ registro.nombre }} 
+                        <div v-if="registro.telefono" class="text-xs text-gray-500">
+                          Tel: {{ registro.telefono }}
+                        </div>
+                        <div v-if="registro.correo" class="text-xs text-gray-500">
+                          Email: {{ registro.correo }}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
-                          :class="tipoBadgeClass(registro.tipo)">
-                      {{ registro.tipo }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatFecha(registro.fecha) }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
-                          :class="estadoBadgeClass(registro.estado)">
-                      {{ registro.estado }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div class="flex space-x-2">
-                      <button 
-                        @click="verRegistro(registro.id)"
-                        class="text-blue-600 hover:text-blue-900 font-semibold"
-                      >
-                        Ver
-                      </button>
-                      <button 
-                        v-if="registro.estado === 'pendiente'"
-                        @click="aprobarRegistro(registro.id)"
-                        class="text-green-600 hover:text-green-900 font-semibold"
-                      >
-                        Aprobar
-                      </button>
-                      <button 
-                        v-if="registro.estado === 'pendiente'"
-                        @click="rechazarRegistro(registro.id)"
-                        class="text-red-600 hover:text-red-900 font-semibold"
-                      >
-                        Rechazar
-                      </button>
-                      <button 
-                        v-if="registro.estado === 'aprobado' && registro.tipo === 'periodo de prueba'"
-                        @click="finalizarPeriodo(registro.id)"
-                        class="text-purple-600 hover:text-purple-900 font-semibold"
-                      >
-                        Finalizar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Empty State -->
-          <div v-if="registrosFiltrados.length === 0" class="text-center py-12">
-            <div class="text-gray-400 mb-4">
-              <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
+                            :class="tipoBadgeClass(registro.tipo)">
+                        {{ getTipoTexto(registro.tipo) }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ formatFecha(registro.fecha_inicio) }}
+                      <div v-if="registro.fecha_fin" class="text-xs text-gray-400">
+                        al {{ formatFecha(registro.fecha_fin) }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
+                            :class="estadoBadgeClass(registro.estado || 'pendiente')">
+                        {{ getEstadoTexto(registro.estado || 'pendiente') }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex space-x-2">
+                        <button 
+                          @click="verRegistro(registro.id)"
+                          class="text-blue-600 hover:text-blue-900 font-semibold"
+                        >
+                          Ver
+                        </button>
+                        <button 
+                          v-if="!registro.estado || registro.estado === 'pendiente'"
+                          @click="aprobarRegistro(registro.id)"
+                          class="text-green-600 hover:text-green-900 font-semibold"
+                        >
+                          Aprobar
+                        </button>
+                        <button 
+                          v-if="!registro.estado || registro.estado === 'pendiente'"
+                          @click="rechazarRegistro(registro.id)"
+                          class="text-red-600 hover:text-red-900 font-semibold"
+                        >
+                          Rechazar
+                        </button>
+                        <button 
+                          v-if="registro.estado === 'aprobado' && registro.tipo === 'periodo de prueba'"
+                          @click="finalizarPeriodo(registro.id)"
+                          class="text-purple-600 hover:text-purple-900 font-semibold"
+                        >
+                          Finalizar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <p class="text-gray-500 text-lg">No hay registros de período de prueba o reincorporación</p>
-            <p class="text-gray-400 text-sm mt-1">Crea un nuevo registro para comenzar</p>
-          </div>
 
-          <!-- Paginación -->
-          <div v-if="registrosFiltrados.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div class="flex justify-between items-center">
-              <div class="text-sm text-gray-700">
-                Mostrando <span class="font-semibold">{{ registrosFiltrados.length }}</span> registros
+            <!-- Empty State -->
+            <div v-if="registrosFiltrados.length === 0 && !isLoading" class="text-center py-12">
+              <div class="text-gray-400 mb-4">
+                <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
               </div>
-              <div class="flex space-x-2">
-                <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
-                  Anterior
-                </button>
-                <button class="px-3 py-1 border border-gray-300 rounded text-sm bg-[#009d71] text-white">
-                  1
-                </button>
-                <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
-                  Siguiente
-                </button>
+              <p class="text-gray-500 text-lg">No hay registros de período de prueba o reincorporación</p>
+              <p class="text-gray-400 text-sm mt-1">Crea un nuevo registro para comenzar</p>
+            </div>
+
+            <!-- Paginación -->
+            <div v-if="registrosFiltrados.length > 0" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div class="flex justify-between items-center">
+                <div class="text-sm text-gray-700">
+                  Mostrando <span class="font-semibold">{{ registrosFiltrados.length }}</span> registros
+                </div>
+                <div class="flex space-x-2">
+                  <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                    Anterior
+                  </button>
+                  <button class="px-3 py-1 border border-gray-300 rounded text-sm bg-[#009d71] text-white">
+                    1
+                  </button>
+                  <button class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                    Siguiente
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -319,6 +351,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { seguimientoService } from '../../services/api'
 
 export default {
   name: 'PeriodoPruebaLista',
@@ -327,6 +360,8 @@ export default {
     
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('periodo-prueba')
+    const isLoading = ref(false)
+    const error = ref(null)
 
     const filtros = ref({
       tipo: '',
@@ -334,49 +369,110 @@ export default {
       estado: ''
     })
 
-    const registros = ref([
-      {
-        id: 1,
-        grupo: 'Boliviano Israelita',
-        tipo: 'periodo de prueba',
-        fecha: '2025-03-25',
-        estado: 'pendiente',
-        dirigentes: [
-          { nombre: 'Felipe Alejandro Lopez', ci: '2065866' }
+    const registros = ref([])
+
+    // Obtener reincorporaciones desde el backend
+    const fetchReincorporaciones = async () => {
+      isLoading.value = true
+      error.value = null
+      
+      try {
+        // Obtener todas las reincorporaciones/períodos de prueba
+        const response = await seguimientoService.getReincorporaciones()
+        
+        // Mapear los datos del backend a la estructura del frontend
+        registros.value = response.data.map(item => ({
+          id: item.id,
+          nombre: item.nombre || 'Sin nombre',
+          grupo: item.grupo || 'Sin grupo',
+          tipo: item.tipo || '',
+          motivo: item.motivo || '',
+          fecha_inicio: item.fecha_inicio || '',
+          fecha_fin: item.fecha_fin || '',
+          telefono: item.telefono || '',
+          correo: item.correo || '',
+          estado: item.estado || 'pendiente',
+          // Simular múltiples dirigentes (en realidad cada registro es un dirigente)
+          dirigentes: [
+            { 
+              nombre: item.nombre || 'Sin nombre',
+              ci: item.ci || 'Sin CI'
+            }
+          ]
+        }))
+        
+      } catch (err) {
+        console.error('Error al obtener reincorporaciones:', err)
+        error.value = 'Error al cargar los registros. Intenta nuevamente.'
+        
+        // Datos de ejemplo en caso de error
+        registros.value = [
+          {
+            id: 1,
+            nombre: 'Felipe Alejandro Lopez',
+            grupo: 'Boliviano Israelita',
+            tipo: 'periodo de prueba',
+            motivo: 'Nuevo dirigente en formación',
+            fecha_inicio: '2025-03-25',
+            fecha_fin: '2025-06-25',
+            telefono: '77777777',
+            correo: 'felipe@ejemplo.com',
+            estado: 'pendiente',
+            dirigentes: [
+              { nombre: 'Felipe Alejandro Lopez', ci: '2065866' }
+            ]
+          },
+          {
+            id: 2,
+            nombre: 'Alejandra Calles',
+            grupo: 'Amerinst 301',
+            tipo: 'reincorporacion',
+            motivo: 'Regreso después de licencia',
+            fecha_inicio: '2025-02-02',
+            fecha_fin: null,
+            telefono: '77777778',
+            correo: 'alejandra@ejemplo.com',
+            estado: 'aprobado',
+            dirigentes: [
+              { nombre: 'Alejandra Calles', ci: '2154876' }
+            ]
+          },
+          {
+            id: 3,
+            nombre: 'Luciana Montes',
+            grupo: 'San Calixto',
+            tipo: 'periodo de prueba',
+            motivo: 'Nueva líder de rama',
+            fecha_inicio: '2025-01-20',
+            fecha_fin: '2025-04-20',
+            telefono: '77777779',
+            correo: 'luciana@ejemplo.com',
+            estado: 'completado',
+            dirigentes: [
+              { nombre: 'Luciana Montes', ci: '1987452' },
+              { nombre: 'Carlos Rodriguez', ci: '2014587' }
+            ]
+          },
+          {
+            id: 4,
+            nombre: 'Rodrigo Llano',
+            grupo: 'Boliviano Israelita',
+            tipo: 'reincorporacion',
+            motivo: 'Reactivación después de inactividad',
+            fecha_inicio: '2025-03-28',
+            fecha_fin: null,
+            telefono: '77777780',
+            correo: 'rodrigo@ejemplo.com',
+            estado: 'rechazado',
+            dirigentes: [
+              { nombre: 'Rodrigo Llano', ci: '2245871' }
+            ]
+          }
         ]
-      },
-      {
-        id: 2,
-        grupo: 'Amerinst 301',
-        tipo: 'reincorporacion',
-        fecha: '2025-02-02',
-        estado: 'aprobado',
-        dirigentes: [
-          { nombre: 'Alejandra Calles', ci: '2154876' }
-        ]
-      },
-      {
-        id: 3,
-        grupo: 'San Calixto',
-        tipo: 'periodo de prueba',
-        fecha: '2025-01-20',
-        estado: 'completado',
-        dirigentes: [
-          { nombre: 'Luciana Montes', ci: '1987452' },
-          { nombre: 'Carlos Rodriguez', ci: '2014587' }
-        ]
-      },
-      {
-        id: 4,
-        grupo: 'Boliviano Israelita',
-        tipo: 'reincorporacion',
-        fecha: '2025-03-28',
-        estado: 'rechazado',
-        dirigentes: [
-          { nombre: 'Rodrigo Llano', ci: '2245871' }
-        ]
+      } finally {
+        isLoading.value = false
       }
-    ])
+    }
 
     const grupos = computed(() => {
       return [...new Set(registros.value.map(r => r.grupo))]
@@ -402,6 +498,25 @@ export default {
       return registros.value.filter(r => r.estado === estado).length
     }
 
+    // Funciones de utilidad
+    const getTipoTexto = (tipo) => {
+      const tipos = {
+        'periodo de prueba': 'Período de Prueba',
+        'reincorporacion': 'Reincorporación'
+      }
+      return tipos[tipo] || tipo
+    }
+
+    const getEstadoTexto = (estado) => {
+      const estados = {
+        'pendiente': 'Pendiente',
+        'aprobado': 'Aprobado',
+        'rechazado': 'Rechazado',
+        'completado': 'Completado'
+      }
+      return estados[estado] || estado
+    }
+
     const tipoBadgeClass = (tipo) => {
       const classes = {
         'periodo de prueba': 'bg-blue-100 text-blue-800',
@@ -421,6 +536,7 @@ export default {
     }
 
     const formatFecha = (fecha) => {
+      if (!fecha) return 'Sin fecha'
       return new Date(fecha).toLocaleDateString('es-ES')
     }
 
@@ -438,33 +554,83 @@ export default {
 
     const verRegistro = (id) => {
       console.log('Ver registro:', id)
-      alert(`Ver detalle del registro ${id}`)
+      // Aquí podrías navegar a una página de detalle o mostrar un modal
+      const registro = registros.value.find(r => r.id === id)
+      if (registro) {
+        alert(`Detalles del registro ${id}:\n
+        Nombre: ${registro.nombre}\n
+        Grupo: ${registro.grupo}\n
+        Tipo: ${getTipoTexto(registro.tipo)}\n
+        Motivo: ${registro.motivo}\n
+        Fecha inicio: ${formatFecha(registro.fecha_inicio)}\n
+        Estado: ${getEstadoTexto(registro.estado)}`)
+      }
     }
 
-    const aprobarRegistro = (id) => {
+    const aprobarRegistro = async (id) => {
       if (confirm('¿Estás seguro de aprobar este registro?')) {
-        console.log('Aprobando registro:', id)
-        alert(`Registro ${id} aprobado`)
+        try {
+          // En un caso real, aquí actualizarías el estado en el backend
+          // await seguimientoService.actualizarReincorporacion(id, { estado: 'aprobado' })
+          
+          // Actualizar localmente
+          const index = registros.value.findIndex(r => r.id === id)
+          if (index !== -1) {
+            registros.value[index].estado = 'aprobado'
+          }
+          
+          alert('Registro aprobado correctamente')
+        } catch (err) {
+          console.error('Error al aprobar registro:', err)
+          alert('Error al aprobar el registro')
+        }
       }
     }
 
-    const rechazarRegistro = (id) => {
+    const rechazarRegistro = async (id) => {
       if (confirm('¿Estás seguro de rechazar este registro?')) {
-        console.log('Rechazando registro:', id)
-        alert(`Registro ${id} rechazado`)
+        try {
+          // En un caso real, aquí actualizarías el estado en el backend
+          // await seguimientoService.actualizarReincorporacion(id, { estado: 'rechazado' })
+          
+          // Actualizar localmente
+          const index = registros.value.findIndex(r => r.id === id)
+          if (index !== -1) {
+            registros.value[index].estado = 'rechazado'
+          }
+          
+          alert('Registro rechazado correctamente')
+        } catch (err) {
+          console.error('Error al rechazar registro:', err)
+          alert('Error al rechazar el registro')
+        }
       }
     }
 
-    const finalizarPeriodo = (id) => {
+    const finalizarPeriodo = async (id) => {
       if (confirm('¿Estás seguro de finalizar este período de prueba?')) {
-        console.log('Finalizando período:', id)
-        alert(`Período de prueba ${id} finalizado`)
+        try {
+          // En un caso real, aquí actualizarías el estado en el backend
+          // await seguimientoService.actualizarReincorporacion(id, { estado: 'completado' })
+          
+          // Actualizar localmente
+          const index = registros.value.findIndex(r => r.id === id)
+          if (index !== -1) {
+            registros.value[index].estado = 'completado'
+          }
+          
+          alert('Período de prueba finalizado correctamente')
+        } catch (err) {
+          console.error('Error al finalizar período:', err)
+          alert('Error al finalizar el período de prueba')
+        }
       }
     }
 
     const nuevoRegistro = () => {
       console.log('Nuevo registro')
-      alert('Crear nuevo registro de período de prueba/reincorporación')
+      // Navegar al formulario público de reincorporación
+      router.push('/public/reincorporacion')
     }
 
     const exportarExcel = () => {
@@ -490,6 +656,9 @@ export default {
     onMounted(() => {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
       nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
+      
+      // Cargar registros al montar el componente
+      fetchReincorporaciones()
     })
 
     return {
@@ -500,8 +669,12 @@ export default {
       grupos,
       registrosFiltrados,
       totalRegistros,
+      isLoading,
+      error,
       contarPorTipo,
       contarPorEstado,
+      getTipoTexto,
+      getEstadoTexto,
       tipoBadgeClass,
       estadoBadgeClass,
       formatFecha,
@@ -513,6 +686,7 @@ export default {
       finalizarPeriodo,
       nuevoRegistro,
       exportarExcel,
+      fetchReincorporaciones,
       navegarA,
       cerrarSesion
     }

@@ -101,6 +101,48 @@ router.post("/reincorporacion", async (req, res) => {
   }
 });
 
+// ESTADÍSTICAS PARA EL DASHBOARD
+// ESTADÍSTICAS PARA EL DASHBOARD - CORREGIDA
+router.get("/estadisticas", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
+  
+  // 1. DEFINIR LA FUNCIÓN PRIMERO
+  const ejecutarConsulta = async (query, defaultValue = 0) => {
+    try {
+      const result = await pool.query(query)
+      const count = result.rows[0]?.count || result.rows[0]?.total || result.rows[0]?.COUNT || defaultValue
+      return parseInt(count) || defaultValue
+    } catch (error) {
+      console.warn(`Consulta fallida (${query.substring(0, 50)}...):`, error.message)
+      return defaultValue
+    }
+  }
+
+  try {
+    console.log("📊 Calculando estadísticas...")
+    
+    // 2. USAR LA FUNCIÓN
+    const totalSolicitudes = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento", 0)
+    const aprobadosNivelII = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento WHERE tipo_im = 'IM2' AND resultado_final = 'aprobado'", 0)
+    const aprobadosNivelIII = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento WHERE tipo_im = 'IM3' AND resultado_final = 'aprobado'", 0)
+    const enProceso = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento WHERE estado NOT IN ('finalizado', 'rechazado', 'aprobado')", 0)
+    const pendientes = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento WHERE estado = 'pendiente' OR estado = 'primera entrega'", 0)
+
+    console.log("✅ Estadísticas:", { totalSolicitudes, aprobadosNivelII, aprobadosNivelIII, enProceso, pendientes })
+
+    res.json({
+      success: true,
+      stats: { totalSolicitudes, aprobadosNivelII, aprobadosNivelIII, enProceso, pendientes }
+    })
+    
+  } catch (err) {
+    console.error("❌ Error general:", err)
+    res.status(500).json({ 
+      success: false, 
+      error: "Error interno del servidor" 
+    })
+  }
+})
+
 //
 // LISTAR REINCORPORACIONES
 //

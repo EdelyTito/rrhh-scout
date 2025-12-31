@@ -91,6 +91,48 @@
                   </div>
                 </div>
 
+                <!-- Motivo -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Motivo *
+                  </label>
+                  <textarea
+                    v-model="formulario.motivo"
+                    required
+                    rows="3"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                    placeholder="Describa el motivo de la solicitud..."
+                  ></textarea>
+                </div>
+
+                <!-- Teléfono -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Teléfono *
+                  </label>
+                  <input
+                    v-model="formulario.telefono"
+                    type="tel"
+                    required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                    placeholder="Ingrese su número de teléfono"
+                  >
+                </div>
+
+                <!-- Correo Electrónico -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Correo Electrónico *
+                  </label>
+                  <input
+                    v-model="formulario.correo"
+                    type="email"
+                    required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                    placeholder="ejemplo@email.com"
+                  >
+                </div>
+
                 <!-- Agregar más dirigentes -->
                 <div>
                   <button 
@@ -263,8 +305,11 @@ export default {
       nombreCompleto: '',
       tipoRegistro: '',
       ci: '',
-      fechaInicio: '',
-      fechaFinalizacion: ''
+      fechaInicio: '',  
+      fechaFinalizacion: '',
+      motivo: '',       
+      telefono: '',    
+      correo: ''       
     })
 
     const archivos = ref({
@@ -332,30 +377,72 @@ export default {
         return false
       }
 
+      if (!formulario.value.motivo) {
+        alert('Por favor ingrese el motivo de la solicitud')
+        return false
+      }
+      
+      if (!formulario.value.telefono) {
+        alert('Por favor ingrese su número de teléfono')
+        return false
+      }
+      
+      if (!formulario.value.correo) {
+        alert('Por favor ingrese su correo electrónico')
+        return false
+      }
+      
+      // Validar email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formulario.value.correo)) {
+        alert('Por favor ingrese un correo electrónico válido')
+        return false
+      }
+
       return true
     }
 
     const enviarFormulario = async () => {
       if (!validarFormulario()) return
-
+      
       enviando.value = true
-
+      
       try {
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        const formData = new FormData()
         
-        console.log('Formulario enviado:', {
-          ...formulario.value,
-          dirigentesAdicionales: dirigentesAdicionales.value,
-          archivos: archivos.value
-        })
+        formData.append('nombre', formulario.value.nombreCompleto)
+        formData.append('grupo', formulario.value.grupoScout)
+        formData.append('tipo', formulario.value.tipoRegistro)
+        formData.append('motivo', formulario.value.motivo)
+        formData.append('telefono', formulario.value.telefono)
+        formData.append('correo', formulario.value.correo)
+        formData.append('fecha_inicio', formulario.value.fechaInicio)
+        
+        if (formulario.value.tipoRegistro === 'periodo de prueba' && formulario.value.fechaFinalizacion) {
+          formData.append('fecha_fin', formulario.value.fechaFinalizacion)
+        }
+        
+        if (archivos.value.carnetIdentidad) {
+          formData.append('documento_url', archivos.value.carnetIdentidad)
+        }
+        if (archivos.value.cartaRespaldo) {
+          formData.append('archivo_carta_respaldo', archivos.value.cartaRespaldo)
+        }
 
-        alert('¡Formulario enviado con éxito! Recibirá un correo de confirmación pronto.')
+        const response = await seguimientoService.enviarReincorporacion(formData)
         
+        console.log('Respuesta:', response.data)
+        alert(`¡Formulario enviado! ID: ${response.data.reincorporacion_id}`)
         limpiarFormulario()
         
       } catch (error) {
-        console.error('Error al enviar formulario:', error)
-        alert('Error al enviar el formulario. Por favor intente nuevamente.')
+        console.error('Error:', error)
+        
+        if (error.response?.data?.error) {
+          alert(`Error: ${error.response.data.error}`)
+        } else {
+          alert('Error al enviar el formulario. Intente nuevamente.')
+        }
       } finally {
         enviando.value = false
       }
@@ -367,13 +454,17 @@ export default {
         nombreCompleto: '',
         tipoRegistro: '',
         ci: '',
-        fechaInicio: '',
-        fechaFinalizacion: ''
+        fechaInicio: '',  // Corregido
+        fechaFinalizacion: '',
+        motivo: '',
+        telefono: '',
+        correo: ''
       }
       
       archivos.value = {
         carnetIdentidad: null,
-        cartaRespaldo: null
+        cartaRespaldo: null,
+        formularioSolicitud: null
       }
       
       dirigentesAdicionales.value = []

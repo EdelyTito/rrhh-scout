@@ -24,23 +24,6 @@
         <div class="flex space-x-8">
           <button @click="navegarA('admin')" :class="navClass('admin')">Inicio</button>
 
-          <div class="relative">
-            <button @click="toggleComisiones" :class="comisionesButtonClass()">
-              Comisiones
-              <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </button>
-
-            <div v-if="comisionesAbierto" class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10">
-              <div class="py-1">
-                <button @click="navegarAComision('seguimiento')" class="dropdown-item">Seguimiento</button>
-                <button @click="navegarAComision('formacion')" class="dropdown-item">Formación</button>
-                <button @click="navegarAComision('registro')" class="dropdown-item">Registro y Habilitación</button>
-              </div>
-            </div>
-          </div>
-
           <button @click="navegarA('admin/lista-usuarios')" :class="navClass('admin/lista-usuarios')">Lista de usuarios</button>
           <button @click="navegarA('admin/logs')" :class="navClass('admin/logs')">Logs del sistema</button>
         </div>

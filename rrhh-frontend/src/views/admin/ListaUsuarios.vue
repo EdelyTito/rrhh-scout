@@ -40,13 +40,11 @@
           </button>
           
           <!-- Dropdown Comisiones -->
+          <!--
           <div class="relative">
             <button 
               @click="toggleComisiones"
-              :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center', 
-                      comisionesAbierto 
-                      ? 'border-[#009d71] text-[#009d71]' 
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+              :class="comisionesButtonClass()"
             >
               Comisiones
               <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,31 +52,37 @@
               </svg>
             </button>
             
+            <!-- Dropdown Menu -->
+            <!--
             <div v-if="comisionesAbierto" class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10">
               <div class="py-1">
                 <button 
-                  @click="navegarAComision('seguimiento')"
+                  @click="() => navegarAComision('seguimiento')"
                   class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
                 >
                   <div class="font-medium">Seguimiento</div>
+                  <div class="text-xs text-gray-500 mt-1">Gestión y monitoreo de actividades</div>
                 </button>
                 
                 <button 
-                  @click="navegarAComision('formacion')"
+                  @click="() => navegarAComision('formacion')"
                   class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
                 >
                   <div class="font-medium">Formación</div>
+                  <div class="text-xs text-gray-500 mt-1">Control de cursos y capacitaciones</div>
                 </button>
                 
                 <button 
-                  @click="navegarAComision('registro')"
+                  @click="() => navegarAComision('registro')"
                   class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition duration-200"
                 >
                   <div class="font-medium">Registro y Habilitación</div>
+                  <div class="text-xs text-gray-500 mt-1">Registro y habilitación de personal</div>
                 </button>
               </div>
             </div>
           </div>
+          -->
 
           <button 
             @click="navegarA('admin/lista-usuarios')"

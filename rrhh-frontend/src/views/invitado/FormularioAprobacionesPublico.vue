@@ -153,6 +153,19 @@
                     placeholder="Ej: 1234567"
                   >
                 </div>
+
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Correo Electrónico *
+                  </label>
+                  <input
+                    v-model="formulario.correo"
+                    type="email"
+                    required
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                    placeholder="ejemplo@email.com"
+                  >
+                </div>
               </div>
             </div>
 
@@ -412,6 +425,7 @@
 
 <script>
 import { ref, computed } from 'vue'
+import { seguimientoService } from '../../services/api';
 
 export default {
   name: 'FormularioAprobacionesPublico',
@@ -427,8 +441,9 @@ export default {
       genero: '',
       fechaNacimiento: '',
       ci: '',
+      correo: '',
       nivelAprobacion: '',
-      aceptoTerminos: false
+      aceptoTerminos: false,
     })
 
     const archivos = ref({
@@ -474,7 +489,7 @@ export default {
 
     const progreso = computed(() => {
       let camposCompletados = 0
-      const camposTotales = 8 
+      const camposTotales = 10
       
       if (formulario.value.grupoScout) camposCompletados++
       if (formulario.value.nombre1) camposCompletados++
@@ -482,8 +497,9 @@ export default {
       if (formulario.value.apellido2) camposCompletados++
       if (formulario.value.genero) camposCompletados++
       if (formulario.value.fechaNacimiento) camposCompletados++
-      if (formulario.value.ci) camposCompletados++
+      if (formulario.value.ci) camposCompletados++ // Cambié 'cl' por 'ci'
       if (formulario.value.nivelAprobacion) camposCompletados++
+      if (formulario.value.aceptoTerminos) camposCompletados++
       
       return Math.round((camposCompletados / camposTotales) * 100)
     })
@@ -532,29 +548,65 @@ export default {
         return false
       }
 
+      if (!formulario.value.correo) {
+        alert('Por favor ingrese su correo electrónico')
+        return false
+      }
+      
+      // Validación básica de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formulario.value.correo)) {
+        alert('Por favor ingrese un correo electrónico válido')
+        return false
+      }
+
       return true
     }
 
     const enviarFormulario = async () => {
       if (!validarFormulario()) return
-
+      
       enviando.value = true
-
+      
       try {
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        const formData = new FormData()
         
-        console.log('Formulario enviado:', {
-          ...formulario.value,
-          archivos: archivos.value
-        })
-
-        alert('¡Solicitud enviada con éxito! Recibirá un correo de confirmación pronto.')
+        formData.append('nombre_participante', 
+          `${formulario.value.nombre1} ${formulario.value.apellido1}`
+        )
+        formData.append('grupo', formulario.value.grupoScout)
+        formData.append('correo', formulario.value.correo)
+        formData.append('tipo_im', formulario.value.nivelAprobacion)
+        formData.append('tipo_processo', 'aprobacion')
+        formData.append('observaciones', 'Solicitud enviada desde formulario público')
         
+        if (archivos.value.cuadernillo) {
+          formData.append('documento_url', archivos.value.cuadernillo)
+        }
+        
+        if (archivos.value.cartaRespaldo) {
+          formData.append('archivo_carta_respaldo', archivos.value.cartaRespaldo)
+        }
+        if (archivos.value.certificados) {
+          formData.append('certificados', archivos.value.certificados)
+        }
+        
+        const response = await seguimientoService.enviarFormularioPublico(formData)
+        
+        console.log('Respuesta del servidor:', response.data)
+        alert('¡Solicitud enviada con éxito! ID: ' + response.data.seguimiento_id)
         limpiarFormulario()
         
       } catch (error) {
-        console.error('Error al enviar formulario:', error)
-        alert('Error al enviar el formulario. Por favor intente nuevamente.')
+        console.error('Error completo:', error)
+        
+        if (error.response?.data?.error) {
+          alert(`Error del servidor: ${error.response.data.error}`)
+        } else if (error.message) {
+          alert(`Error de conexión: ${error.message}`)
+        } else {
+          alert('Error desconocido al enviar el formulario.')
+        }
       } finally {
         enviando.value = false
       }
