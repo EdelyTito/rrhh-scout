@@ -8,6 +8,7 @@ import { registrarLog } from "../utils/logger.js";
 import {authorizeRoles} from "../middleware/authorize.js";
 import crypto from "crypto";
 import {sendEmail} from "../utils/email.js";
+import authConfig from "../config/auth.config.js";
 
 dotenv.config();
 const router = express.Router();
@@ -197,10 +198,61 @@ router.post("/login", async (req, res) => {
 
     const user = userResult.rows[0];
 
-    const validPassword = await bcrypt.compare(contrasena, user.contrasena);
-    if (!validPassword) {
-      return res.status(401).json({ error: "Contraseña incorrecta" });
+    if (user.bloqueado_hasta && new Date(user.bloqueado_hasta) > new Date()) {
+      const ahora = new Date()
+      const bloqueoHasta = new Date(user.bloqueado_hasta)
+
+      const diffMs = bloqueoHasta - ahora
+      const minutosRestantes = Math.ceil(diffMs / 60000)
+
+      return res.status(423).json({
+        error: "Cuenta bloqueada temporalmente",
+        minutos_restantes: minutosRestantes
+      })
     }
+
+    const validPassword = await bcrypt.compare(contrasena, user.contrasena);
+
+    if (!validPassword) {
+      const intentosActuales = user.intentos_fallidos || 0;
+      const nuevosIntentos = intentosActuales + 1;
+
+      if (nuevosIntentos >= 3) {
+        const bloqueo = new Date(Date.now() + authConfig.LOCK_TIME_MINUTES * 60 * 1000);
+
+        await pool.query(
+          `UPDATE usuarios
+           SET intentos_fallidos = $1,
+               bloqueado_hasta = $2
+           WHERE id = $3`,
+          [nuevosIntentos, bloqueo, user.id]
+        );
+
+        return res.status(423).json({
+          error: "Cuenta bloqueada por múltiples intentos fallidos",
+          minutos_restantes: 10
+        })
+
+      }
+
+      await pool.query(
+        `UPDATE usuarios
+         SET intentos_fallidos = $1
+         WHERE id = $2`,
+        [nuevosIntentos, user.id]
+      );
+
+      return res.status(401).json({ error: "Credenciales inválidas" });
+    }
+
+    // ✅ LOGIN EXITOSO → RESET DE INTENTOS
+    await pool.query(
+      `UPDATE usuarios
+       SET intentos_fallidos = 0,
+           bloqueado_hasta = NULL
+       WHERE id = $1`,
+      [user.id]
+    );
 
     const token = jwt.sign(
       {
@@ -214,7 +266,7 @@ router.post("/login", async (req, res) => {
       },
       process.env.JWT_SECRET.trim(),
       { expiresIn: "4h" }
-    )
+    );
 
     await registrarLog(
       user.id,
@@ -236,7 +288,7 @@ router.post("/login", async (req, res) => {
         rol_nombre: user.rol_nombre,
         cargo: user.cargo,
         primer_ingreso: user.primer_ingreso
-      },
+      }
     });
 
   } catch (err) {
@@ -244,6 +296,7 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: "Error en el login" });
   }
 });
+
 
 // ------------------------------------
 // OLVIDÉ MI CONTRASEÑA
@@ -266,6 +319,33 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     const user = userResult.rows[0];
+
+    if (user.bloqueado_hasta) {
+      const ahora = new Date()
+      const bloqueoHasta = new Date(user.bloqueado_hasta)
+
+      if (bloqueoHasta > ahora) {
+        const minutosRestantes = Math.ceil(
+          (bloqueoHasta - ahora) / 60000
+        )
+
+        return res.status(423).json({
+          error: "Cuenta bloqueada temporalmente",
+          minutos_restantes: minutosRestantes
+        })
+      } else {
+        await pool.query(
+          `UPDATE usuarios
+          SET intentos_fallidos = 0,
+              bloqueado_hasta = NULL
+          WHERE id = $1`,
+          [user.id]
+        )
+
+        user.intentos_fallidos = 0
+        user.bloqueado_hasta = null
+      }
+    }
 
     const token = crypto.randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora

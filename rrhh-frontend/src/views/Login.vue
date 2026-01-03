@@ -136,7 +136,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import config from '../config/auth.config'
+import config from '../../../backend/src/config/auth.config'
 import { authService } from '../services/api'
 
 const router = useRouter()
@@ -148,8 +148,6 @@ const loading = ref(false)
 const errorMessage = ref('')
 const showForgotPassword = ref(false)
 
-const intentosFallidos = ref(Number(localStorage.getItem('login_attempts')) || 0)
-const bloqueadoHasta = ref(Number(localStorage.getItem('login_block_until')) || 0)
 
 const logo = ref('/images/rraa.png')
 const backgroundImage = ref('/images/distrito.jpg')
@@ -161,34 +159,21 @@ const backgroundStyle = computed(() => ({
   'background-repeat': 'no-repeat',
 }))
 
-const bloqueoActivo = computed(() => Date.now() < bloqueadoHasta.value)
-const tiempoRestante = computed(() => {
-  const diffMs = bloqueadoHasta.value - Date.now()
-  return Math.ceil(diffMs / 60000) // minutos
-})
-
 const handleLogin = async () => {
-  if (bloqueoActivo.value) {
-    errorMessage.value = `El acceso está bloqueado. Intenta nuevamente en ${tiempoRestante.value} minutos.`
-    return
-  }
-
   errorMessage.value = ''
 
-  if (!correo.value || !contrasena.value)
-    return errorMessage.value = 'Completa todos los campos.'
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(correo.value))
-    return errorMessage.value = 'Correo inválido.'
+  if (!correo.value || !contrasena.value) {
+    errorMessage.value = 'Completa todos los campos.'
+    return
+  }
 
   loading.value = true
 
   try {
-    const res = await authService.login({ correo: correo.value, contrasena: contrasena.value })
-
-    localStorage.removeItem('login_attempts')
-    localStorage.removeItem('login_block_until')
+    const res = await authService.login({
+      correo: correo.value,
+      contrasena: contrasena.value
+    })
 
     localStorage.setItem('token', res.data.token)
     localStorage.setItem('usuario', JSON.stringify(res.data.usuario))
@@ -197,38 +182,28 @@ const handleLogin = async () => {
       return router.replace('/primer-ingreso')
     }
 
-    if (route.query.redirect)
-      return router.push(route.query.redirect.toString())
-
-    return redirectByRole(res.data.usuario.rol_nombre)
+    redirectByRole(res.data.usuario.rol_nombre)
 
   } catch (error) {
-    intentosFallidos.value++
-    localStorage.setItem('login_attempts', intentosFallidos.value)
+    const status = error.response?.status
 
-    if (intentosFallidos.value >= config.MAX_LOGIN_ATTEMPTS) {
-      const lockUntil = Date.now() + (config.LOCK_TIME_MINUTES * 60000)
-      localStorage.setItem('login_block_until', lockUntil)
-      bloqueadoHasta.value = lockUntil
-      contrasena.value = ''
-      loading.value = false
-      return errorMessage.value =
-        'Demasiados intentos fallidos. Acceso bloqueado temporalmente.'
+    if (status === 423) {
+      const minutos = error.response.data.minutos_restantes
+      errorMessage.value = `Cuenta bloqueada. Intenta nuevamente en ${minutos} minutos.`
+    } else if (status === 401) {
+      errorMessage.value = 'Credenciales incorrectas.'
+    } else if (status === 404) {
+      errorMessage.value = 'Usuario no encontrado.'
+    } else {
+      errorMessage.value = 'Error del servidor.'
     }
 
-    const status = error.response?.status
-    errorMessage.value =
-      status === 401 ? 'Credenciales incorrectas.'
-      : status === 404 ? 'Usuario no encontrado.'
-      : status === 403 ? 'Acceso denegado.'
-      : status >= 500  ? 'Error del servidor.'
-      : 'Error de conexión.'
-
     contrasena.value = ''
+  } finally {
+    loading.value = false
   }
-
-  loading.value = false
 }
+
 
 const redirectByRole = (rol) => {
   const rutas = {

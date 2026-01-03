@@ -39,12 +39,24 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isLoginEndpoint = error.config?.url?.includes('/auth/login')
-    if (error.response?.status === 401 && !isLoginEndpoint) { 
+    const status = error.response?.status
+    const url = error.config?.url || ''
+
+    const isAuthRoute =
+      url.includes('/auth/login') ||
+      url.includes('/auth/primer-ingreso') ||
+      url.includes('/auth/forgot-password')
+
+    if (status === 423) {
+      return Promise.reject(error)
+    }
+
+    if (status === 401 && !isAuthRoute) {
       localStorage.removeItem('token')
       localStorage.removeItem('usuario')
       window.location.href = '/'
     }
+
     return Promise.reject(error)
   }
 )
