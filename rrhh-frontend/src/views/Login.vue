@@ -94,6 +94,7 @@
                 Cerrar
               </button>
               <button 
+                type="button"
                 @click="handleForgotPassword"
                 class="px-4 py-2 bg-[#009d71] text-white rounded-lg hover:bg-[#008060] font-medium"
               >
@@ -191,6 +192,10 @@ const handleLogin = async () => {
 
     localStorage.setItem('token', res.data.token)
     localStorage.setItem('usuario', JSON.stringify(res.data.usuario))
+
+    if (res.data.usuario.primer_ingreso) {
+      return router.replace('/primer-ingreso')
+    }
 
     if (route.query.redirect)
       return router.push(route.query.redirect.toString())

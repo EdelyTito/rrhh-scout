@@ -27,9 +27,9 @@ router.post("/register", async (req, res) => {
     const hashed = await bcrypt.hash(contrasena, 10);
 
     const result = await pool.query(
-      `INSERT INTO usuarios (nombre, correo, contrasena, rol_id, cargo)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, nombre, correo, rol_id, cargo`,
+      `INSERT INTO usuarios (nombre, correo, contrasena, rol_id, cargo, primer_ingreso)
+      VALUES ($1, $2, $3, $4, $5, true)
+      RETURNING id, nombre, correo, rol_id, cargo, primer_ingreso`,
       [nombre, correo, hashed, rol_id, cargo]
     );
 
@@ -38,14 +38,14 @@ router.post("/register", async (req, res) => {
     const rolQuery = await pool.query("SELECT nombre FROM roles WHERE id = $1", [rol_id]);
     const rolNombre = rolQuery.rows[0]?.nombre || "desconocido";
 
-    await registrarLog(
-      nuevoUsuario.id,
-      "Registro de nuevo usuario",
-      "usuarios",
-      nuevoUsuario.id,
-      `Usuario: ${nombre}, Rol: ${rolNombre}, Cargo: ${cargo}, Correo: ${correo}`,
-      rolNombre
-    );
+    // await registrarLog(
+    //   nuevoUsuario.id,
+    //   "Registro de nuevo usuario",
+    //   "usuarios",
+    //   nuevoUsuario.id,
+    //   `Usuario: ${nombre}, Rol: ${rolNombre}, Cargo: ${cargo}, Correo: ${correo}`,
+    //   rolNombre
+    // );
 
     res.status(201).json({
       message: "✅ Usuario registrado con éxito",
@@ -210,10 +210,11 @@ router.post("/login", async (req, res) => {
         correo: user.correo,
         nombre: user.nombre,
         cargo: user.cargo,
+        primer_ingreso: user.primer_ingreso
       },
       process.env.JWT_SECRET.trim(),
       { expiresIn: "4h" }
-    );
+    )
 
     await registrarLog(
       user.id,
@@ -234,8 +235,10 @@ router.post("/login", async (req, res) => {
         rol_id: user.rol_id,
         rol_nombre: user.rol_nombre,
         cargo: user.cargo,
+        primer_ingreso: user.primer_ingreso
       },
     });
+
   } catch (err) {
     console.error("Error en el login:", err);
     res.status(500).json({ error: "Error en el login" });
@@ -328,10 +331,11 @@ router.post("/reset-password", async (req, res) => {
 
     await pool.query(
       `UPDATE usuarios
-       SET contrasena = $1,
-           reset_token = NULL,
-           reset_token_expira = NULL
-       WHERE id = $2`,
+      SET contrasena = $1,
+          reset_token = NULL,
+          reset_token_expira = NULL,
+          primer_ingreso = false
+      WHERE id = $2`,
       [hashed, userResult.rows[0].id]
     );
 
@@ -342,5 +346,35 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+router.post(
+  "/primer-ingreso",
+  verifyToken,
+  async (req, res) => {
+    try {
+      console.log("REQ.USER:", req.user)
+      console.log("BODY:", req.body)
+      const { nuevaContrasena } = req.body
+
+      if (!nuevaContrasena || nuevaContrasena.length < 6) {
+        return res.status(400).json({ error: "Contraseña inválida" })
+      }
+
+      const hashed = await bcrypt.hash(nuevaContrasena, 10)
+
+      await pool.query(
+        `UPDATE usuarios
+         SET contrasena = $1,
+             primer_ingreso = false
+         WHERE id = $2`,
+        [hashed, req.user.id]
+      )
+
+      res.json({ message: "Contraseña actualizada" })
+    } catch (err) {
+      console.error("Error primer ingreso:", err)
+      res.status(500).json({ error: "Error al actualizar contraseña" })
+    }
+  }
+)
 
 export default router;

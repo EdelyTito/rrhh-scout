@@ -1,40 +1,45 @@
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config();
+import jwt from "jsonwebtoken"
+import dotenv from "dotenv"
+import { pool } from "../config/db.js"
 
+dotenv.config()
 
-export const verifyToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
+export const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers["authorization"]
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(403).json({ error: "No se proporcionó un token válido" });
+    return res.status(401).json({ error: "No se proporcionó token" })
   }
 
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(403).json({ error: "Token no puede estar vacío" });
-  }
+  const token = authHeader.split(" ")[1]
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    req.user = decoded
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log("Token decodificado para usuario:", decoded.correo);
+    const result = await pool.query(
+      "SELECT primer_ingreso FROM usuarios WHERE id = $1",
+      [decoded.id]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: "Usuario no válido" })
     }
 
-    req.user = decoded;
+    const primerIngreso = result.rows[0].primer_ingreso
 
-    next();
+    if (
+      primerIngreso === true &&
+      !req.originalUrl.includes("/auth/primer-ingreso")
+    ) {
+      return res.status(403).json({
+        error: "Debes cambiar tu contraseña antes de continuar",
+        primer_ingreso: true
+      })
+    }
+
+    next()
   } catch (err) {
-    console.error("Error al verificar token:", err.message);
-    
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: "Token expirado" });
-    } else if (err.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: "Token inválido" });
-    } else {
-      return res.status(401).json({ error: "Error de autenticación" });
-    }
+    return res.status(401).json({ error: "Token inválido o expirado" })
   }
-};
+}

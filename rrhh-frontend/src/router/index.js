@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 //Login
 import Login from '../views/Login.vue'
 import ResetPassword from '../views/ResetPassword.vue'
+import PrimerIngreso from '../views/PrimerIngreso.vue'
 
 // ADMIN
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
@@ -50,6 +51,10 @@ const routes = [
   {
     path: '/reset-password',
     component: ResetPassword
+  },
+  {
+    path: '/primer-ingreso',
+    component: PrimerIngreso
   },
   // ---------- PÚBLICO / INVITADO ----------
   {
@@ -287,6 +292,17 @@ router.beforeEach((to, from, next) => {
 
   const isPublic = to.matched.some(r => r.meta.public)
   const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
+
+  if (usuario?.primer_ingreso === true) {
+    if (to.path !== '/primer-ingreso') {
+      return next('/primer-ingreso')
+    }
+  }
+
+  if (usuario?.primer_ingreso === false && to.path === '/primer-ingreso') {
+    const destino = rutaPorRol(usuario)
+    return next(destino)
+  }
 
   if (isPublic) {
     if (to.matched.some(r => r.meta.onlyGuests) && token && usuario) {
