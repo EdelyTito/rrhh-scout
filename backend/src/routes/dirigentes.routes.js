@@ -3,6 +3,8 @@ import { pool } from "../config/db.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
 import { registrarLog } from "../utils/logger.js";
+import { validarCrearDirigente, validarActualizarDirigente, validarIdDirigente } from "../middleware/validators/dirigentes.validators.js";
+import { validar } from "../middleware/validators/index.js";
 
 const router = express.Router();
 
@@ -27,7 +29,7 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
 //
 // CREAR NUEVO DIRIGENTE
 //
-router.post("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
+router.post("/", verifyToken, authorizeRoles(1, 2, 5), validarCrearDirigente, validar, async (req, res) => {
   try {
     const data = req.body || {};
     const {
@@ -109,7 +111,7 @@ router.post("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
 //
 // ACTUALIZAR DIRIGENTE EXISTENTE
 //
-router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
+router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), validarActualizarDirigente, validar, async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body || {};
@@ -188,7 +190,7 @@ router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
 //
 // ELIMINAR DIRIGENTE
 //
-router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
+router.delete("/:id", verifyToken, authorizeRoles(1), validarIdDirigente, validar, async (req, res) => {
   try {
     const { id } = req.params;
 

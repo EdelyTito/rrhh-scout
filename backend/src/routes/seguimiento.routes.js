@@ -4,13 +4,15 @@ import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
 import { sendEmail } from "../utils/email.js";
 import { registrarLog } from "../utils/logger.js";
+import { validarSeguimientoPublico, validarReincorporacion, validarEntrega, validarResultadoFinal, validarId} from "../middleware/validators/seguimiento.validators.js"
+import { validar } from "../middleware/validators/index.js"
 
 const router = express.Router();
 
 //
 // RUTA PÚBLICA — Envío de formulario IM / Paxtu / Koodoo
 //
-router.post("/public", async (req, res) => {
+router.post("/public", validarSeguimientoPublico, validar, async (req, res) => {
   try {
     const {
       nombre_participante,
@@ -63,7 +65,7 @@ router.post("/public", async (req, res) => {
 //
 // RUTA PÚBLICA — Reincorporación o Periodo de Prueba
 //
-router.post("/reincorporacion", async (req, res) => {
+router.post("/reincorporacion", validarReincorporacion, validar, async (req, res) => {
   try {
     const {
       nombre,
@@ -189,7 +191,7 @@ router.get("/", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
 //
 //REGISTRAR NUEVA ENTREGA / DEVOLUCIÓN
 //
-router.post("/:id/entregas", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
+router.post("/:id/entregas", verifyToken, authorizeRoles(1, 4, 7), validarId, validarEntrega, validar, async (req, res) => {
   try {
     const { id } = req.params;
     const { etapa, documento_url, archivo_extra, observaciones } = req.body;
@@ -226,7 +228,7 @@ router.post("/:id/entregas", verifyToken, authorizeRoles(1, 4, 7), async (req, r
 //
 //CAMBIAR RESULTADO FINAL DEL PROCESO
 //
-router.put("/:id/resultado", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
+router.put("/:id/resultado", verifyToken, authorizeRoles(1, 4, 7), validarId, validarResultadoFinal, validar, async (req, res) => {
   try {
     const { id } = req.params;
     const { resultado_final } = req.body;
@@ -257,7 +259,7 @@ router.put("/:id/resultado", verifyToken, authorizeRoles(1, 4, 7), async (req, r
 //
 //DETALLE DE SEGUIMIENTO (con entregas)
 //
-router.get("/:id", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
+router.get("/:id", verifyToken, authorizeRoles(1, 4, 7), validarId, validar, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -280,7 +282,7 @@ router.get("/:id", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
 //
 //ELIMINAR UN SEGUIMIENTO (solo admin)
 //
-router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
+router.delete("/:id", verifyToken, authorizeRoles(1), validarId, validar, async (req, res) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM seguimiento WHERE id=$1", [id]);

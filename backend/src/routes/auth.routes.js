@@ -9,6 +9,8 @@ import {authorizeRoles} from "../middleware/authorize.js";
 import crypto from "crypto";
 import {sendEmail} from "../utils/email.js";
 import authConfig from "../config/auth.config.js";
+import {validarLogin, validarRegistro, validar} from "../middleware/validators/index.js";
+
 
 dotenv.config();
 const router = express.Router();
@@ -16,7 +18,7 @@ const router = express.Router();
 //
 // REGISTRO DE USUARIO
 //
-router.post("/register", async (req, res) => {
+router.post("/register", validarRegistro, validar, async (req, res) => {
   try {
     const { nombre, correo, contrasena, rol_id, cargo } = req.body;
 
@@ -180,122 +182,126 @@ router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
 //
 // LOGIN DE USUARIO
 //
-router.post("/login", async (req, res) => {
-  try {
-    const { correo, contrasena } = req.body;
+router.post(
+  "/login",
+  validarLogin,   // 👈 valida campos
+  validar,        // 👈 corta si hay errores
+  async (req, res) => {
+    try {
+      const { correo, contrasena } = req.body;
 
-    const userResult = await pool.query(
-      `SELECT u.*, r.nombre AS rol_nombre
-       FROM usuarios u
-       JOIN roles r ON r.id = u.rol_id
-       WHERE correo = $1`,
-      [correo]
-    );
+      const userResult = await pool.query(
+        `SELECT u.*, r.nombre AS rol_nombre
+         FROM usuarios u
+         JOIN roles r ON r.id = u.rol_id
+         WHERE correo = $1`,
+        [correo]
+      );
 
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
 
-    const user = userResult.rows[0];
+      const user = userResult.rows[0];
 
-    if (user.bloqueado_hasta && new Date(user.bloqueado_hasta) > new Date()) {
-      const ahora = new Date()
-      const bloqueoHasta = new Date(user.bloqueado_hasta)
+      // 🔒 BLOQUEO
+      if (user.bloqueado_hasta && new Date(user.bloqueado_hasta) > new Date()) {
+        const diffMs = new Date(user.bloqueado_hasta) - new Date();
+        const minutos = Math.ceil(diffMs / 60000);
 
-      const diffMs = bloqueoHasta - ahora
-      const minutosRestantes = Math.ceil(diffMs / 60000)
+        return res.status(423).json({
+          error: "Cuenta bloqueada temporalmente",
+          minutos_restantes: minutos
+        });
+      }
 
-      return res.status(423).json({
-        error: "Cuenta bloqueada temporalmente",
-        minutos_restantes: minutosRestantes
-      })
-    }
+      const validPassword = await bcrypt.compare(contrasena, user.contrasena);
 
-    const validPassword = await bcrypt.compare(contrasena, user.contrasena);
+      if (!validPassword) {
+        const intentos = (user.intentos_fallidos || 0) + 1;
 
-    if (!validPassword) {
-      const intentosActuales = user.intentos_fallidos || 0;
-      const nuevosIntentos = intentosActuales + 1;
+        if (intentos >= authConfig.MAX_LOGIN_ATTEMPTS) {
+          const bloqueo = new Date(
+            Date.now() + authConfig.LOCK_TIME_MINUTES * 60000
+          );
 
-      if (nuevosIntentos >= 3) {
-        const bloqueo = new Date(Date.now() + authConfig.LOCK_TIME_MINUTES * 60 * 1000);
+          await pool.query(
+            `UPDATE usuarios
+             SET intentos_fallidos = $1,
+                 bloqueado_hasta = $2
+             WHERE id = $3`,
+            [intentos, bloqueo, user.id]
+          );
+
+          return res.status(423).json({
+            error: "Cuenta bloqueada por múltiples intentos fallidos",
+            minutos_restantes: authConfig.LOCK_TIME_MINUTES
+          });
+        }
 
         await pool.query(
           `UPDATE usuarios
-           SET intentos_fallidos = $1,
-               bloqueado_hasta = $2
-           WHERE id = $3`,
-          [nuevosIntentos, bloqueo, user.id]
+           SET intentos_fallidos = $1
+           WHERE id = $2`,
+          [intentos, user.id]
         );
 
-        return res.status(423).json({
-          error: "Cuenta bloqueada por múltiples intentos fallidos",
-          minutos_restantes: 10
-        })
-
+        return res.status(401).json({ error: "Credenciales inválidas" });
       }
 
+      // ✅ LOGIN OK → reset
       await pool.query(
         `UPDATE usuarios
-         SET intentos_fallidos = $1
-         WHERE id = $2`,
-        [nuevosIntentos, user.id]
+         SET intentos_fallidos = 0,
+             bloqueado_hasta = NULL
+         WHERE id = $1`,
+        [user.id]
       );
 
-      return res.status(401).json({ error: "Credenciales inválidas" });
+      const token = jwt.sign(
+        {
+          id: user.id,
+          rol_id: user.rol_id,
+          rol_nombre: user.rol_nombre,
+          correo: user.correo,
+          nombre: user.nombre,
+          cargo: user.cargo,
+          primer_ingreso: user.primer_ingreso
+        },
+        process.env.JWT_SECRET.trim(),
+        { expiresIn: "4h" }
+      );
+
+      await registrarLog(
+        user.id,
+        "Inicio de sesión exitoso",
+        "usuarios",
+        user.id,
+        `Correo: ${correo}, Rol: ${user.rol_nombre}`,
+        user.rol_nombre
+      );
+
+      res.json({
+        message: "Inicio de sesión exitoso",
+        token,
+        usuario: {
+          id: user.id,
+          nombre: user.nombre,
+          correo: user.correo,
+          rol_id: user.rol_id,
+          rol_nombre: user.rol_nombre,
+          cargo: user.cargo,
+          primer_ingreso: user.primer_ingreso
+        }
+      });
+
+    } catch (err) {
+      console.error("Error en el login:", err);
+      res.status(500).json({ error: "Error en el login" });
     }
-
-    // ✅ LOGIN EXITOSO → RESET DE INTENTOS
-    await pool.query(
-      `UPDATE usuarios
-       SET intentos_fallidos = 0,
-           bloqueado_hasta = NULL
-       WHERE id = $1`,
-      [user.id]
-    );
-
-    const token = jwt.sign(
-      {
-        id: user.id,
-        rol_id: user.rol_id,
-        rol_nombre: user.rol_nombre,
-        correo: user.correo,
-        nombre: user.nombre,
-        cargo: user.cargo,
-        primer_ingreso: user.primer_ingreso
-      },
-      process.env.JWT_SECRET.trim(),
-      { expiresIn: "4h" }
-    );
-
-    await registrarLog(
-      user.id,
-      "Inicio de sesión exitoso",
-      "usuarios",
-      user.id,
-      `Correo: ${correo}, Rol: ${user.rol_nombre}, Cargo: ${user.cargo}`,
-      user.rol_nombre
-    );
-
-    res.json({
-      message: "Inicio de sesión exitoso",
-      token,
-      usuario: {
-        id: user.id,
-        nombre: user.nombre,
-        correo: user.correo,
-        rol_id: user.rol_id,
-        rol_nombre: user.rol_nombre,
-        cargo: user.cargo,
-        primer_ingreso: user.primer_ingreso
-      }
-    });
-
-  } catch (err) {
-    console.error("Error en el login:", err);
-    res.status(500).json({ error: "Error en el login" });
   }
-});
+);
+
 
 
 // ------------------------------------

@@ -4,13 +4,15 @@ import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
 import { sendEmail } from "../utils/email.js";
 import { registrarLog } from "../utils/logger.js";
+import { validarSolicitudPublica, validarActualizarSolicitud, validarIdSolicitud } from "../middleware/validators/registro.validators.js";
+import { validar } from "../middleware/validators/index.js";
 
 const router = express.Router();
 
 //
 // RUTA PÚBLICA — Envío de solicitud de registro o habilitación
 //
-router.post("/public", async (req, res) => {
+router.post("/public", validarSolicitudPublica, validar, async (req, res) => {
   try {
     const {
       nombre,
@@ -135,7 +137,7 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
   }
 });
 
-router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
+router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), validarActualizarSolicitud, validar, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -252,7 +254,7 @@ router.get("/todas", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
 });
 
 // Eliminar solicitud (solo admin)
-router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
+router.delete("/:id", verifyToken, authorizeRoles(1), validarIdSolicitud, validar, async (req, res) => {
   try {
     const { id } = req.params;
     await pool.query("DELETE FROM solicitudes_registro WHERE id=$1", [id]);
@@ -321,7 +323,7 @@ router.get("/dirigentes-habilitados", verifyToken, authorizeRoles(1, 2, 5), asyn
 //
 // EDITAR DATOS DE UN DIRIGENTE (uso interno)
 //
-router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
+router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), validarIdSolicitud, validar, async (req, res) => {
   try {
     const { id } = req.params;
     const {

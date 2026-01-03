@@ -1,0 +1,7 @@
+export * from "./common.validators.js"
+export * from "./auth.validators.js"
+export * from "./dirigentes.validators.js"
+export * from "./formacion.validators.js"
+export * from "./registro.validators.js"
+export * from "./seguimiento.validators.js"
+export * from "./logs.validators.js"

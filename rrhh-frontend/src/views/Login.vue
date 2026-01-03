@@ -136,11 +136,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import config from '../../../backend/src/config/auth.config'
 import { authService } from '../services/api'
 
 const router = useRouter()
-const route = useRoute()
 
 const correo = ref('')
 const contrasena = ref('')
@@ -194,6 +192,8 @@ const handleLogin = async () => {
       errorMessage.value = 'Credenciales incorrectas.'
     } else if (status === 404) {
       errorMessage.value = 'Usuario no encontrado.'
+    } else if (status === 400) {
+      errorMessage.value = error.response.data.error || 'Datos inválidos.'
     } else {
       errorMessage.value = 'Error del servidor.'
     }

@@ -2,15 +2,23 @@ import express from "express";
 import { pool } from "../config/db.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
+import { validarConsultaLogs } from "../middleware/validators/logs.validators.js"
+import { validar } from "../middleware/validators/index.js"
 
 const router = express.Router();
 
 //
 // OBTENER TODOS LOS LOGS (solo roles con permisos de gestión)
 //
-router.get("/", verifyToken, authorizeRoles(1, 2, 3, 4, 5, 6, 7), async (req, res) => {
+router.get("/", verifyToken, authorizeRoles(1, 2, 3, 4, 5, 6, 7), validarConsultaLogs, validar, async (req, res) => {
   try {
-    const { tabla, usuario_id } = req.query;
+    const {
+    tabla,
+    usuario_id,
+    limit = 100,
+    offset = 0
+  } = req.query;
+
 
     let query = `
       SELECT 
@@ -47,7 +55,8 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 3, 4, 5, 6, 7), async (req, re
       query += " WHERE " + conditions.join(" AND ");
     }
 
-    query += " ORDER BY l.fecha_accion DESC";
+    query += " ORDER BY l.fecha_accion DESC LIMIT $"+(params.length+1)+" OFFSET $"+(params.length+2)
+    params.push(limit, offset)
 
     const result = await pool.query(query, params);
 

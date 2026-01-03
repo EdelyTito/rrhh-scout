@@ -3,6 +3,9 @@ import { pool } from "../config/db.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
 import { registrarLog } from "../utils/logger.js";
+import { validarId, validarCursoId, validarModuloId, validarCurso, validarModulo, validarAsistencia} from "../middleware/validators/formacion.validators.js"
+import { validar } from "../middleware/validators/index.js"
+
 
 const router = express.Router();
 const ROLES_FORM = [1, 3, 6]; // 1=admin, 3=resp_form, 6=sub_form
@@ -25,7 +28,8 @@ router.get("/cursos", verifyToken, authorizeRoles(...ROLES_FORM), async (req, re
   }
 });
 
-router.get("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+router.get("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), validarId, validar, async (req, res) => {
+
   try {
     const { id } = req.params;
     const result = await pool.query(
@@ -49,7 +53,7 @@ router.get("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), async (req
   }
 });
 
-router.put("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+router.put("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), validarId, validarCurso, validar, async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -103,7 +107,7 @@ router.put("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), async (req
   }
 });
 
-router.post("/cursos", verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+router.post("/cursos", verifyToken, authorizeRoles(...ROLES_FORM), validarCurso, validar, async (req, res) => {
   try {
     const data = req.body || {};
     const {
@@ -144,7 +148,7 @@ router.post("/cursos", verifyToken, authorizeRoles(...ROLES_FORM), async (req, r
 //
 // 🧩 MÓDULOS DEL CURSO
 //
-router.get("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+router.get("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM), validarCursoId, validar, async (req, res) => {
   try {
     const { cursoId } = req.params;
     const curso = await pool.query("SELECT id, nombre FROM cursos WHERE id = $1", [cursoId]);
@@ -169,7 +173,7 @@ router.get("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM
   }
 });
 
-router.post("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+router.post("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM), validarCursoId, validarModulo, validar, async (req, res) => {
   try {
     const { cursoId } = req.params;
     const data = req.body || {};
@@ -205,7 +209,7 @@ router.post("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FOR
 //
 // 🟣 ASISTENCIAS
 //
-router.get("/modulos/:moduloId/asistencias", verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+router.get("/modulos/:moduloId/asistencias", verifyToken, authorizeRoles(...ROLES_FORM), validarModuloId, validar, async (req, res) => {
   try {
     const { moduloId } = req.params;
 
@@ -231,7 +235,7 @@ router.get("/modulos/:moduloId/asistencias", verifyToken, authorizeRoles(...ROLE
   }
 });
 
-router.post("/asistencias", verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+router.post("/asistencias", verifyToken, authorizeRoles(...ROLES_FORM), validarAsistencia, validar, async (req, res) => {
   try {
     const data = req.body || {};
     const { modulos_curso_id, nombre_participante, grupo, presente, pago_cuota, observaciones } = data;
