@@ -293,65 +293,45 @@ router.beforeEach((to, from, next) => {
   const isPublic = to.matched.some(r => r.meta.public)
   const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
 
-  if (usuario?.primer_ingreso === true) {
-    if (to.path !== '/primer-ingreso') {
-      return next('/primer-ingreso')
-    }
+  if (requiresAuth && !token) {
+    return next({
+      path: '/',
+      query: { redirect: to.fullPath }
+    })
+  }
+
+  if (usuario?.primer_ingreso === true && to.path !== '/primer-ingreso') {
+    return next('/primer-ingreso')
   }
 
   if (usuario?.primer_ingreso === false && to.path === '/primer-ingreso') {
-    const destino = rutaPorRol(usuario)
-    return next(destino)
+    return next(rutaPorRol(usuario))
   }
 
   if (isPublic) {
     if (to.matched.some(r => r.meta.onlyGuests) && token && usuario) {
-      const destinoRol = rutaPorRol(usuario)
-
-      if (to.path === destinoRol) {
-        return next()
-      }
-
-      return next(destinoRol)
+      return next(rutaPorRol(usuario))
     }
     return next()
-  }
-
-  if (!requiresAuth) {
-    return next()
-  }
-
-  if (!token || !usuario) {
-    return next({
-      path: '/',
-      query: { redirect: to.fullPath },
-    })
   }
 
   const requiredRoles = to.matched
-    .filter(r => Array.isArray(r.meta.roles) && r.meta.roles.length)
+    .filter(r => Array.isArray(r.meta.roles))
     .flatMap(r => r.meta.roles)
 
   if (requiredRoles.length > 0) {
-    const userRole = usuario.rol_nombre
+    const userRole = usuario?.rol_nombre
 
-    if (userRole === 'admin') {
-      return next()
+    if (!userRole) {
+      return next('/')
     }
 
-    if (!requiredRoles.includes(userRole)) {
-      const destino = rutaPorRol(usuario)
-
-      if (destino === to.path) {
-        return next()
-      }
-
-      return next(destino)
+    if (userRole !== 'admin' && !requiredRoles.includes(userRole)) {
+      return next(rutaPorRol(usuario))
     }
   }
 
   return next()
-
 })
 
 export default router
