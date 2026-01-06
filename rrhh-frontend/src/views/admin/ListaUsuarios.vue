@@ -148,7 +148,6 @@
                 <option value="subcomisionado_registro">Subcomisionado Registro</option>
                 <option value="subcomisionado_formacion">Subcomisionado Formación</option>
                 <option value="subcomisionado_seguimiento">Subcomisionado Seguimiento</option>
-                <option value="invitado">Invitado</option>
               </select>
             </div>
           </div>
@@ -182,16 +181,15 @@
                     Rol
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr 
-                  v-for="usuario in usuariosFiltrados" 
-                  :key="usuario.id"
-                  class="hover:bg-gray-50 transition duration-150"
-                >
+                <tr v-for="usuario in usuariosPaginados">
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {{ usuario.id }}
                   </td>
@@ -212,26 +210,99 @@
                       {{ formatRolNombre(usuario.rol_nombre) }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button 
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      :class="usuario.activo
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    >
+                      {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    <!-- Editar -->
+                    <button
                       @click="editarUsuario(usuario)"
-                      class="text-blue-600 hover:text-blue-900 mr-3 transition duration-200"
+                      class="text-blue-600 hover:text-blue-900 transition duration-200"
                     >
                       Editar
                     </button>
-                    <button 
-                      v-if="usuario.rol_nombre !== 'admin'"
-                      @click="eliminarUsuario(usuario)"
+
+                    <!-- Admin -->
+                    <span
+                      v-if="usuario.rol_nombre === 'admin'"
+                      class="text-gray-400 text-xs"
+                    >
+                      No desactivable
+                    </span>
+
+                    <!-- Activo -->
+                    <button
+                      v-else-if="usuario.activo"
+                      @click="desactivarUsuario(usuario)"
                       class="text-red-600 hover:text-red-900 transition duration-200"
                     >
-                      Eliminar
+                      Desactivar
                     </button>
-                    <span v-else class="text-gray-400 text-xs">No eliminable</span>
+
+                    <!-- Inactivo -->
+                    <button
+                      v-else
+                      @click="reactivarUsuario(usuario)"
+                      class="text-green-600 hover:text-green-800 transition duration-200"
+                    >
+                      Reactivar
+                    </button>
+
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <div class="mt-6 flex items-center justify-between">
+            <p class="text-sm text-gray-600">
+              Página {{ paginaActual }} de {{ totalPaginas }}
+            </p>
+
+            <div class="flex space-x-2">
+              <button
+                @click="paginaActual--"
+                :disabled="paginaActual === 1"
+                class="px-3 py-1 rounded border text-sm
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-gray-100"
+              >
+                Anterior
+              </button>
+
+              <button
+                v-for="p in totalPaginas"
+                :key="p"
+                @click="paginaActual = p"
+                :class="[
+                  'px-3 py-1 rounded border text-sm',
+                  p === paginaActual
+                    ? 'bg-[#009d71] text-white'
+                    : 'hover:bg-gray-100'
+                ]"
+              >
+                {{ p }}
+              </button>
+
+              <button
+                @click="paginaActual++"
+                :disabled="paginaActual === totalPaginas"
+                class="px-3 py-1 rounded border text-sm
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                      hover:bg-gray-100"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+
 
           <!-- Empty State -->
           <div v-if="usuariosFiltrados.length === 0" class="text-center py-8">
@@ -240,14 +311,6 @@
             </svg>
             <h3 class="mt-2 text-sm font-medium text-gray-900">No se encontraron usuarios</h3>
             <p class="mt-1 text-sm text-gray-500">Intenta ajustar los filtros de búsqueda.</p>
-          </div>
-        </div>
-
-        <!-- Contador -->
-        <div class="mt-4 flex items-center justify-between">
-          <div class="text-sm text-gray-700">
-            Mostrando <span class="font-medium">{{ usuariosFiltrados.length }}</span> de 
-            <span class="font-medium">{{ usuarios.length }}</span> usuarios
           </div>
         </div>
       </div>
@@ -332,35 +395,15 @@
                     <label for="cargo" class="block text-sm font-medium text-gray-700 mb-1">
                         Cargo
                     </label>
-                    <input
-                        id="cargo"
-                        v-model="nuevoUsuario.cargo"
-                        type="text"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                        placeholder="Ej: Comisionado de Formación"
-                    >
-                </div>
-
-                <!-- Rol -->
-                <div>
-                    <label for="rol_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        Rol *
-                    </label>
-                    <select
-                        id="rol_id"
-                        v-model="nuevoUsuario.rol_id"
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                    >
-                        <option value="">Selecciona un rol</option>
-                        <option value="1">Administrador</option>
-                        <option value="2">Responsable Registro</option>
-                        <option value="3">Responsable Formación</option>
-                        <option value="4">Responsable Seguimiento</option>
-                        <option value="5">Subcomisionado Registro</option>
-                        <option value="6">Subcomisionado Formación</option>
-                        <option value="7">Subcomisionado Seguimiento</option>
-                        <option value="8">Invitado</option>
+                    <select v-model="nuevoUsuario.cargo" required class="w-full px-3 py-2 border rounded-md">
+                      <option value="">Selecciona un cargo</option>
+                      <option>Coordinador de Recursos Adultos</option>
+                      <option>Comisionado de Registro y Habilitación</option>
+                      <option>Comisionado de Formación</option>
+                      <option>Comisionado de Seguimiento</option>
+                      <option>Subcomisionado de Registro y Habilitación</option>
+                      <option>Subcomisionado de Formación</option>
+                      <option>Subcomisionado de Seguimiento</option>
                     </select>
                 </div>
 
@@ -421,17 +464,6 @@
 
         <!-- Formulario de Edición -->
         <form @submit.prevent="actualizarUsuario" class="space-y-4">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-            ID Usuario
-            </label>
-            <input
-            :value="usuarioEditando.id"
-            type="text"
-            disabled
-            class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
-            >
-        </div>
 
         <!-- Nombre -->
         <div>
@@ -468,87 +500,46 @@
             <label for="editCargo" class="block text-sm font-medium text-gray-700 mb-1">
             Cargo
             </label>
-            <input
-            id="editCargo"
-            v-model="usuarioEditando.cargo"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-            placeholder="Ej: Comisionado de Formación"
-            >
-        </div>
-
-        <!-- Rol -->
-        <div>
-            <label for="editRol_id" class="block text-sm font-medium text-gray-700 mb-1">
-            Rol *
-            </label>
             <select
-            id="editRol_id"
-            v-model="usuarioEditando.rol_id"
-            required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
+              v-model="usuarioEditando.cargo"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md
+                    focus:outline-none focus:ring-2 focus:ring-[#009d71]
+                    focus:border-transparent bg-white"
+              required
             >
-            <option value="">Selecciona un rol</option>
-            <option value="1">Administrador</option>
-            <option value="2">Responsable Registro</option>
-            <option value="3">Responsable Formación</option>
-            <option value="4">Responsable Seguimiento</option>
-            <option value="5">Subcomisionado Registro</option>
-            <option value="6">Subcomisionado Formación</option>
-            <option value="7">Subcomisionado Seguimiento</option>
-            <option value="8">Invitado</option>
+              <option>Coordinador de Recursos Adultos</option>
+              <option>Comisionado de Registro y Habilitación</option>
+              <option>Comisionado de Formación</option>
+              <option>Comisionado de Seguimiento</option>
+              <option>Subcomisionado de Registro y Habilitación</option>
+              <option>Subcomisionado de Formación</option>
+              <option>Subcomisionado de Seguimiento</option>
             </select>
+            <div class="text-sm text-gray-600">
+              Rol asignado automáticamente:
+              <strong class="text-[#009d71]">
+                {{ rolAutomatico }}
+              </strong>
+            </div>
+
         </div>
 
         <!-- Resetear Contraseña -->
         <div class="border-t pt-4 mt-4">
-            <div class="flex items-center justify-between">
-            <div>
-                <h4 class="text-sm font-medium text-gray-700">Contraseña</h4>
-                <p class="text-xs text-gray-500">Resetear la contraseña del usuario</p>
-            </div>
-            <button
-                type="button"
-                @click="mostrarResetPassword = !mostrarResetPassword"
-                class="text-sm text-[#009d71] hover:text-[#008060] font-medium"
-            >
-                {{ mostrarResetPassword ? 'Cancelar' : 'Resetear' }}
-            </button>
-            </div>
+          <h4 class="text-sm font-medium text-gray-700">Contraseña</h4>
+          <p class="text-xs text-gray-500 mb-2">
+            Se enviará un correo al usuario para que establezca una nueva contraseña.
+          </p>
 
-            <div v-if="mostrarResetPassword" class="mt-3 space-y-3">
-            <div>
-                <label for="nuevaContrasena" class="block text-xs font-medium text-gray-700 mb-1">
-                Nueva Contraseña *
-                </label>
-                <input
-                id="nuevaContrasena"
-                v-model="nuevaContrasena"
-                type="password"
-                minlength="6"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent text-sm"
-                placeholder="Mínimo 6 caracteres"
-                >
-            </div>
-            <div>
-                <label for="confirmarContrasena" class="block text-xs font-medium text-gray-700 mb-1">
-                Confirmar Contraseña *
-                </label>
-                <input
-                id="confirmarContrasena"
-                v-model="confirmarContrasena"
-                type="password"
-                minlength="6"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent text-sm"
-                placeholder="Repite la contraseña"
-                >
-            </div>
-            <div v-if="nuevaContrasena && confirmarContrasena && nuevaContrasena !== confirmarContrasena" 
-                class="text-xs text-red-600 bg-red-50 p-2 rounded">
-                Las contraseñas no coinciden
-            </div>
-            </div>
+          <button
+            type="button"
+            @click="resetearContrasena"
+            class="text-sm text-red-600 hover:text-red-800 font-medium"
+          >
+            Enviar correo de reseteo
+          </button>
         </div>
+
 
         <!-- Mensajes de Error -->
         <div v-if="errorMessageEditar" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
@@ -593,7 +584,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '../../services/api'
 
@@ -607,25 +598,25 @@ const mostrarModalCrear = ref(false)
 const creandoUsuario = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
-const filtroBusqueda = ref('')
-const filtroRol = ref('')
 
 const mostrarModalEditar = ref(false)
 const editandoUsuario = ref(false)
 const errorMessageEditar = ref('')
 const successMessageEditar = ref('')
-const mostrarResetPassword = ref(false)
-const nuevaContrasena = ref('')
-const confirmarContrasena = ref('')
 
 const usuarios = ref([])
+
+const paginaActual = ref(1)
+const filasPorPagina = 5
+
+const filtroBusqueda = ref('')
+const filtroRol = ref('')
 
 const nuevoUsuario = ref({
   nombre: '',
   correo: '',
   contrasena: '',
   cargo: '',
-  rol_id: ''
 })
 
 const usuarioEditando = ref({
@@ -633,8 +624,50 @@ const usuarioEditando = ref({
   nombre: '',
   correo: '',
   cargo: '',
-  rol_id: ''
+  rol_nombre: ''
 })
+
+const usuariosFiltrados = computed(() => {
+  return usuarios.value.filter(usuario => {
+    const q = filtroBusqueda.value.toLowerCase()
+    const matchQ =
+      !q ||
+      usuario.nombre.toLowerCase().includes(q) ||
+      usuario.correo.toLowerCase().includes(q) ||
+      (usuario.cargo && usuario.cargo.toLowerCase().includes(q))
+
+    const matchRol =
+      !filtroRol.value || usuario.rol_nombre === filtroRol.value
+
+    return matchQ && matchRol
+  })
+})
+
+const usuariosPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * filasPorPagina
+  const fin = inicio + filasPorPagina
+  return usuariosFiltrados.value.slice(inicio, fin)
+})
+
+const totalPaginas = computed(() =>
+  Math.ceil(usuariosFiltrados.value.length / filasPorPagina)
+)
+
+watch([filtroBusqueda, filtroRol], () => {
+  paginaActual.value = 1
+})
+
+
+const resetearContrasena = async () => {
+  try {
+    await authService.forgotPassword(usuarioEditando.value.correo)
+
+    alert("Correo de recuperación enviado al usuario.")
+  } catch (err) {
+    console.error("Error al resetear contraseña:", err)
+    alert(err.response?.data?.error || "Error al enviar correo de recuperación")
+  }
+}
 
 const mapeoRoles = {
   'admin': '1',
@@ -643,8 +676,7 @@ const mapeoRoles = {
   'responsable_seguimiento': '4',
   'subcomisionado_registro': '5',
   'subcomisionado_formacion': '6',
-  'subcomisionado_seguimiento': '7',
-  'invitado': '8'
+  'subcomisionado_seguimiento': '7'
 }
 
 const toggleComisiones = () => {
@@ -692,8 +724,6 @@ const getBadgeClasses = (rolNombre) => {
       return 'bg-green-100 text-green-800'
     case /subcomisionado/.test(key):
       return 'bg-gray-100 text-gray-800'
-    case /invitado/.test(key):
-      return 'bg-indigo-100 text-indigo-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
@@ -717,8 +747,23 @@ const cargarUsuarios = async () => {
   }
 }
 
+const cargoARolNombre = {
+  "Coordinador de Recursos Adultos": "admin",
+  "Comisionado de Registro y Habilitación": "responsable_registro",
+  "Comisionado de Formación": "responsable_formacion",
+  "Comisionado de Seguimiento": "responsable_seguimiento",
+  "Subcomisionado de Registro y Habilitación": "subcomisionado_registro",
+  "Subcomisionado de Formación": "subcomisionado_formacion",
+  "Subcomisionado de Seguimiento": "subcomisionado_seguimiento"
+}
+
+const rolAutomatico = computed(() => {
+  return cargoARolNombre[usuarioEditando.value.cargo] || ''
+})
+
+
 const crearUsuario = async () => {
-  if (!nuevoUsuario.value.nombre || !nuevoUsuario.value.correo || !nuevoUsuario.value.contrasena || !nuevoUsuario.value.rol_id) {
+  if (!nuevoUsuario.value.nombre || !nuevoUsuario.value.correo || !nuevoUsuario.value.contrasena) {
     errorMessage.value = 'Por favor completa todos los campos obligatorios'
     return
   }
@@ -730,7 +775,6 @@ const crearUsuario = async () => {
       nombre: nuevoUsuario.value.nombre,
       correo: nuevoUsuario.value.correo,
       contrasena: nuevoUsuario.value.contrasena,
-      rol_id: parseInt(nuevoUsuario.value.rol_id, 10),
       cargo: nuevoUsuario.value.cargo
     }
     const res = await authService.register(payload)
@@ -747,51 +791,66 @@ const crearUsuario = async () => {
   }
 }
 
-const eliminarUsuario = async (usuario) => {
+const desactivarUsuario = async (usuario) => {
   if (usuario.rol_nombre === 'admin') {
-    alert('No se puede eliminar un usuario administrador')
+    alert('No se puede desactivar un usuario administrador')
     return
   }
 
-  const confirmar = confirm(`¿Estás seguro de eliminar a ${usuario.nombre}?`)
+  if (!usuario.activo) {
+    alert('El usuario ya está desactivado')
+    return
+  }
+
+  const confirmar = confirm(
+    `¿Estás segura de desactivar a ${usuario.nombre}?`
+  )
   if (!confirmar) return
 
   try {
-    console.log(`Solicitando eliminación del usuario id=${usuario.id}`)
-
     const res = await authService.deleteUser(usuario.id)
 
-    console.log('Respuesta DELETE:', res)
-    alert(res.data?.message || 'Usuario eliminado correctamente')
-
+    alert(res.data?.message || 'Usuario desactivado correctamente')
     await cargarUsuarios()
+
   } catch (err) {
-    console.error('Error eliminando usuario (frontend):', err)
+    console.error('Error desactivando usuario:', err)
 
     const status = err.response?.status
     const data = err.response?.data
 
-    if (status === 409) {
-      alert(data?.error || 'No se puede eliminar el usuario porque hay registros relacionados.')
-      if (data?.detail) console.log('Detalle Postgres:', data.detail)
-    } else if (status === 404) {
-      alert(data?.error || 'Usuario no encontrado (ya eliminado?)')
-      await cargarUsuarios()
+    if (status === 404) {
+      alert(data?.error || 'Usuario no encontrado o ya desactivado')
     } else if (status === 401) {
-      alert('No autorizado. Inicia sesión de nuevo.')
-      localStorage.removeItem('token')
-      localStorage.removeItem('usuario')
+      alert('Sesión expirada. Inicia sesión nuevamente.')
+      localStorage.clear()
       router.push('/login')
     } else if (status === 403) {
-      alert(data?.error || 'No tienes permisos para eliminar usuarios.')
-    } else if (!status) {
-      alert('Error de conexión. Verifica tu backend y conexión a internet.')
+      alert(data?.error || 'No tienes permisos para esta acción.')
     } else {
-      alert(data?.error || 'Error al eliminar usuario. Revisa la consola del servidor.')
+      alert(data?.error || 'Error al desactivar usuario.')
     }
   }
 }
 
+const reactivarUsuario = async (usuario) => {
+  const confirmar = confirm(`¿Deseas reactivar a ${usuario.nombre}?`)
+  if (!confirmar) return
+
+  try {
+    const res = await authService.reactivarUser(usuario.id)
+
+    alert(res.data?.message || 'Usuario reactivado correctamente')
+    await cargarUsuarios()
+  } catch (err) {
+    console.error('Error reactivando usuario:', err)
+
+    alert(
+      err.response?.data?.error ||
+      'No se pudo reactivar el usuario'
+    )
+  }
+}
 
 const editarUsuario = (usuario) => {
   usuarioEditando.value = {
@@ -799,40 +858,40 @@ const editarUsuario = (usuario) => {
     nombre: usuario.nombre,
     correo: usuario.correo,
     cargo: usuario.cargo || '',
-    rol_id: mapeoRoles[usuario.rol_nombre] || ''
+    rol_nombre: usuario.rol_nombre || ''
   }
   mostrarModalEditar.value = true
 }
 
 const actualizarUsuario = async () => {
-  if (!usuarioEditando.value.nombre || !usuarioEditando.value.correo || !usuarioEditando.value.rol_id) {
+  if (!usuarioEditando.value.nombre || !usuarioEditando.value.correo) {
     errorMessageEditar.value = 'Completa los campos obligatorios'
     return
   }
+
   editandoUsuario.value = true
+  errorMessageEditar.value = ''
+
   try {
     const payload = {
       nombre: usuarioEditando.value.nombre,
       correo: usuarioEditando.value.correo,
-      rol_id: parseInt(usuarioEditando.value.rol_id, 10),
       cargo: usuarioEditando.value.cargo
     }
-    await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'}/auth/${usuarioEditando.value.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify(payload)
-    })
+
+    await authService.updateUser(usuarioEditando.value.id, payload)
+
     successMessageEditar.value = 'Usuario actualizado correctamente'
-    setTimeout(() => {
+
+    setTimeout(async () => {
       cerrarModalEditar()
-      cargarUsuarios()
-    }, 800)
+      await cargarUsuarios()
+    }, 600)
+
   } catch (err) {
-    console.error('Error actualizando usuario:', err)
-    errorMessageEditar.value = 'Error al actualizar usuario'
+    console.error('Error actualizando usuario:', err.response?.data || err)
+    errorMessageEditar.value =
+      err.response?.data?.error || 'No se pudo actualizar el usuario'
   } finally {
     editandoUsuario.value = false
   }
@@ -847,7 +906,12 @@ const cerrarModal = () => {
   resetearFormulario()
 }
 const resetearFormulario = () => {
-  nuevoUsuario.value = { nombre: '', correo: '', contrasena: '', cargo: '', rol_id: '' }
+  nuevoUsuario.value = {
+    nombre: '',
+    correo: '',
+    contrasena: '',
+    cargo: ''
+}
   errorMessage.value = ''
   successMessage.value = ''
 }
@@ -857,15 +921,6 @@ const cerrarModalEditar = () => {
   errorMessageEditar.value = ''
   successMessageEditar.value = ''
 }
-
-const usuariosFiltrados = computed(() => {
-  return usuarios.value.filter(usuario => {
-    const q = filtroBusqueda.value.toLowerCase()
-    const matchQ = !q || usuario.nombre.toLowerCase().includes(q) || usuario.correo.toLowerCase().includes(q) || (usuario.cargo && usuario.cargo.toLowerCase().includes(q))
-    const matchRol = !filtroRol.value || usuario.rol_nombre === filtroRol.value
-    return matchQ && matchRol
-  })
-})
 
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')

@@ -65,6 +65,9 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div v-if="cargando" class="text-center py-20">
+        <p class="text-gray-500">Cargando solicitud...</p>
+      </div>
       <div class="px-4 py-6 sm:px-0">
         <!-- Título y botón volver -->
         <div class="mb-8 flex justify-between items-center">
@@ -78,7 +81,9 @@
               </svg>
               Volver
             </button>
-            <h1 class="text-2xl font-bold text-gray-900">Solicitud #{{ solicitud.id }}</h1>
+            <h1 v-if="solicitud" class="text-2xl font-bold text-gray-900">
+              Solicitud #{{ solicitud.id }}
+            </h1>
           </div>
           
           <!-- Estado de la solicitud -->
@@ -352,49 +357,60 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { registroService } from '../../services/api'
 
 const router = useRouter()
 const route = useRoute()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('solicitudes-pendientes-registro')
 
-const solicitud = ref({
-  id: '001',
-  estado: 'pendiente',
-  formularioASB: 'SI',
-  nombreCompleto: 'Felipe Alejandro Lopez',
-  genero: 'Masculino',
-  fechaNacimiento: '26/05/1990',
-  ci: '2065866',
-  anosRegistrados: '10',
-  grupoScout: 'Boliviano Israelita',
-  rama: 'Exploradores',
-  programaJovenes: 'Cursado Insignia de Madera Nivel II',
-  formadorLideres: null,
-  gestionInstitucional: null,
-  cargoDistrital: 'Programa',
-  cargoGrupo1: 'Programa',
-  cargoGrupo2: 'Programa',
-  cargoGrupo3: 'Programa',
-  certificadoFormacion: {
-    nombre: 'Certificados.pdf',
-    url: '/certificados/001.pdf'
-  },
-  certificadoNoViolencia: {
-    nombre: 'CertificadoNoViolencia.pdf',
-    url: '/certificados/no-violencia-001.pdf'
-  },
-  valoracionPerfil: null,
-  fechaSolicitud: '25/03/2025'
-})
+const solicitud = ref(null)
+const cargando = ref(true)
 
-onMounted(() => {
+onMounted(async () => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
-  
+
   const solicitudId = route.params.id
-  if (solicitudId) {
-    console.log(`Cargando datos de la solicitud ${solicitudId}`)
+  if (!solicitudId) {
+    alert('ID de solicitud inválido')
+    return
+  }
+
+  try {
+    const response = await registroService.getSolicitudById(solicitudId)
+    const data = response.data
+
+    solicitud.value = {
+      id: data.id,
+      estado: data.estado,
+      nombreCompleto: data.nombre,
+      genero: data.genero,
+      fechaNacimiento: data.fecha_nacimiento
+        ? new Date(data.fecha_nacimiento).toLocaleDateString('es-BO')
+        : '—',
+      ci: data.ci,
+      grupoScout: data.grupo,
+      rama: data.rama || 'Sin rama',
+      distrito: data.distrito,
+      cargoGrupo1: data.cargo_actual,
+      nivelScout: data.nivel_scout,
+
+      archivos: {
+        ciAnverso: data.archivo_ci_anverso,
+        ciReverso: data.archivo_ci_reverso,
+        croquis: data.archivo_croquis_domicilio,
+        safeFromHarm: data.archivo_safe_from_harm,
+        codigoConducta: data.archivo_codigo_conducta,
+        noViolencia: data.archivo_certificado_no_violencia
+      }
+    }
+
+  } catch (error) {
+    console.error(error)
+    alert('No se pudo cargar la solicitud')
+  } finally {
+    cargando.value = false
   }
 })
 
@@ -418,18 +434,38 @@ const volverASolicitudes = () => {
   router.push('/registro/solicitudes-pendientes')
 }
 
-const aprobarSolicitud = () => {
-  if (confirm('¿Está seguro de aprobar esta solicitud? El dirigente será habilitado en el sistema.')) {
-    solicitud.value.estado = 'aprobada'
-    alert('Solicitud aprobada exitosamente')
+const aprobarSolicitud = async () => {
+  if (!confirm('¿Aprobar esta solicitud?')) return
+
+  try {
+    await registroService.actualizarSolicitud(solicitud.value.id, {
+      estado: 'habilitado',
+      observaciones: ''
+    })
+
+    solicitud.value.estado = 'habilitado'
+    alert('Solicitud aprobada correctamente')
+  } catch (error) {
+    console.error(error)
+    alert('Error al aprobar la solicitud')
   }
 }
 
-const rechazarSolicitud = () => {
+const rechazarSolicitud = async () => {
   const motivo = prompt('Ingrese el motivo del rechazo:')
-  if (motivo && motivo.trim() !== '') {
-    solicitud.value.estado = 'rechazada'
-    alert(`Solicitud rechazada. Motivo: ${motivo}`)
+  if (!motivo) return
+
+  try {
+    await registroService.actualizarSolicitud(solicitud.value.id, {
+      estado: 'rechazado',
+      observaciones: motivo
+    })
+
+    solicitud.value.estado = 'rechazado'
+    alert('Solicitud rechazada correctamente')
+  } catch (error) {
+    console.error(error)
+    alert('Error al rechazar la solicitud')
   }
 }
 

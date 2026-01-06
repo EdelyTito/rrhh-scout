@@ -1,4 +1,5 @@
 import { body } from "express-validator"
+import { CARGOS } from "../../config/cargos.config.js"
 
 export const validarLogin = [
   body("correo")
@@ -25,15 +26,23 @@ export const validarRegistro = [
     .normalizeEmail(),
 
   body("contrasena")
-    .isStrongPassword({
-      minLength: 8,
-      minUppercase: 1,
-      minNumbers: 1,
-      minSymbols: 1
-    })
-    .withMessage("Contraseña débil"),
+    .isLength({ min: 6 })
+    .withMessage("La contraseña debe tener al menos 6 caracteres"),
 
-  body("rol_id")
-    .isInt()
-    .withMessage("Rol inválido")
+  body("cargo")
+  .trim()
+  .custom(value => {
+    const normalizado = value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    const existe = Object.values(CARGOS).some(c =>
+      c.label
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") === normalizado
+    )
+    if (!existe) {
+      throw new Error("Cargo inválido")
+    }
+    return true
+  })
 ]
+

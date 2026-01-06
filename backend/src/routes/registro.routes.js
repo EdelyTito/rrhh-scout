@@ -4,7 +4,8 @@ import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
 import { sendEmail } from "../utils/email.js";
 import { registrarLog } from "../utils/logger.js";
-import { validarSolicitudPublica, validarActualizarSolicitud, validarIdSolicitud } from "../middleware/validators/registro.validators.js";
+import { validarIdSolicitud, validarActualizarSolicitud, validarActualizarDirigenteRegistro, validarSolicitudPublica} from "../middleware/validators/registro.validators.js"
+import { validarIdDirigente } from "../middleware/validators/dirigentes.validators.js"
 import { validar } from "../middleware/validators/index.js";
 
 const router = express.Router();
@@ -81,6 +82,53 @@ router.post("/public", validarSolicitudPublica, validar, async (req, res) => {
     res.status(500).json({ error: "Error al registrar solicitud pública" });
   }
 });
+
+router.get("/:id",
+  verifyToken,
+  authorizeRoles(1, 2, 5),
+  validarIdSolicitud,
+  validar,
+  async (req, res) => {
+    try {
+      const { id } = req.params
+
+      const result = await pool.query(`
+        SELECT 
+          s.*,
+          d.nombre,
+          d.ci,
+          d.fecha_nacimiento,
+          d.genero,
+          d.telefono,
+          d.correo,
+          d.grupo,
+          d.rama,
+          d.distrito,
+          d.cargo_actual,
+          d.nivel_scout,
+          d.archivo_ci_anverso,
+          d.archivo_ci_reverso,
+          d.archivo_croquis_domicilio,
+          d.archivo_safe_from_harm,
+          d.archivo_codigo_conducta,
+          d.archivo_certificado_no_violencia
+        FROM solicitudes_registro s
+        JOIN dirigentes d ON d.id = s.dirigente_id
+        WHERE s.id = $1
+      `, [id])
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Solicitud no encontrada" })
+      }
+
+      res.json(result.rows[0])
+
+    } catch (err) {
+      console.error("Error al obtener solicitud:", err)
+      res.status(500).json({ error: "Error al obtener solicitud" })
+    }
+  }
+)
 
 //
 //RUTAS PRIVADAS — Solo para admin y responsables
@@ -320,10 +368,26 @@ router.get("/dirigentes-habilitados", verifyToken, authorizeRoles(1, 2, 5), asyn
   }
 });
 
+router.get("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), validarIdDirigente, validar, async (req, res) => {
+    const { id } = req.params
+
+    const result = await pool.query(
+      "SELECT * FROM dirigentes WHERE id = $1",
+      [id]
+    )
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Dirigente no encontrado" })
+    }
+
+    res.json(result.rows[0])
+  }
+)
+
 //
 // EDITAR DATOS DE UN DIRIGENTE (uso interno)
 //
-router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), validarIdSolicitud, validar, async (req, res) => {
+router.put("/dirigente/:id", verifyToken, authorizeRoles(1, 2, 5), validarIdDirigente, validarActualizarDirigenteRegistro, validar, async (req, res) => {
   try {
     const { id } = req.params;
     const {

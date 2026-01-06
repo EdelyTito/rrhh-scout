@@ -15,7 +15,10 @@ export const verifyToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = decoded
+    req.user = {
+      ...decoded,
+      rol_id: Number(decoded.rol_id)
+    }
 
     const result = await pool.query(
       "SELECT primer_ingreso FROM usuarios WHERE id = $1",
@@ -28,10 +31,18 @@ export const verifyToken = async (req, res, next) => {
 
     const primerIngreso = result.rows[0].primer_ingreso
 
-    if (
-      primerIngreso === true &&
-      !req.originalUrl.includes("/auth/primer-ingreso")
-    ) {
+    const rutasPermitidasPrimerIngreso = [
+      "/auth/primer-ingreso",
+      "/auth/login",
+      "/auth/forgot-password",
+      "/auth/reset-password"
+    ]
+
+    const rutaPermitida = rutasPermitidasPrimerIngreso.some(r =>
+      req.originalUrl.includes(r)
+    )
+
+    if (primerIngreso === true && !rutaPermitida) {
       return res.status(403).json({
         error: "Debes cambiar tu contraseña antes de continuar",
         primer_ingreso: true

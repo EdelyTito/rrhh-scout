@@ -1,73 +1,111 @@
 import { body, param } from "express-validator"
 
-/* =====================================
-   RUTA PÚBLICA – SOLICITUD REGISTRO
-===================================== */
+// ===============================
+// 📌 VALIDAR ID SOLICITUD
+// ===============================
+export const validarIdSolicitud = [
+  param("id")
+    .isInt({ min: 1 })
+    .withMessage("ID de solicitud inválido")
+]
+
+// ===============================
+// 📌 SOLICITUD PÚBLICA
+// ===============================
 export const validarSolicitudPublica = [
+
   body("nombre")
     .trim()
-    .notEmpty().withMessage("El nombre es obligatorio")
-    .isLength({ min: 3, max: 120 }).withMessage("Nombre inválido"),
+    .isLength({ min: 3 })
+    .withMessage("Nombre inválido"),
 
   body("ci")
-    .optional()
     .trim()
-    .isLength({ min: 4, max: 20 }).withMessage("CI inválido"),
+    .isLength({ min: 5 })
+    .withMessage("CI inválido"),
+
+  body("fecha_nacimiento")
+    .isISO8601()
+    .withMessage("Fecha de nacimiento inválida"),
 
   body("correo")
     .optional()
-    .isEmail().withMessage("Correo inválido")
-    .normalizeEmail(),
+    .isEmail()
+    .withMessage("Correo inválido"),
 
   body("telefono")
     .optional()
-    .trim()
-    .isLength({ min: 6, max: 20 }).withMessage("Teléfono inválido"),
+    .isLength({ min: 6 })
+    .withMessage("Teléfono inválido"),
 
   body("grupo")
     .trim()
-    .notEmpty().withMessage("El grupo es obligatorio")
-    .isLength({ max: 100 }),
+    .notEmpty()
+    .withMessage("Grupo es obligatorio"),
 
   body("rama")
     .optional()
-    .isIn(["Manada", "Unidad", "Caminantes", "Rovers"])
-    .withMessage("Rama no válida"),
-
-  body("genero")
-    .optional()
-    .isIn(["Masculino", "Femenino", "Otro"])
-    .withMessage("Género no válido"),
+    .isString(),
 
   body("nivel_scout")
     .optional()
-    .isLength({ max: 100 }),
+    .isString(),
 
   body("distrito")
     .optional()
-    .isLength({ max: 100 })
+    .isString(),
+
+  body("archivo_ci_anverso").notEmpty(),
+  body("archivo_ci_reverso").notEmpty(),
+  body("archivo_safe_from_harm").notEmpty(),
+  body("archivo_codigo_conducta").notEmpty(),
+  body("archivo_certificado_no_violencia").notEmpty()
 ]
 
-/* =====================================
-   ACTUALIZAR ESTADO SOLICITUD
-===================================== */
+// ===============================
+// 📌 ACTUALIZAR SOLICITUD
+// ===============================
 export const validarActualizarSolicitud = [
-  param("id")
-    .isInt().withMessage("ID de solicitud inválido"),
 
   body("estado")
     .isIn(["pendiente", "habilitado", "rechazado"])
-    .withMessage("Estado no válido"),
+    .withMessage("Estado inválido"),
 
   body("observaciones")
     .optional()
     .isLength({ max: 500 })
+    .withMessage("Observaciones demasiado largas")
 ]
 
-/* =====================================
-   PARAM ID GENÉRICO
-===================================== */
-export const validarIdSolicitud = [
-  param("id")
-    .isInt().withMessage("ID inválido")
+// ===============================
+// 📌 EDITAR DIRIGENTE DESDE REGISTRO
+// ===============================
+export const validarActualizarDirigenteRegistro = [
+
+  body("nombre")
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage("Nombre inválido"),
+
+  body("telefono")
+    .optional()
+    .isLength({ min: 6 })
+    .withMessage("Teléfono inválido"),
+
+  body("correo")
+    .optional()
+    .isEmail()
+    .withMessage("Correo inválido"),
+
+  body("grupo")
+    .notEmpty()
+    .withMessage("Grupo obligatorio"),
+
+  body("rama")
+    .optional()
+    .isString(),
+
+  body("nivel_scout")
+    .optional()
+    .isString()
 ]

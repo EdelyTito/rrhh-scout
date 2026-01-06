@@ -72,6 +72,7 @@ export const authService = {
   forgotPassword: (correo) => api.post('/auth/forgot-password', { correo }),
   resetPassword: (data) => api.post('/auth/reset-password', data),
   resetPasswordPrimerIngreso: (data) => api.post('/auth/primer-ingreso', data),
+  reactivarUser: (id) => api.patch(`/auth/${id}/reactivar`)
 }
 
 export const logsService = {
@@ -116,6 +117,7 @@ export const seguimientoService = {
 
 export const registroService = {
   getSolicitudes: () => api.get('/registro'),
+  getSolicitudById: (id) => api.get(`/registro/${id}`),
   actualizarSolicitud: (id, data) => api.put(`/registro/${id}`, data),
   actualizarDirigente: (id, data) => api.put(`/registro/dirigente/${id}`, data),
   eliminarSolicitud: (id) => api.delete(`/registro/${id}`),

@@ -416,47 +416,18 @@ const cargarSolicitudes = async () => {
       }
     }
     
-    solicitudesPendientes.value = (response.data || []).map(solicitud => {
-      const nombreMostrar = solicitud.nombre_completo || 
-                           solicitud.nombre_dirigente || 
-                           solicitud.nombre || 
-                           'Nombre no disponible'
-      
-      const ramaMostrar = solicitud.rama || 'Sin rama'
-      
-      const grupoMostrar = solicitud.grupo || 'Grupo no asignado'
-      
-      const ciMostrar = solicitud.ci || 'CI no disponible'
-      
-      const distritoMostrar = solicitud.distrito || 'Distrito La Paz'
-      
-      let diasPendiente = 0
-      let fechaFormateada = 'Fecha no disponible'
-      
-      if (solicitud.created_at) {
-        try {
-          const fechaCreacion = new Date(solicitud.created_at)
-          fechaFormateada = fechaCreacion.toLocaleDateString('es-ES')
-          const hoy = new Date()
-          diasPendiente = Math.floor((hoy - fechaCreacion) / (1000 * 60 * 60 * 24))
-        } catch (e) {
-          console.error('Error procesando fecha:', e)
-        }
-      }
-      
-      return {
-        id: solicitud.id,
-        nombre: nombreMostrar,
-        nombre_completo: nombreMostrar,
-        ci: ciMostrar,
-        rama: ramaMostrar,
-        grupo: grupoMostrar,
-        distrito: distritoMostrar,
-        fecha: fechaFormateada,
-        estado: solicitud.estado || 'pendiente',
-        diasPendiente: diasPendiente
-      }
-    })
+    solicitudesPendientes.value = response.data.map(s => ({
+      id: s.id,
+      nombre: s.nombre_completo,
+      ci: s.ci,
+      rama: s.rama || 'Sin rama',
+      grupo: s.grupo,
+      distrito: s.distrito || 'Distrito La Paz',
+      fecha: s.created_at
+        ? new Date(s.created_at).toLocaleDateString('es-BO')
+        : '—',
+      estado: s.estado
+    }))
     
     console.log('Solicitudes procesadas para frontend:', solicitudesPendientes.value)
     
@@ -478,20 +449,8 @@ const cargarSolicitudes = async () => {
     }
     
     // Datos de prueba en caso de error
-    solicitudesPendientes.value = [
-      {
-        id: 1,
-        nombre: 'Felipe Alejandro Lopez (Prueba)',
-        nombre_completo: 'Felipe Alejandro Lopez (Prueba)',
-        ci: '2065866',
-        rama: 'Lobatos',
-        grupo: 'Boliviano Israelita',
-        distrito: 'Distrito La Paz',
-        fecha: '2025-03-25',
-        estado: 'pendiente',
-        diasPendiente: 5
-      }
-    ]
+    alert('No se pudieron cargar las solicitudes')
+
   } finally {
     cargando.value = false
   }
@@ -593,11 +552,23 @@ const aprobarRapido = async (id) => {
   }
 }
 
-const rechazarRapido = (id) => {
+const rechazarRapido = async (id) => {
   const motivo = prompt('Ingrese el motivo del rechazo:')
-  if (motivo && motivo.trim() !== '') {
-    solicitudesPendientes.value = solicitudesPendientes.value.filter(s => s.id !== id)
-    alert(`Solicitud rechazada. Motivo: ${motivo}`)
+  if (!motivo) return
+
+  try {
+    await registroService.actualizarSolicitud(id, {
+      estado: 'rechazado',
+      observaciones: motivo
+    })
+
+    solicitudesPendientes.value =
+      solicitudesPendientes.value.filter(s => s.id !== id)
+
+    alert('Solicitud rechazada correctamente')
+  } catch (error) {
+    console.error(error)
+    alert('Error al rechazar la solicitud')
   }
 }
 

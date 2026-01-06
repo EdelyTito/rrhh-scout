@@ -10,6 +10,7 @@ import crypto from "crypto";
 import {sendEmail} from "../utils/email.js";
 import authConfig from "../config/auth.config.js";
 import {validarLogin, validarRegistro, validar} from "../middleware/validators/index.js";
+import {CARGOS} from "../config/cargos.config.js";
 
 
 dotenv.config();
@@ -20,43 +21,39 @@ const router = express.Router();
 //
 router.post("/register", validarRegistro, validar, async (req, res) => {
   try {
-    const { nombre, correo, contrasena, rol_id, cargo } = req.body;
+    const { nombre, correo, contrasena, cargo } = req.body;
 
-    const checkUser = await pool.query("SELECT * FROM usuarios WHERE correo = $1", [correo]);
-    if (checkUser.rows.length > 0) {
+    const cargoConfig = Object.values(CARGOS)
+      .find(c => c.label === cargo);
+
+    if (!cargoConfig) {
+      return res.status(400).json({ error: "Cargo inválido" });
+    }
+
+    const rol_id = cargoConfig.rol_id;
+
+    const checkUser = await pool.query(
+      "SELECT 1 FROM usuarios WHERE correo = $1",
+      [correo]
+    );
+    if (checkUser.rowCount > 0) {
       return res.status(400).json({ error: "El correo ya está registrado" });
     }
 
     const hashed = await bcrypt.hash(contrasena, 10);
 
     const result = await pool.query(
-      `INSERT INTO usuarios (nombre, correo, contrasena, rol_id, cargo, primer_ingreso)
-      VALUES ($1, $2, $3, $4, $5, true)
-      RETURNING id, nombre, correo, rol_id, cargo, primer_ingreso`,
-      [nombre, correo, hashed, rol_id, cargo]
+      `INSERT INTO usuarios (nombre, correo, contrasena, cargo, rol_id, primer_ingreso)
+       VALUES ($1,$2,$3,$4,$5,true)
+       RETURNING id, nombre, correo, cargo, primer_ingreso`,
+      [nombre, correo, hashed, cargo, rol_id]
     );
 
-    const nuevoUsuario = result.rows[0];
-
-    const rolQuery = await pool.query("SELECT nombre FROM roles WHERE id = $1", [rol_id]);
-    const rolNombre = rolQuery.rows[0]?.nombre || "desconocido";
-
-    // await registrarLog(
-    //   nuevoUsuario.id,
-    //   "Registro de nuevo usuario",
-    //   "usuarios",
-    //   nuevoUsuario.id,
-    //   `Usuario: ${nombre}, Rol: ${rolNombre}, Cargo: ${cargo}, Correo: ${correo}`,
-    //   rolNombre
-    // );
-
     res.status(201).json({
-      message: "✅ Usuario registrado con éxito",
-      usuario: {
-        ...nuevoUsuario,
-        rol_nombre: rolNombre,
-      },
+      message: "Usuario registrado con éxito",
+      usuario: result.rows[0]
     });
+
   } catch (err) {
     console.error("Error al registrar usuario:", err);
     res.status(500).json({ error: "Error al registrar usuario" });
@@ -65,10 +62,17 @@ router.post("/register", validarRegistro, validar, async (req, res) => {
 
 router.get("/register", async (req, res) => {
   try {
-    const result = await pool.query(` SELECT u.id, u.nombre, u.correo, r.nombre AS rol_nombre, u.cargo
+    const result = await pool.query(
+      `SELECT 
+        u.id,
+        u.nombre,
+        u.correo,
+        u.cargo,
+        u.activo,
+        r.nombre AS rol_nombre
       FROM usuarios u
       JOIN roles r ON u.rol_id = r.id
-      ORDER BY u.id DESC;`);
+      ORDER BY u.id ASC;`);
     res.json(result.rows);
   } catch (err) {
     console.error("Error al obtener usuarios:", err);
@@ -78,28 +82,55 @@ router.get("/register", async (req, res) => {
 
 // EDITAR USUARIO (PUT /api/auth/:id) — solo admin (rol_id = 1)
 router.put("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
+  console.log('REQ.USER:', req.user)
   try {
     const { id } = req.params
-    const { nombre, correo, rol_id, cargo } = req.body
-    if (!nombre || !correo || !rol_id) {
+    const { nombre, correo, cargo } = req.body
+
+    if (!nombre || !correo || !cargo) {
       return res.status(400).json({ error: "Faltan campos obligatorios" })
     }
+
+    const cargoConfig = Object.values(CARGOS)
+      .find(c => c.label === cargo)
+
+    if (!cargoConfig) {
+      return res.status(400).json({ error: "Cargo inválido" })
+    }
+
+    const rol_id = cargoConfig.rol_id
+
     const result = await pool.query(
-      `UPDATE usuarios SET nombre=$1, correo=$2, rol_id=$3, cargo=$4 WHERE id=$5 RETURNING id, nombre, correo, rol_id, cargo`,
-      [nombre, correo, rol_id, cargo, id]
+      `UPDATE usuarios u
+      SET nombre = $1, correo = $2, cargo = $3, rol_id = $4
+      FROM roles r
+      WHERE u.id = $5
+        AND r.id = $4
+      RETURNING
+        u.id, u.nombre, u.correo, u.cargo, r.nombre AS rol_nombre`,
+      [nombre, correo, cargo, rol_id, id]
     )
-    if (result.rowCount === 0) return res.status(404).json({ error: "Usuario no encontrado" })
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" })
+    }
 
     await registrarLog(
       req.user.id,
-      "Actualizó un usuario",
+      "Actualizó usuario",
       "usuarios",
       id,
-      `Usuario actualizado: ${nombre}, rol_id: ${rol_id}`,
+      `Cargo asignado: ${cargo} (rol automático)`,
       req.user.rol_nombre
     )
 
-    res.json({ message: "Usuario actualizado", usuario: result.rows[0] })
+    res.json({
+      message: "Usuario actualizado correctamente",
+      usuario: result.rows[0]
+    })
+
+    console.log('REQ.USER:', req.user)
+
   } catch (err) {
     console.error("Error actualizando usuario:", err)
     res.status(500).json({ error: "Error interno al actualizar usuario" })
@@ -109,84 +140,105 @@ router.put("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
 // ELIMINAR USUARIO
 router.delete("/:id", verifyToken, authorizeRoles(1), async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
+    const idNum = parseInt(id, 10)
 
-    const idNum = parseInt(id, 10);
     if (Number.isNaN(idNum)) {
-      return res.status(400).json({ error: "ID inválido" });
+      return res.status(400).json({ error: "ID inválido" })
     }
 
     if (idNum === req.user.id) {
-      return res.status(400).json({ error: "No puedes eliminar tu propia cuenta." });
-    }
-
-    const colCheck = await pool.query(
-      `SELECT column_name FROM informacion_schema.columns 
-       WHERE table_name='usuarios' AND column_name='activo'`
-    );
-    if (colCheck.rowCount === 0) {
-      console.warn("WARN: la columna 'activo' no existe en usuarios. Considera agregarla para soft-delete.");
-      return res.status(500).json({ error: "Columna 'activo' no encontrada en tabla usuarios" });
-    }
-
-    const check = await pool.query("SELECT id, nombre, activo FROM usuarios WHERE id = $1", [idNum]);
-    if (check.rowCount === 0) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
-
-    if (check.rows[0].activo === false) {
-      return res.status(200).json({ message: "Usuario ya estaba desactivado" });
+      return res.status(400).json({
+        error: "No puedes desactivar tu propia cuenta"
+      })
     }
 
     const result = await pool.query(
-      "UPDATE usuarios SET activo = false WHERE id = $1 RETURNING id, nombre, correo, activo",
+      `UPDATE usuarios
+       SET activo = false
+       WHERE id = $1 AND activo = true
+       RETURNING id, nombre, correo, activo`,
       [idNum]
-    );
+    )
 
     if (result.rowCount === 0) {
-      return res.status(500).json({ error: "No se pudo desactivar el usuario" });
+      return res.status(404).json({
+        error: "Usuario no existe o ya está desactivado"
+      })
     }
 
-    try {
-      await registrarLog(
-        req.user.id,
-        "Desactivó (soft-delete) un usuario",
-        "usuarios",
-        idNum,
-        `Usuario desactivado: ${result.rows[0].nombre}`,
-        req.user.rol_nombre
-      );
-    } catch (logErr) {
-      console.error("Error registrando log después de desactivar usuario:", logErr);
-    }
+    await registrarLog(
+      req.user.id,
+      "Desactivó usuario",
+      "usuarios",
+      idNum,
+      `Usuario desactivado: ${result.rows[0].nombre}`,
+      req.user.rol_nombre
+    )
 
-    res.json({ message: "Usuario desactivado (soft-delete) correctamente", usuario: result.rows[0] });
+    res.json({
+      message: "Usuario desactivado correctamente",
+      usuario: result.rows[0]
+    })
   } catch (err) {
-    console.error("Error interno en DELETE /auth/:id:", err);
+    console.error("Error al desactivar usuario:", err)
+    res.status(500).json({ error: "Error interno al desactivar usuario" })
+  }
+})
 
-    if (err.code === "23503") {
-      return res.status(409).json({
-        error: "No se puede eliminar/desactivar el usuario por referencias en otras tablas (constraint).",
-        detail: err.detail || null
-      });
+// REACTIVAR USUARIO
+router.patch("/:id/reactivar", verifyToken, authorizeRoles(1), async (req, res) => {
+  try {
+    const { id } = req.params
+    const idNum = parseInt(id, 10)
+
+    if (Number.isNaN(idNum)) {
+      return res.status(400).json({ error: "ID inválido" })
     }
 
-    const isDev = (process.env.NODE_ENV || "").trim() !== "production";
-    return res.status(500).json({
-      error: "Error interno al desactivar usuario",
-      message: isDev ? err.message : undefined
-    });
+    if (idNum === req.user.id) {
+      return res.status(400).json({
+        error: "No puedes reactivar tu propia cuenta"
+      })
+    }
+
+    const result = await pool.query(
+      `UPDATE usuarios
+       SET activo = true
+       WHERE id = $1 AND activo = false
+       RETURNING id, nombre, correo, activo`,
+      [idNum]
+    )
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Usuario no encontrado o ya activo"
+      })
+    }
+
+    await registrarLog(
+      req.user.id,
+      "Reactivó usuario",
+      "usuarios",
+      idNum,
+      `Usuario reactivado: ${result.rows[0].nombre}`,
+      req.user.rol_nombre
+    )
+
+    res.json({
+      message: "Usuario reactivado correctamente",
+      usuario: result.rows[0]
+    })
+  } catch (err) {
+    console.error("Error al reactivar usuario:", err)
+    res.status(500).json({ error: "Error interno al reactivar usuario" })
   }
-});
+})
 
 //
 // LOGIN DE USUARIO
 //
-router.post(
-  "/login",
-  validarLogin,   // 👈 valida campos
-  validar,        // 👈 corta si hay errores
-  async (req, res) => {
+router.post("/login", validarLogin, validar, async (req, res) => {
     try {
       const { correo, contrasena } = req.body;
 
@@ -204,7 +256,12 @@ router.post(
 
       const user = userResult.rows[0];
 
-      // 🔒 BLOQUEO
+      if (user.activo === false) {
+        return res.status(403).json({
+          error: "Usuario desactivado. Contacta al administrador."
+        })
+      }
+
       if (user.bloqueado_hasta && new Date(user.bloqueado_hasta) > new Date()) {
         const diffMs = new Date(user.bloqueado_hasta) - new Date();
         const minutos = Math.ceil(diffMs / 60000);
