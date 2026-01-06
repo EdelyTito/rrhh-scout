@@ -40,10 +40,12 @@
             <p class="text-gray-600">Registro de actividades y eventos del sistema</p>
           </div>
           <div class="flex space-x-3">
-            <button @click="exportarLogs" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-200 font-semibold">
-              Exportar
+            <button @click="exportarCSV" class="bg-gray-700 text-white px-4 py-2 rounded-lg">
+              Exportar CSV</button>
+            <button @click="exportarPDF" class="bg-gray-700 text-white px-4 py-2 rounded-lg">
+              Exportar PDF
             </button>
-            <button @click="limpiarFiltros" class="bg-[#d32d27] text-white px-4 py-2 rounded-lg hover:bg-[#b32520] transition duration-200 font-semibold">
+            <button @click="limpiarFiltros" class="bg-[#d32d27] text-white px-4 py-2 rounded-lg">
               Limpiar Filtros
             </button>
           </div>
@@ -69,32 +71,35 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Acción</label>
-              <select v-model="filtroAccion" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent">
-                <option value="">Todas las acciones</option>
-                <option value="login">Inicio de sesión</option>
-                <option value="crear">Creación</option>
-                <option value="actualizar">Actualización</option>
-                <option value="eliminar">Eliminación</option>
-                <option value="registro">Registro</option>
-              </select>
-            </div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Fecha (rango)
+              </label>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-              <select v-model="filtroFecha" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent">
-                <option value="">Todo el período</option>
-                <option value="hoy">Hoy</option>
-                <option value="ayer">Ayer</option>
-                <option value="semana">Esta semana</option>
-                <option value="mes">Este mes</option>
-              </select>
+              <div class="flex gap-2">
+                <input
+                  type="date"
+                  v-model="fechaDesde"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md
+                        focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                />
+
+                <input
+                  type="date"
+                  v-model="fechaHasta"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md
+                        focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                />
+              </div>
+
+              <p class="text-xs text-gray-500 mt-1">
+                Desde / Hasta (opcional)
+              </p>
             </div>
           </div>
         </div>
 
         <!-- Estadísticas Rápidas -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid md:grid-cols-2 gap-4 mb-8">
           <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <div class="flex items-center">
               <div class="bg-blue-100 p-2 rounded-full">
@@ -122,34 +127,6 @@
               </div>
             </div>
           </div>
-
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <div class="flex items-center">
-              <div class="bg-purple-100 p-2 rounded-full">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2h3z"></path>
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-600">Tablas Afectadas</p>
-                <p class="text-2xl font-bold text-gray-900">{{ tablasUnicas.length }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <div class="flex items-center">
-              <div class="bg-orange-100 p-2 rounded-full">
-                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-600">Hoy</p>
-                <p class="text-2xl font-bold text-gray-900">{{ logsHoy.length }}</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Loading State -->
@@ -164,44 +141,61 @@
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tabla</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalle</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                  <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                  <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Usuario</th>
+                  <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Cargo</th>
+                  <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Acción</th>
+                  <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Detalle</th>
+                  <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Nivel</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="log in logsFiltrados" :key="log.id" class="hover:bg-gray-50 transition duration-150">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <div class="font-medium">{{ formatFecha(log.fecha_accion) }}</div>
+                <tr v-for="log in logsPaginados" :key="log.id" class="hover:bg-gray-50">
+
+                  <td class="px-4 py-3 text-sm text-gray-700">
+                    <div class="font-medium">{{ formatFechaSolo(log.fecha_accion) }}</div>
+                    <div class="text-xs text-gray-400">{{ formatHora(log.fecha_accion) }}</div>
                   </td>
 
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ log.usuario_nombre || 'Sistema' }}</div>
-                    <div class="text-xs text-gray-500">{{ log.correo || 'N/A' }}</div>
-                    <div class="text-xs text-gray-400">{{ log.cargo || 'Sin cargo' }}</div>
+                  <td class="px-4 py-3">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ log.usuario_nombre || 'Sistema' }}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      {{ log.correo || '—' }}
+                    </div>
                   </td>
 
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span :class="getAccionBadgeClasses(log.accion)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
-                      {{ log.accion }}
+                  <td class="px-4 py-3">
+                    <div class="text-sm text-gray-900">
+                      {{ log.cargo || '—' }}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      {{ log.rol_nombre || '' }}
+                    </div>
+                  </td>
+
+                  <td class="px-4 py-3">
+                    <span
+                      :class="getAccionBadgeClasses(log.accion)"
+                      class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
+                    >
+                      {{ limpiarAccion(log.accion) }}
                     </span>
                   </td>
 
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      {{ log.tabla_afectada }}
-                    </span>
-                  </td>
-
-                  <td class="px-6 py-4 text-sm text-gray-500 max-w-md">
+                  <td class="px-4 py-3 text-sm text-gray-600 max-w-md">
                     <div class="break-words">{{ log.detalle }}</div>
-                    <div v-if="log.registro_id" class="text-xs text-gray-400 mt-1">ID Registro: {{ log.registro_id }}</div>
                   </td>
 
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ log.rol_nombre || 'N/A' }}</td>
+                  <td class="px-4 py-3">
+                    <span
+                      :class="getNivelBadge(log.nivel)"
+                      class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold"
+                    >
+                      {{ log.nivel }}
+                    </span>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -217,17 +211,47 @@
           </div>
         </div>
 
-        <!-- Paginación y Contador -->
-        <div class="mt-4 flex items-center justify-between">
-          <div class="text-sm text-gray-700">
-            Mostrando <span class="font-medium">{{ logsFiltrados.length }}</span> de <span class="font-medium">{{ logs.length }}</span> registros
-          </div>
-          <div class="flex space-x-2">
-            <button @click="cargarMasLogs" :disabled="!hayMasLogs" class="px-4 py-2 text-sm font-medium text-[#009d71] hover:text-[#008060] disabled:text-gray-400 disabled:cursor-not-allowed">
-              {{ hayMasLogs ? 'Cargar más' : 'No hay más registros' }}
+        <div class="flex justify-between items-center mt-4">
+          <p class="text-sm text-gray-600">
+            Página {{ paginaActual }} de {{ totalPaginas }}
+          </p>
+
+          <div class="flex space-x-1">
+            <!-- Anterior -->
+            <button
+              @click="paginaActual--"
+              :disabled="paginaActual === 1"
+              class="px-3 py-1 border rounded text-sm disabled:opacity-50"
+            >
+              «
+            </button>
+
+            <!-- Páginas -->
+            <button
+              v-for="p in totalPaginas"
+              :key="p"
+              @click="paginaActual = p"
+              :class="[
+                'px-3 py-1 border rounded text-sm',
+                p === paginaActual
+                  ? 'bg-[#009d71] text-white'
+                  : 'hover:bg-gray-100'
+              ]"
+            >
+              {{ p }}
+            </button>
+
+            <!-- Siguiente -->
+            <button
+              @click="paginaActual++"
+              :disabled="paginaActual === totalPaginas"
+              class="px-3 py-1 border rounded text-sm disabled:opacity-50"
+            >
+              »
             </button>
           </div>
         </div>
+
       </div>
     </main>
 
@@ -244,6 +268,10 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { logsService } from '../../services/api'
+import { watch } from 'vue'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
 const rutaActiva = ref('admin/logs')
@@ -253,9 +281,17 @@ const loading = ref(false)
 const filtroTabla = ref('')
 const filtroUsuario = ref('')
 const filtroAccion = ref('')
-const filtroFecha = ref('')
+const fechaDesde = ref('')
+const fechaHasta = ref('')
 
 const logs = ref([])
+
+const limit = 5
+const offset = ref(0)
+const hayMasLogs = ref(true)
+
+const paginaActual = ref(1)
+const registrosPorPagina = 5
 
 const navClass = (destino) => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
@@ -294,20 +330,64 @@ const navegarAComision = (comision) => {
   router.push(`/${comision}`)
 }
 
+const getNivelBadge = (nivel) => {
+  switch ((nivel || '').toUpperCase()) {
+    case 'INFO':
+      return 'bg-blue-100 text-blue-800'
+    case 'WARN':
+      return 'bg-yellow-100 text-yellow-800'
+    case 'ERROR':
+      return 'bg-red-100 text-red-800'
+    case 'SECURITY':
+      return 'bg-purple-100 text-purple-800'
+    default:
+      return 'bg-gray-100 text-gray-800'
+  }
+}
+
 const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   localStorage.removeItem('token')
   router.push('/') 
 }
 
-const cargarLogs = async () => {
+const logsPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * registrosPorPagina
+  return logsFiltrados.value.slice(inicio, inicio + registrosPorPagina)
+})
+
+const totalPaginas = computed(() =>
+  Math.ceil(logsFiltrados.value.length / registrosPorPagina)
+)
+
+const cargarLogs = async (reset = false) => {
+  if (reset) {
+    offset.value = 0
+    logs.value = []
+    hayMasLogs.value = true
+  }
+
   loading.value = true
   try {
-    const res = await logsService.getLogs({ tabla: filtroTabla.value })
-    logs.value = res.data || []
+    const res = await logsService.getLogs({
+      tabla: filtroTabla.value || undefined,
+      usuario_id: filtroUsuario.value || undefined,
+      accion: filtroAccion.value || undefined,
+      limit,
+      offset: offset.value
+    })
+
+    const nuevosLogs = res.data || []
+
+    if (nuevosLogs.length < limit) {
+      hayMasLogs.value = false
+    }
+
+    logs.value.push(...nuevosLogs)
+    offset.value += limit
   } catch (err) {
     console.error('Error cargando logs:', err)
-    alert('No se pudo cargar logs. Verifica backend y token.')
+    alert('No se pudo cargar logs.')
   } finally {
     loading.value = false
   }
@@ -346,39 +426,49 @@ const logsHoy = computed(() => {
 
 const logsFiltrados = computed(() => {
   return logs.value.filter(log => {
-    const coincideTabla = !filtroTabla.value || (log.tabla_afectada || '').toLowerCase().includes(filtroTabla.value.toLowerCase())
 
-    const rawUserId = (log.usuario_id !== undefined && log.usuario_id !== null) ? log.usuario_id
-                    : (log.usuario && log.usuario.id !== undefined ? log.usuario.id : undefined)
-    const userKey = String(rawUserId ?? log.usuario_nombre ?? (typeof log.usuario === 'string' ? log.usuario : '')).toLowerCase()
-    const filtroUserStr = String(filtroUsuario.value ?? '').toLowerCase()
-    const coincideUsuario = !filtroUsuario.value || userKey === filtroUserStr
+    // TABLA
+    const coincideTabla =
+      !filtroTabla.value ||
+      log.tabla_afectada === filtroTabla.value
 
-    const coincideAccion = !filtroAccion.value || (log.accion || '').toLowerCase().includes(filtroAccion.value.toLowerCase())
+    // USUARIO
+    const coincideUsuario =
+      !filtroUsuario.value ||
+      String(log.usuario_id) === String(filtroUsuario.value)
 
+    // ACCIÓN (limpia)
+    const accionLimpia = limpiarAccion(log.accion).toLowerCase()
+    const coincideAccion =
+      !filtroAccion.value ||
+      accionLimpia.includes(filtroAccion.value.toLowerCase())
+
+    // FECHA (rango)
     let coincideFecha = true
-    if (filtroFecha.value) {
-      const fecha = new Date(log.fecha_accion || log.created_at || log.fecha || null)
-      if (!fecha || isNaN(fecha)) coincideFecha = false
-      else {
-        const ahora = new Date()
-        if (filtroFecha.value === 'hoy') {
-          coincideFecha = fecha.toDateString() === ahora.toDateString()
-        } else if (filtroFecha.value === 'ayer') {
-          const ayer = new Date()
-          ayer.setDate(ahora.getDate() - 1)
-          coincideFecha = fecha.toDateString() === ayer.toDateString()
-        } else if (filtroFecha.value === 'semana') {
-          const diffDays = Math.floor((ahora - fecha) / (1000 * 60 * 60 * 24))
-          coincideFecha = diffDays <= 7
-        } else if (filtroFecha.value === 'mes') {
-          const diffDays = Math.floor((ahora - fecha) / (1000 * 60 * 60 * 24))
-          coincideFecha = diffDays <= 31
-        }
+
+    if (fechaDesde.value || fechaHasta.value) {
+      const fechaLog = new Date(log.fecha_accion)
+      fechaLog.setHours(0, 0, 0, 0)
+
+      if (fechaDesde.value) {
+        const desde = new Date(fechaDesde.value)
+        desde.setHours(0, 0, 0, 0)
+        if (fechaLog < desde) coincideFecha = false
+      }
+
+      if (fechaHasta.value) {
+        const hasta = new Date(fechaHasta.value)
+        hasta.setHours(23, 59, 59, 999)
+        if (fechaLog > hasta) coincideFecha = false
       }
     }
 
-    return coincideTabla && coincideUsuario && coincideAccion && coincideFecha
+    return (
+      coincideTabla &&
+      coincideUsuario &&
+      coincideAccion &&
+      coincideFecha
+    )
   })
 })
 
@@ -391,32 +481,17 @@ const getAccionBadgeClasses = (accion) => {
   return 'bg-gray-100 text-gray-800'
 }
 
-const formatTiempoTranscurrido = (fechaStr) => {
+const formatFechaSolo = (fechaStr) => {
   if (!fechaStr) return ''
-  const fecha = new Date(fechaStr)
-  if (isNaN(fecha)) return ''
-  const diff = Date.now() - fecha.getTime()
-  const minutos = Math.floor(diff / 60000)
-  if (minutos < 1) return 'hace unos segundos'
-  if (minutos < 60) return `hace ${minutos} min`
-  const horas = Math.floor(minutos / 60)
-  if (horas < 24) return `hace ${horas} h`
-  const dias = Math.floor(horas / 24)
-  return `hace ${dias} d`
+  const f = new Date(fechaStr)
+  return f.toLocaleDateString('es-BO')
 }
 
-const formatFecha = (fechaStr) => {
+const formatHora = (fechaStr) => {
   if (!fechaStr) return ''
-  const fecha = new Date(fechaStr)
-  if (isNaN(fecha)) return ''
-  const dd = String(fecha.getDate()).padStart(2, '0')
-  const mm = String(fecha.getMonth() + 1).padStart(2, '0')
-  const yyyy = fecha.getFullYear()
-  const hh = String(fecha.getHours()).padStart(2, '0')
-  const min = String(fecha.getMinutes()).padStart(2, '0')
-  return `${dd}/${mm}/${yyyy} ${hh}:${min}`
+  const f = new Date(fechaStr)
+  return f.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })
 }
-
 
 const exportarLogs = () => {
   alert('Función exportar aún no implementada.')
@@ -426,21 +501,114 @@ const limpiarFiltros = () => {
   filtroTabla.value = ''
   filtroUsuario.value = ''
   filtroAccion.value = ''
-  filtroFecha.value = ''
+  fechaDesde.value = ''
+  fechaHasta.value = ''
 }
 
-const hayMasLogs = ref(false)
-const cargarMasLogs = async () => {
-  alert('Cargar más logs: no implementado (aquí iría paginación).')
+const limpiarAccion = (accion = '') => {
+  return accion.replace(/\[.*?\]/g, '').trim()
 }
+
+const exportarCSV = () => {
+  const headers = [
+    'Fecha',
+    'Usuario',
+    'Correo',
+    'Cargo',
+    'Rol',
+    'Acción',
+    'Detalle',
+    'Nivel'
+  ]
+
+  const rows = logsFiltrados.value.map(l => [
+    l.fecha_accion,
+    l.usuario_nombre || 'Sistema',
+    l.correo || '',
+    l.cargo || '',
+    l.rol_nombre || '',
+    limpiarAccion(l.accion),
+    l.detalle || '',
+    l.nivel || ''
+  ])
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+  ].join('\n')
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `logs_${Date.now()}.csv`
+  link.click()
+
+  URL.revokeObjectURL(url)
+}
+
+const exportarPDF = () => {
+  const doc = new jsPDF('landscape')
+
+  doc.setFontSize(14)
+  doc.text('Logs del Sistema - Distrito Scout', 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(`Generado: ${new Date().toLocaleString('es-BO')}`, 14, 22)
+
+  const columnas = [
+    'Fecha',
+    'Hora',
+    'Usuario',
+    'Correo',
+    'Cargo',
+    'Acción',
+    'Detalle',
+    'Nivel'
+  ]
+
+  const filas = logsFiltrados.value.map(l => {
+    const fecha = new Date(l.fecha_accion)
+    return [
+      formatFechaSolo(l.fecha_accion),
+      formatHora(l.fecha_accion),
+      l.usuario_nombre || 'Sistema',
+      l.correo || '',
+      l.cargo || '',
+      limpiarAccion(l.accion),
+      l.detalle || '',
+      l.nivel || ''
+    ]
+  })
+
+  autoTable(doc, {
+    head: [columnas],
+    body: filas,
+    startY: 28,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [0, 157, 113] },
+    alternateRowStyles: { fillColor: [245, 245, 245] }
+  })
+
+  doc.save(`logs_${Date.now()}.pdf`)
+}
+
+
+watch(
+  [filtroTabla, filtroUsuario, filtroAccion, fechaDesde, fechaHasta],
+  () => {
+    paginaActual.value = 1
+  }
+)
 
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Administrador'
   cargarLogs()
 })
-</script>
 
+</script>
 
 <style scoped>
 .dropdown-item { display:block; width:100%; text-align:left; padding:.75rem 1rem; font-size:.875rem; color:#374151; border-bottom:1px solid #f3f4f6; background:white }
