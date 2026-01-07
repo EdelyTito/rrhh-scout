@@ -216,19 +216,24 @@
             Página {{ paginaActual }} de {{ totalPaginas }}
           </p>
 
-          <div class="flex space-x-1">
-            <!-- Anterior -->
+          <div class="flex space-x-1 items-center">
+            <!-- Primera -->
             <button
-              @click="paginaActual--"
+              @click="paginaActual = 1"
               :disabled="paginaActual === 1"
               class="px-3 py-1 border rounded text-sm disabled:opacity-50"
             >
               «
             </button>
 
-            <!-- Páginas -->
+            <!-- Ellipsis inicial -->
+            <span v-if="paginasVisibles.mostrarPrimera" class="px-2 text-gray-400">
+              …
+            </span>
+
+            <!-- Páginas visibles -->
             <button
-              v-for="p in totalPaginas"
+              v-for="p in paginasVisibles.paginas"
               :key="p"
               @click="paginaActual = p"
               :class="[
@@ -241,9 +246,14 @@
               {{ p }}
             </button>
 
-            <!-- Siguiente -->
+            <!-- Ellipsis final -->
+            <span v-if="paginasVisibles.mostrarUltima" class="px-2 text-gray-400">
+              …
+            </span>
+
+            <!-- Última -->
             <button
-              @click="paginaActual++"
+              @click="paginaActual = totalPaginas"
               :disabled="paginaActual === totalPaginas"
               class="px-3 py-1 border rounded text-sm disabled:opacity-50"
             >
@@ -292,6 +302,32 @@ const hayMasLogs = ref(true)
 
 const paginaActual = ref(1)
 const registrosPorPagina = 5
+
+const maxPaginasVisibles = 5
+
+const paginasVisibles = computed(() => {
+  const total = totalPaginas.value
+  const actual = paginaActual.value
+  const half = Math.floor(maxPaginasVisibles / 2)
+
+  let inicio = Math.max(1, actual - half)
+  let fin = Math.min(total, inicio + maxPaginasVisibles - 1)
+
+  if (fin - inicio < maxPaginasVisibles - 1) {
+    inicio = Math.max(1, fin - maxPaginasVisibles + 1)
+  }
+
+  const paginas = []
+  for (let i = inicio; i <= fin; i++) {
+    paginas.push(i)
+  }
+
+  return {
+    paginas,
+    mostrarPrimera: inicio > 1,
+    mostrarUltima: fin < total
+  }
+})
 
 const navClass = (destino) => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'

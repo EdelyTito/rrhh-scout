@@ -81,8 +81,7 @@
         <div v-else>
           <!-- Título con saludo -->
           <div class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-900">¡Hola {{ nombreResponsable }}!</h1>
-            <p class="text-gray-600 mt-1">Bienvenido a Registro y Habilitación</p>
+            <h1 class="text-2xl font-bold text-gray-900">Bienvenido a Registro y Habilitación</h1>
             <p class="text-sm text-gray-500 mt-2">Última actualización: {{ fechaActualizada }}</p>
           </div>
 

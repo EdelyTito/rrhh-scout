@@ -75,6 +75,10 @@ export const authService = {
   reactivarUser: (id) => api.patch(`/auth/${id}/reactivar`)
 }
 
+export const adminService = {
+  getDashboard: () => api.get('/admin/dashboard')
+}
+
 export const logsService = {
   getLogs: (filters = {}) => {
     const params = new URLSearchParams()

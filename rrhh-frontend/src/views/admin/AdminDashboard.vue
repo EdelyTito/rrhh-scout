@@ -98,11 +98,17 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <main class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8">
       <!-- Welcome Section -->
-      <div class="px-4 py-6 sm:px-0">
+      <div class="px-4 py-4 sm:px-0">
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
           <h2 class="text-2xl font-bold text-gray-800 mb-2">Bienvenido Administrador</h2>
+          <p class="text-sm text-gray-500 mt-2">
+            Último inicio de sesión:
+            <span class="font-medium text-gray-700">
+              {{ formatFechaHora(dashboard.ultimo_login) }}
+            </span>
+          </p>
           <p class="text-gray-600">Panel de control principal del sistema de Recursos Humanos</p>
         </div>
 
@@ -111,89 +117,41 @@
           <!-- Seguimiento - VERDE -->
           <div class="bg-[#009d71] rounded-lg p-8 border-2 border-black shadow-lg cursor-pointer hover:shadow-xl transition duration-200">
             <h3 class="text-lg font-bold text-white mb-4">Seguimiento</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium text-white opacity-90">Total solicitudes</p>
-                <p class="text-4xl font-bold text-white mt-2">10</p>
-                <p class="text-xs text-white opacity-80 mt-3">3 pendientes</p>
-              </div>
-              <div class="bg-white bg-opacity-20 p-4 rounded-full">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-            </div>
+              <p class="text-sm text-white">Solicitudes totales</p>
+              <p class="text-4xl font-bold text-white">
+                {{ dashboard.seguimiento.total }}
+              </p>
+
+              <p class="text-xs text-white mt-2">
+                ✔ {{ dashboard.seguimiento.aprobados }} aprobadas<br>
+                ⏳ {{ dashboard.seguimiento.pendientes }} pendientes
+              </p>
           </div>
 
           <!-- Formación - BLANCO -->
           <div class="bg-white rounded-lg p-8 border-2 border-black shadow-lg cursor-pointer hover:shadow-xl transition duration-200">
             <h3 class="text-lg font-bold text-gray-800 mb-4">Formación</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium text-gray-600">Total cursos</p>
-                <p class="text-4xl font-bold text-gray-900 mt-2">115</p>
-                <p class="text-xs text-gray-500 mt-3">Activos este año</p>
-              </div>
-              <div class="bg-gray-100 p-4 rounded-full">
-                <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                </svg>
-              </div>
-            </div>
+              <p class="text-sm text-gray-600">Cursos registrados</p>
+              <p class="text-4xl font-bold text-gray-900">
+                {{ dashboard.formacion.total_cursos }}
+              </p>
+
+              <p class="text-xs text-gray-500 mt-2">
+                {{ dashboard.formacion.cursos_activos }} activos
+              </p>
           </div>
 
           <!-- Registro y Habilitación - ROJO -->
           <div class="bg-[#d32d27] rounded-lg p-8 border-2 border-black shadow-lg cursor-pointer hover:shadow-xl transition duration-200">
             <h3 class="text-lg font-bold text-white mb-4">Registro y Habilitación</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm font-medium text-white opacity-90">Total habilitados</p>
-                <p class="text-4xl font-bold text-white mt-2">84</p>
-                <p class="text-xs text-white opacity-80 mt-3">5 solicitudes pendientes</p>
-              </div>
-              <div class="bg-white bg-opacity-20 p-4 rounded-full">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
+              <p class="text-sm text-white">Dirigentes habilitados</p>
+              <p class="text-4xl font-bold text-white">
+                {{ dashboard.registro.habilitados }}
+              </p>
 
-        <!-- Quick Actions -->
-        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          <div 
-            @click="() => navegarA('admin/lista-usuarios')"
-            class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
-          >
-            <div class="flex items-center">
-              <div class="bg-blue-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-800">Gestión de Usuarios</h3>
-                <p class="text-sm text-gray-600 mt-1">Administrar usuarios del sistema</p>
-              </div>
-            </div>
-          </div>
-
-          <div 
-            @click="() => navegarA('admin/logs')"
-            class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:shadow-md transition duration-200"
-          >
-            <div class="flex items-center">
-              <div class="bg-green-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg font-semibold text-gray-800">Logs del Sistema</h3>
-                <p class="text-sm text-gray-600 mt-1">Ver actividad del sistema</p>
-              </div>
-            </div>
+              <p class="text-xs text-white mt-2">
+                ⏳ {{ dashboard.registro.pendientes }} pendientes
+              </p>
           </div>
         </div>
       </div>
@@ -213,19 +171,46 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { adminService } from '../../services/api'
 
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
 const rutaActiva = ref('inicio')
 const comisionesAbierto = ref(false)
 
-onMounted(() => {
+const dashboard = ref({
+  seguimiento: { total: 0, aprobados: 0, pendientes: 0 },
+  formacion: { total_cursos: 0, cursos_activos: 0 },
+  registro: { habilitados: 0, pendientes: 0 },
+  ultimo_login: null
+})
+
+const formatFechaHora = (fecha) => {
+  if (!fecha) return '—'
+  return new Date(fecha).toLocaleString('es-BO', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  })
+}
+
+const loadingDashboard = ref(false)
+
+const cargarDashboard = async () => {
+  loadingDashboard.value = true
   try {
-    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-    nombreResponsable.value = usuario?.nombre || 'Administrador'
-  } catch (e) {
-    nombreResponsable.value = 'Administrador'
+    const res = await adminService.getDashboard()
+    dashboard.value = res.data
+  } catch (err) {
+    console.error('Error cargando dashboard:', err)
+  } finally {
+    loadingDashboard.value = false
   }
+}
+
+onMounted(() => {
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+  nombreResponsable.value = usuario?.nombre || 'Administrador'
+  cargarDashboard()
 })
 
 const toggleComisiones = () => {

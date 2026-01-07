@@ -11,6 +11,7 @@ import registroRoutes from "./routes/registro.routes.js";
 import formacionRoutes from "./routes/formacion.routes.js";
 import seguimientoRoutes from "./routes/seguimiento.routes.js";
 import logsRoutes from "./routes/logs.routes.js";
+import adminRoutes from "./routes/admin.routes.js"
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ app.use("/api/registro", registroRoutes);
 app.use("/api/formacion", formacionRoutes);
 app.use("/api/seguimiento", seguimientoRoutes);
 app.use("/api/logs", logsRoutes);
+app.use("/api/admin", adminRoutes);
 
 // --------------------------------------------------
 // Ruta protegida de ejemplo (verifica token)
