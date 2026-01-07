@@ -35,50 +35,51 @@
             Inicio
           </button>
           
-          <!-- Dropdown Comisiones -->
-          <!--
-          <div class="relative">
-            <button 
+          <!-- Dropdown Comisiones (solo dashboard) -->
+          <div
+            v-if="rutaActiva === 'inicio'"
+            class="relative"
+          >
+            <button
               @click="toggleComisiones"
               :class="comisionesButtonClass()"
             >
               Comisiones
               <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            
-            <!-- Dropdown Menu -->
-            <!--
-            <div v-if="comisionesAbierto" class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10">
-              <div class="py-1">
-                <button 
-                  @click="() => navegarAComision('seguimiento')"
-                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
-                >
-                  <div class="font-medium">Seguimiento</div>
-                  <div class="text-xs text-gray-500 mt-1">Gestión y monitoreo de actividades</div>
-                </button>
-                
-                <button 
-                  @click="() => navegarAComision('formacion')"
-                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
-                >
-                  <div class="font-medium">Formación</div>
-                  <div class="text-xs text-gray-500 mt-1">Control de cursos y capacitaciones</div>
-                </button>
-                
-                <button 
-                  @click="() => navegarAComision('registro')"
-                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition duration-200"
-                >
-                  <div class="font-medium">Registro y Habilitación</div>
-                  <div class="text-xs text-gray-500 mt-1">Registro y habilitación de personal</div>
-                </button>
-              </div>
+
+            <div
+              v-if="comisionesAbierto"
+              class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10"
+            >
+              <button
+                @click="cambiarVistaDashboard('seguimiento')"
+                :class="dropdownItemClass('seguimiento')"
+              >
+                <div class="font-medium">Seguimiento</div>
+                <div class="text-xs text-gray-500">Gestión y monitoreo</div>
+              </button>
+
+              <button
+                @click="cambiarVistaDashboard('formacion')"
+                :class="dropdownItemClass('formacion')"
+              >
+                <div class="font-medium">Formación</div>
+                <div class="text-xs text-gray-500">Cursos y capacitaciones</div>
+              </button>
+
+              <button
+                @click="cambiarVistaDashboard('registro')"
+                :class="dropdownItemClass('registro')"
+              >
+                <div class="font-medium">Registro y Habilitación</div>
+                <div class="text-xs text-gray-500">Dirigentes</div>
+              </button>
             </div>
           </div>
-          -->
 
           <button 
             @click="() => navegarA('admin/lista-usuarios')"
@@ -99,62 +100,76 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8">
-      <!-- Welcome Section -->
-      <div class="px-4 py-4 sm:px-0">
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
-          <h2 class="text-2xl font-bold text-gray-800 mb-2">Bienvenido Administrador</h2>
-          <p class="text-sm text-gray-500 mt-2">
-            Último inicio de sesión:
-            <span class="font-medium text-gray-700">
-              {{ formatFechaHora(dashboard.ultimo_login) }}
-            </span>
-          </p>
-          <p class="text-gray-600">Panel de control principal del sistema de Recursos Humanos</p>
-        </div>
 
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Seguimiento - VERDE -->
-          <div class="bg-[#009d71] rounded-lg p-8 border-2 border-black shadow-lg cursor-pointer hover:shadow-xl transition duration-200">
-            <h3 class="text-lg font-bold text-white mb-4">Seguimiento</h3>
+      <!-- DASHBOARD INICIO -->
+      <template v-if="vistaDashboard === 'inicio'">
+        <div class="px-4 py-4 sm:px-0">
+          <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+              Bienvenido Administrador
+            </h2>
+            <p class="text-sm text-gray-500 mt-2">
+              Último inicio de sesión:
+              <span class="font-medium text-gray-700">
+                {{ formatFechaHora(dashboard.ultimo_login) }}
+              </span>
+            </p>
+            <p class="text-gray-600">
+              Panel de control principal del sistema de Recursos Humanos
+            </p>
+          </div>
+
+          <!-- Statistics Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Seguimiento -->
+            <div class="bg-[#009d71] rounded-lg p-8 border-2 border-black shadow-lg">
+              <h3 class="text-lg font-bold text-white mb-4">Seguimiento</h3>
               <p class="text-sm text-white">Solicitudes totales</p>
               <p class="text-4xl font-bold text-white">
                 {{ dashboard.seguimiento.total }}
               </p>
-
               <p class="text-xs text-white mt-2">
                 ✔ {{ dashboard.seguimiento.aprobados }} aprobadas<br>
                 ⏳ {{ dashboard.seguimiento.pendientes }} pendientes
               </p>
-          </div>
+            </div>
 
-          <!-- Formación - BLANCO -->
-          <div class="bg-white rounded-lg p-8 border-2 border-black shadow-lg cursor-pointer hover:shadow-xl transition duration-200">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Formación</h3>
+            <!-- Formación -->
+            <div class="bg-white rounded-lg p-8 border-2 border-black shadow-lg">
+              <h3 class="text-lg font-bold text-gray-800 mb-4">Formación</h3>
               <p class="text-sm text-gray-600">Cursos registrados</p>
               <p class="text-4xl font-bold text-gray-900">
                 {{ dashboard.formacion.total_cursos }}
               </p>
-
               <p class="text-xs text-gray-500 mt-2">
                 {{ dashboard.formacion.cursos_activos }} activos
               </p>
-          </div>
+            </div>
 
-          <!-- Registro y Habilitación - ROJO -->
-          <div class="bg-[#d32d27] rounded-lg p-8 border-2 border-black shadow-lg cursor-pointer hover:shadow-xl transition duration-200">
-            <h3 class="text-lg font-bold text-white mb-4">Registro y Habilitación</h3>
+            <!-- Registro -->
+            <div class="bg-[#d32d27] rounded-lg p-8 border-2 border-black shadow-lg">
+              <h3 class="text-lg font-bold text-white mb-4">
+                Registro y Habilitación
+              </h3>
               <p class="text-sm text-white">Dirigentes habilitados</p>
               <p class="text-4xl font-bold text-white">
                 {{ dashboard.registro.habilitados }}
               </p>
-
               <p class="text-xs text-white mt-2">
                 ⏳ {{ dashboard.registro.pendientes }} pendientes
               </p>
+            </div>
+
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- VISTAS DE COMISIONES -->
+      <AdminSeguimiento v-if="vistaDashboard === 'seguimiento'" />
+      <AdminFormacion v-if="vistaDashboard === 'formacion'" />
+      <AdminRegistro v-if="vistaDashboard === 'registro'" />
+
     </main>
 
     <!-- Footer -->
@@ -173,10 +188,23 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { adminService } from '../../services/api'
 
+import AdminSeguimiento from './dashboard/AdminSeguimiento.vue'
+import AdminFormacion from './dashboard/AdminFormacion.vue'
+import AdminRegistro from './dashboard/AdminRegistro.vue'
+
+const vistaDashboard = ref('inicio')
+// inicio | seguimiento | formacion | registro
+
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
 const rutaActiva = ref('inicio')
 const comisionesAbierto = ref(false)
+
+const cambiarVistaDashboard = (vista) => {
+  vistaDashboard.value = vista
+  rutaActiva.value = 'inicio' 
+  comisionesAbierto.value = false
+}
 
 const dashboard = ref({
   seguimiento: { total: 0, aprobados: 0, pendientes: 0 },
@@ -219,14 +247,36 @@ const toggleComisiones = () => {
 
 const navClass = (destino) => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
-  if (rutaActiva.value === destino) return `${base} border-[#009d71] text-[#009d71]`
+
+  if (destino === 'inicio' && vistaDashboard.value === 'inicio') {
+    return `${base} border-[#009d71] text-[#009d71]`
+  }
+
+  if (rutaActiva.value === destino && destino !== 'inicio') {
+    return `${base} border-[#009d71] text-[#009d71]`
+  }
+
   return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
 }
 
 const comisionesButtonClass = () => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center'
-  if (comisionesAbierto.value) return `${base} border-[#009d71] text-[#009d71]`
+
+  if (comisionesAbierto.value || vistaDashboard.value !== 'inicio') {
+    return `${base} border-[#009d71] text-[#009d71]`
+  }
+
   return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
+}
+
+const dropdownItemClass = (vista) => {
+  const base = 'dropdown-item flex flex-col gap-0.5'
+
+  if (vistaDashboard.value === vista) {
+    return `${base} bg-[#009d71]/10 border-l-4 border-[#009d71]`
+  }
+
+  return base
 }
 
 const navegarA = (destino) => {
@@ -236,6 +286,7 @@ const navegarA = (destino) => {
   if (!destino) return
 
   if (destino === 'inicio') {
+    vistaDashboard.value = 'inicio'
     router.push('/admin').catch(()=>{})
     return
   }
@@ -260,3 +311,19 @@ const cerrarSesion = () => {
   router.push('/').catch(()=>{})
 }
 </script>
+
+<style scoped>  
+  .dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+</style>
