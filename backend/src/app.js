@@ -20,12 +20,22 @@ const app = express();
 // --------------------------------------------------
 // CORS: permitir el frontend y la cabecera Authorization
 // --------------------------------------------------
-const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || "http://localhost:5173").split(",")
+//const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || "http://localhost:5173").split(",")
+
+const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || "http://localhost:5173")
+  .split(",")
+  .map(o => o.trim().replace(/\/$/, ""))
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true)
-    if (FRONTEND_ORIGINS.includes(origin)) return callback(null, true)
+
+    //if (FRONTEND_ORIGINS.includes(origin)) return callback(null, true)
+    const normalizedOrigin = origin.replace(/\/$/, "")
+    if (FRONTEND_ORIGINS.includes(normalizedOrigin)) {
+      return callback(null, true)
+    }
+    
     return callback(new Error("CORS - Origin no permitido"), false)
   },
   credentials: true,

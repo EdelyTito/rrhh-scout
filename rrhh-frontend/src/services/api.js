@@ -11,7 +11,7 @@ const api = axios.create({
 })
 
 const apiFormData = axios.create({
-  bbaseURL: API_URL,
+  baseURL: API_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'multipart/form-data'

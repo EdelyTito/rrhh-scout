@@ -4,25 +4,36 @@ dotenv.config();
 
 const { Pool } = pkg;
 
+//const pool = new Pool({
+//  host: (process.env.DB_HOST || "localhost").trim(),
+//  user: (process.env.DB_USER || "postgres").trim(),
+//  password: (process.env.DB_PASSWORD || "").trim(),
+//  database: (process.env.DB_NAME || "rrhh_scout").trim(),
+//  port: parseInt(process.env.DB_PORT || "5432", 10),
+//});
+
 const pool = new Pool({
-  host: (process.env.DB_HOST || "localhost").trim(),
-  user: (process.env.DB_USER || "postgres").trim(),
-  password: (process.env.DB_PASSWORD || "").trim(),
-  database: (process.env.DB_NAME || "rrhh_scout").trim(),
-  port: parseInt(process.env.DB_PORT || "5432", 10),
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT),
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 export { pool };
 
-if ((process.env.NODE_ENV || "development") === "development") {
-  (async () => {
-    try {
-      const client = await pool.connect();
-      await client.query("SELECT NOW()");
-      client.release();
-      console.log("✅ Conexión a Postgres OK");
-    } catch (err) {
-      console.error("❌ Error al conectar a Postgres:", err.message || err);
-    }
-  })();
-}
+//if ((process.env.NODE_ENV || "development") === "development") {
+//  (async () => {
+//    try {
+//      const client = await pool.connect();
+//      await client.query("SELECT NOW()");
+//      client.release();
+//      console.log("✅ Conexión a Postgres OK");
+//    } catch (err) {
+//      console.error("❌ Error al conectar a Postgres:", err.message || err);
+//    }
+//  })();
+//}
