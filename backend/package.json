@@ -32,7 +32,7 @@
     "jest": "^30.2.0",
     "newman": "^6.2.0",
     "newman-reporter-htmlextra": "^1.23.1",
-    "nodemon": "^3.1.10",
+    "nodemon": "^3.1.11",
     "supertest": "^7.1.4"
   }
 }
