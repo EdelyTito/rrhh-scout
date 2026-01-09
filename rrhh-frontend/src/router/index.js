@@ -195,7 +195,7 @@ const routes = [
   },
   {
     path: '/registro/solicitudes-rechazadas',
-    name: 'SolicitudesRechazadasRegistro', // <-- Agrega esto
+    name: 'SolicitudesRechazadasRegistro',
     component: () => import('../views/registro/SolicitudesRechazadasRegistro.vue'),
     meta: {
       requiresAuth: true,

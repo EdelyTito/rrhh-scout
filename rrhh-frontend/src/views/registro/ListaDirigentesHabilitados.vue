@@ -30,42 +30,30 @@
     <nav class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex space-x-8">
-          <button 
-            @click="navegarA('inicio-registro')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'inicio-registro' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+          <button
+            @click="navegarA('/registro')"
+            :class="navClass('/registro')"
           >
             Inicio
           </button>
-          
-          <button 
-            @click="navegarA('solicitudes-pendientes-registro')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'solicitudes-pendientes-registro' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+
+          <button
+            @click="navegarA('/registro/solicitudes-pendientes')"
+            :class="navClass('solicitudes-pendientes', true)"
           >
             Solicitudes pendientes
           </button>
 
-          <button 
-            @click="navegarA('solicitudes-rechazadas-registro')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'solicitudes-rechazadas-registro' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+          <button
+            @click="navegarA('/registro/solicitudes-rechazadas')"
+            :class="navClass('solicitudes-rechazadas', true)"
           >
             Solicitudes rechazadas
           </button>
-          
-          <button 
-            @click="navegarA('lista-dirigentes-habilitados')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'lista-dirigentes-habilitados' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+
+          <button
+            @click="navegarA('/registro/dirigentes-habilitados')"
+            :class="navClass('dirigentes-habilitados', true)"
           >
             Dirigentes habilitados
           </button>
@@ -339,12 +327,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { registroService } from '../../services/api'  // IMPORTANTE: Usar registroService
 
 const router = useRouter()
+const route = useRoute()
 const nombreResponsable = ref('Responsable de Registro')
-const rutaActiva = ref('lista-dirigentes-habilitados')
 
 const filtroBusqueda = ref('')
 const filtroGrupo = ref('')
@@ -469,25 +457,19 @@ const totalPaginas = computed(() => {
   return Math.ceil(dirigentesHabilitados.value.length / itemsPorPagina)
 })
 
-const navegarA = (destino) => {
-  rutaActiva.value = destino
-  
-  switch(destino) {
-    case 'inicio-registro':
-      if (router.currentRoute.value.path !== '/registro') {
-        router.push('/registro')
-      }
-      break
-    case 'solicitudes-pendientes-registro':
-      router.push('/registro/solicitudes-pendientes')
-      break
-    case 'solicitudes-rechazadas-registro':
-      router.push('/registro/solicitudes-rechazadas')
-      break
-    case 'lista-dirigentes-habilitados':
-      router.push('/registro/dirigentes-habilitados')
-      break
-  }
+const navClass = (pathExacto, incluye = false) => {
+  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
+  const activo = incluye
+    ? route.path.includes(pathExacto)
+    : route.path === pathExacto
+
+  return activo
+    ? `${base} border-[#009d71] text-[#009d71]`
+    : `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
+}
+
+const navegarA = (path) => {
+  router.push(path)
 }
 
 const obtenerIniciales = (nombre) => {

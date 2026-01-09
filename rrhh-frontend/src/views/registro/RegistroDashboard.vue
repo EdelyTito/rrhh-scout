@@ -30,30 +30,30 @@
     <nav class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex space-x-8">
-          <button 
-            @click="() => navegarA('inicio-registro')"
-            :class="navClass('inicio-registro')"
+          <button
+            @click="navegarA('/registro')"
+            :class="navClass('/registro')"
           >
             Inicio
           </button>
-          
-          <button 
-            @click="() => navegarA('solicitudes-pendientes-registro')"
-            :class="navClass('solicitudes-pendientes-registro')"
+
+          <button
+            @click="navegarA('/registro/solicitudes-pendientes')"
+            :class="navClass('solicitudes-pendientes', true)"
           >
             Solicitudes pendientes
           </button>
 
-          <button 
-            @click="() => navegarA('solicitudes-rechazadas-registro')"
-            :class="navClass('solicitudes-rechazadas-registro')"
+          <button
+            @click="navegarA('/registro/solicitudes-rechazadas')"
+            :class="navClass('solicitudes-rechazadas', true)"
           >
             Solicitudes rechazadas
           </button>
-          
-          <button 
-            @click="() => navegarA('lista-dirigentes-habilitados')"
-            :class="navClass('lista-dirigentes-habilitados')"
+
+          <button
+            @click="navegarA('/registro/dirigentes-habilitados')"
+            :class="navClass('dirigentes-habilitados', true)"
           >
             Dirigentes habilitados
           </button>
@@ -221,8 +221,8 @@ import { registroService, dirigentesService } from '../../services/api'
 
 const router = useRouter()
 const route = useRoute()
+
 const nombreResponsable = ref('Responsable de Registro')
-const rutaActiva = ref('inicio-registro')
 const cargando = ref(true)
 const fechaActualizada = ref('')
 
@@ -245,34 +245,8 @@ onMounted(async () => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
 
-  // Sincronizar ruta activa basada en la ruta actual
-  sincronizarRutaActiva()
   await cargarEstadisticas()
 })
-
-const sincronizarRutaActiva = () => {
-  const path = route.path
-  
-  if (path.includes('solicitudes-pendientes')) {
-    rutaActiva.value = 'solicitudes-pendientes-registro'
-  } else if (path.includes('solicitudes-rechazadas')) {
-    rutaActiva.value = 'solicitudes-rechazadas-registro'
-  } else if (path.includes('dirigentes-habilitados')) {
-    rutaActiva.value = 'lista-dirigentes-habilitados'
-  } else if (path.includes('/registro') && !path.includes('/registro/')) {
-    rutaActiva.value = 'inicio-registro'
-  }
-}
-
-const navClass = (destino) => {
-  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
-  
-  if (rutaActiva.value === destino) {
-    return `${base} border-[#009d71] text-[#009d71]`
-  }
-  
-  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
-}
 
 const cargarEstadisticas = async () => {
   try {
@@ -289,28 +263,19 @@ const cargarEstadisticas = async () => {
   }
 }
 
-// Calcular ángulo para el gráfico circular
-const anguloHabilitados = computed(() => {
-  return (estadisticas.value.porcentajeHabilitados / 100) * 360
-})
+const navClass = (pathExacto, incluye = false) => {
+  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
+  const activo = incluye
+    ? route.path.includes(pathExacto)
+    : route.path === pathExacto
 
-const navegarA = (destino) => {
-  rutaActiva.value = destino
-  
-  switch(destino) {
-    case 'inicio-registro':
-      router.push('/registro')
-      break
-    case 'solicitudes-pendientes-registro':
-      router.push('/registro/solicitudes-pendientes')
-      break
-    case 'solicitudes-rechazadas-registro':
-      router.push('/registro/solicitudes-rechazadas')
-      break
-    case 'lista-dirigentes-habilitados':
-      router.push('/registro/dirigentes-habilitados')
-      break
-  }
+  return activo
+    ? `${base} border-[#009d71] text-[#009d71]`
+    : `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
+}
+
+const navegarA = (path) => {
+  router.push(path)
 }
 
 const exportarReporte = () => {
@@ -324,12 +289,8 @@ const cerrarSesion = () => {
   router.push('/')
 }
 
-// Observar cambios en la ruta
-import { watch } from 'vue'
-watch(
-  () => route.path,
-  () => {
-    sincronizarRutaActiva()
-  }
-)
+const anguloHabilitados = computed(() => {
+  return (estadisticas.value.porcentajeHabilitados / 100) * 360
+})
+
 </script>
