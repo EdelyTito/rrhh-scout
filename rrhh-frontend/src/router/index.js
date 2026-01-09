@@ -23,6 +23,7 @@ import ListaDirigentesHabilitados from '../views/registro/ListaDirigentesHabilit
 import DetalleSolicitud from '../views/registro/DetalleSolicitud.vue'
 import DetalleDirigenteRegistro from '../views/registro/DetalleDirigenteRegistro.vue'
 import EditarDirigenteRegistro from '../views/registro/EditarDirigenteRegistro.vue'
+import SolicitudesRechazadasRegistro from '../views/registro/SolicitudesRechazadasRegistro.vue'
 
 // FORMACIÓN 
 import FormacionDashboard from '../views/formacion/FormacionDashboard.vue'
@@ -187,6 +188,15 @@ const routes = [
     path: '/registro/dirigente/:id/editar',
     name: 'EditarDirigenteRegistro',
     component: EditarDirigenteRegistro,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
+    },
+  },
+  {
+    path: '/registro/solicitudes-rechazadas',
+    name: 'SolicitudesRechazadasRegistro', // <-- Agrega esto
+    component: () => import('../views/registro/SolicitudesRechazadasRegistro.vue'),
     meta: {
       requiresAuth: true,
       roles: ['responsable_registro', 'subcomisionado_registro', 'admin']

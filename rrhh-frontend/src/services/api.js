@@ -129,6 +129,7 @@ export const registroService = {
   getDirigentesHabilitados: () => {return api.get('/registro/dirigentes-habilitados');},
   actualizarEstadoDirigente: (id, data) => {return api.put(`/dirigentes/${id}`, data);},
   getTodasSolicitudes: () => {return api.get('/registro/todas');},
+  getEstadisticas() {return api.get('/registro/estadisticas')}
 }
 
 

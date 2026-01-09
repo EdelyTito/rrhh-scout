@@ -7,6 +7,7 @@ import { registrarLog } from "../utils/logger.js";
 import { validarIdSolicitud, validarActualizarSolicitud, validarActualizarDirigenteRegistro, validarSolicitudPublica} from "../middleware/validators/registro.validators.js"
 import { validarIdDirigente } from "../middleware/validators/dirigentes.validators.js"
 import { validar } from "../middleware/validators/index.js";
+import { rechazarSolicitud } from "../controllers/registro.controller.js";
 
 const router = express.Router();
 
@@ -80,6 +81,44 @@ router.post("/public", validarSolicitudPublica, validar, async (req, res) => {
   } catch (err) {
     console.error("Error al registrar solicitud:", err);
     res.status(500).json({ error: "Error al registrar solicitud pública" });
+  }
+});
+
+// Endpoint para estadísticas del dashboard
+router.get("/estadisticas", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
+  try {
+    const [
+      totalDirigentes,
+      habilitados,
+      pendientes,
+      nuevasSolicitudesMes,
+      aprobadasMes,
+      rechazadosMes
+    ] = await Promise.all([
+      pool.query("SELECT COUNT(*) FROM dirigentes"),
+      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'habilitado'"),
+      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'pendiente'"),
+      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)"),
+      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'habilitado' AND fecha_aprobacion >= DATE_TRUNC('month', CURRENT_DATE)"),
+      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'rechazado' AND fecha_revision >= DATE_TRUNC('month', CURRENT_DATE)")
+    ]);
+
+    const estadisticas = {
+      totalDirigentes: parseInt(totalDirigentes.rows[0].count),
+      habilitados: parseInt(habilitados.rows[0].count),
+      pendientes: parseInt(pendientes.rows[0].count),
+      nuevasSolicitudesMes: parseInt(nuevasSolicitudesMes.rows[0].count),
+      aprobadasMes: parseInt(aprobadasMes.rows[0].count),
+      rechazadosMes: parseInt(rechazadosMes.rows[0].count),
+      porcentajeHabilitados: totalDirigentes.rows[0].count > 0 ? 
+        (parseInt(habilitados.rows[0].count) / parseInt(totalDirigentes.rows[0].count)) * 100 : 0
+    };
+
+    res.json(estadisticas);
+    
+  } catch (err) {
+    console.error("Error al obtener estadísticas:", err);
+    res.status(500).json({ error: "Error al obtener estadísticas" });
   }
 });
 
@@ -228,43 +267,13 @@ router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), validarActualizarSolici
   }
 });
 
-// Endpoint para estadísticas del dashboard
-router.get("/estadisticas", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
-  try {
-    const [
-      totalDirigentes,
-      habilitados,
-      pendientes,
-      nuevasSolicitudesMes,
-      aprobadasMes,
-      rechazadosMes
-    ] = await Promise.all([
-      pool.query("SELECT COUNT(*) FROM dirigentes"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'habilitado'"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'pendiente'"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'habilitado' AND fecha_aprobacion >= DATE_TRUNC('month', CURRENT_DATE)"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'rechazado' AND fecha_revision >= DATE_TRUNC('month', CURRENT_DATE)")
-    ]);
-
-    const estadisticas = {
-      totalDirigentes: parseInt(totalDirigentes.rows[0].count),
-      habilitados: parseInt(habilitados.rows[0].count),
-      pendientes: parseInt(pendientes.rows[0].count),
-      nuevasSolicitudesMes: parseInt(nuevasSolicitudesMes.rows[0].count),
-      aprobadasMes: parseInt(aprobadasMes.rows[0].count),
-      rechazadosMes: parseInt(rechazadosMes.rows[0].count),
-      porcentajeHabilitados: totalDirigentes.rows[0].count > 0 ? 
-        (parseInt(habilitados.rows[0].count) / parseInt(totalDirigentes.rows[0].count)) * 100 : 0
-    };
-
-    res.json(estadisticas);
-    
-  } catch (err) {
-    console.error("Error al obtener estadísticas:", err);
-    res.status(500).json({ error: "Error al obtener estadísticas" });
-  }
-});
+//rechazar solicitud
+router.put(
+  '/solicitudes/:id/rechazar',
+  verifyToken,
+  authorizeRoles(1, 2), // admin / registro
+  rechazarSolicitud
+)
 
 // Endpoint para obtener TODAS las solicitudes
 router.get("/todas", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {

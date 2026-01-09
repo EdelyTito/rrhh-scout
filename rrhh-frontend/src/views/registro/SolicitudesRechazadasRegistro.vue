@@ -80,12 +80,16 @@
         <div class="mb-8">
           <div class="flex justify-between items-center">
             <div>
-              <h1 class="text-2xl font-bold text-gray-900">Solicitudes pendientes</h1>
-              <p class="text-gray-600 mt-1">Revisión de solicitudes de habilitación</p>
+              <h1 class="text-2xl font-bold text-gray-900">
+                Solicitudes rechazadas
+              </h1>
+              <p class="text-gray-600 mt-1">
+              Historial de solicitudes no aprobadas
+              </p>
             </div>
             <div class="flex items-center space-x-4">
               <span class="text-sm text-gray-600">
-                {{ solicitudesPendientes.length }} solicitudes pendientes
+                {{ solicitudesPendientes.length }} solicitudes rechazadas
               </span>
               <button 
                 @click="exportarExcel"
@@ -189,6 +193,9 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Fecha
                     </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Motivo
+                    </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Acciones
                     </th>
@@ -242,18 +249,15 @@
                         {{ solicitud.fecha || 'Fecha no disponible' }}
                       </div>
                     </td>
+                    <td class="px-6 py-4 text-sm text-gray-700 max-w-xs break-words">
+                        {{ solicitud.motivo || '—' }}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button 
                         @click="verSolicitud(solicitud.id)"
                         class="text-[#009d71] hover:text-[#007a5c] mr-3 font-medium"
                       >
                         Ver solicitud
-                      </button>
-                      <button
-                        @click="abrirModalRechazo(solicitud)"
-                        class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                      >
-                        Rechazar
                       </button>
                     </td>
                   </tr>
@@ -269,7 +273,7 @@
               <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
-              <p class="mt-2 text-gray-500">No hay solicitudes pendientes con los filtros aplicados.</p>
+              <p class="mt-2 text-gray-500">No hay solicitudes rechazadas con los filtros aplicados.</p>
               <button 
                 @click="limpiarFiltros"
                 class="mt-4 text-[#009d71] hover:text-[#007a5c] font-medium"
@@ -325,50 +329,6 @@
           </p>
         </footer>
       </div>
-
-      <!-- MODAL RECHAZO -->
-      <div
-        v-if="mostrarModalRechazo"
-        class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-      >
-        <div class="bg-white rounded-lg w-full max-w-md p-6">
-          <h3 class="text-lg font-bold text-gray-800 mb-4">
-            Rechazar solicitud
-          </h3>
-
-          <p class="text-sm text-gray-600 mb-2">
-            Indica el motivo del rechazo
-          </p>
-
-          <textarea
-            v-model="motivoRechazo"
-            rows="4"
-            class="w-full border rounded p-2 text-sm"
-            placeholder="Ej: Documentación incompleta"
-          ></textarea>
-
-          <p v-if="errorRechazo" class="text-red-600 text-sm mt-1">
-            {{ errorRechazo }}
-          </p>
-
-          <div class="flex justify-end gap-2 mt-4">
-            <button
-              @click="mostrarModalRechazo = false"
-              class="px-4 py-2 text-sm border rounded"
-            >
-              Cancelar
-            </button>
-
-            <button
-              @click="confirmarRechazo"
-              class="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-            >
-              Confirmar rechazo
-            </button>
-          </div>
-        </div>
-      </div>
-
     </main>
   </div>
 </template>
@@ -391,39 +351,6 @@ const itemsPorPagina = 10
 const solicitudesPendientes = ref([])
 const cargando = ref(true)
 
-// Modal de rechazo
-const mostrarModalRechazo = ref(false)
-const solicitudSeleccionada = ref(null)
-const motivoRechazo = ref('')
-const errorRechazo = ref('')
-
-const abrirModalRechazo = (solicitud) => {
-  solicitudSeleccionada.value = solicitud
-  motivoRechazo.value = ''
-  errorRechazo.value = ''
-  mostrarModalRechazo.value = true
-}
-
-const confirmarRechazo = async () => {
-  if (!motivoRechazo.value.trim()) {
-    errorRechazo.value = 'El motivo de rechazo es obligatorio'
-    return
-  }
-
-  try {
-    await registroService.rechazarSolicitud(
-      solicitudSeleccionada.value.id,
-      { motivo: motivoRechazo.value }
-    )
-
-    mostrarModalRechazo.value = false
-    await cargarSolicitudes() // refresca tabla
-  } catch (err) {
-    console.error(err)
-    errorRechazo.value = 'No se pudo rechazar la solicitud'
-  }
-}
-
 const estadisticas = ref({
   hoy: 2,
   semana: 8,
@@ -439,7 +366,9 @@ const cargarSolicitudes = async () => {
     cargando.value = true
     console.log('Intentando cargar solicitudes desde:', 'http://localhost:4000/api/registro')
     
-    const response = await registroService.getSolicitudes()
+    const response = await registroService.getSolicitudes({
+        estado: 'rechazado'
+    })
     
     console.log('Respuesta recibida del backend:', response)
     console.log('Datos recibidos:', response.data)
@@ -462,16 +391,17 @@ const cargarSolicitudes = async () => {
     }
     
     solicitudesPendientes.value = response.data.map(s => ({
-      id: s.id,
-      nombre: s.nombre_completo,
-      ci: s.ci,
-      rama: s.rama || 'Sin rama',
-      grupo: s.grupo,
-      distrito: s.distrito || 'Distrito La Paz',
-      fecha: s.created_at
-        ? new Date(s.created_at).toLocaleDateString('es-BO')
-        : '—',
-      estado: s.estado
+        id: s.id,
+        nombre: s.nombre_completo,
+        ci: s.ci,
+        rama: s.rama || 'Sin rama',
+        grupo: s.grupo,
+        distrito: s.distrito || 'Distrito La Paz',
+        fecha: s.created_at
+            ? new Date(s.created_at).toLocaleDateString('es-BO')
+            : '—',
+        motivo: s.motivo_rechazo || s.observaciones || '—',
+        estado: s.estado
     }))
     
     console.log('Solicitudes procesadas para frontend:', solicitudesPendientes.value)
@@ -549,6 +479,7 @@ const navegarA = (destino) => {
       break
   }
 }
+
 const obtenerIniciales = (nombre) => {
   // Si nombre es undefined, null o vacío, retorna "NN"
   if (!nombre || typeof nombre !== 'string') {

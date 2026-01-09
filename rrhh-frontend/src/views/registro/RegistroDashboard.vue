@@ -31,31 +31,29 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex space-x-8">
           <button 
-            @click="navegarA('inicio-registro')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'inicio-registro' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+            @click="() => navegarA('inicio-registro')"
+            :class="navClass('inicio-registro')"
           >
             Inicio
           </button>
           
           <button 
-            @click="navegarA('solicitudes-pendientes-registro')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'solicitudes-pendientes-registro' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+            @click="() => navegarA('solicitudes-pendientes-registro')"
+            :class="navClass('solicitudes-pendientes-registro')"
           >
             Solicitudes pendientes
           </button>
+
+          <button 
+            @click="() => navegarA('solicitudes-rechazadas-registro')"
+            :class="navClass('solicitudes-rechazadas-registro')"
+          >
+            Solicitudes rechazadas
+          </button>
           
           <button 
-            @click="navegarA('lista-dirigentes-habilitados')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'lista-dirigentes-habilitados' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
+            @click="() => navegarA('lista-dirigentes-habilitados')"
+            :class="navClass('lista-dirigentes-habilitados')"
           >
             Dirigentes habilitados
           </button>
@@ -218,10 +216,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { registroService, dirigentesService } from '../../services/api'
 
 const router = useRouter()
+const route = useRoute()
 const nombreResponsable = ref('Responsable de Registro')
 const rutaActiva = ref('inicio-registro')
 const cargando = ref(true)
@@ -245,81 +244,46 @@ const estadisticas = ref({
 onMounted(async () => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
-  
+
+  // Sincronizar ruta activa basada en la ruta actual
+  sincronizarRutaActiva()
   await cargarEstadisticas()
 })
+
+const sincronizarRutaActiva = () => {
+  const path = route.path
+  
+  if (path.includes('solicitudes-pendientes')) {
+    rutaActiva.value = 'solicitudes-pendientes-registro'
+  } else if (path.includes('solicitudes-rechazadas')) {
+    rutaActiva.value = 'solicitudes-rechazadas-registro'
+  } else if (path.includes('dirigentes-habilitados')) {
+    rutaActiva.value = 'lista-dirigentes-habilitados'
+  } else if (path.includes('/registro') && !path.includes('/registro/')) {
+    rutaActiva.value = 'inicio-registro'
+  }
+}
+
+const navClass = (destino) => {
+  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
+  
+  if (rutaActiva.value === destino) {
+    return `${base} border-[#009d71] text-[#009d71]`
+  }
+  
+  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
+}
 
 const cargarEstadisticas = async () => {
   try {
     cargando.value = true
-    console.log('Cargando estadísticas del dashboard...')
-    
-    // Obtener fecha actual formateada
-    const hoy = new Date()
-    fechaActualizada.value = hoy.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-    
-    // Cargar datos en paralelo
-    const [solicitudesResponse, dirigentesResponse, habilitadosResponse] = await Promise.all([
-      registroService.getSolicitudes().catch(() => ({ data: [] })),
-      dirigentesService.getDirigentes().catch(() => ({ data: [] })),
-      registroService.getDirigentesHabilitados().catch(() => ({ data: [] }))
-    ])
-    
-    console.log('Datos recibidos:')
-    console.log('- Solicitudes:', solicitudesResponse.data?.length || 0)
-    console.log('- Dirigentes:', dirigentesResponse.data?.length || 0)
-    console.log('- Habilitados:', habilitadosResponse.data?.length || 0)
-    
-    // Procesar estadísticas
-    const totalDirigentes = dirigentesResponse.data?.length || 0
-    const habilitados = habilitadosResponse.data?.length || 0
-    const pendientes = solicitudesResponse.data?.filter(s => s.estado === 'pendiente').length || 0
-    
-    // Calcular porcentajes
-    const porcentajeHabilitados = totalDirigentes > 0 ? (habilitados / totalDirigentes) * 100 : 0
-    
-    // Actualizar estadísticas
-    estadisticas.value = {
-      totalDirigentes,
-      habilitados,
-      inhabilitados: totalDirigentes - habilitados,
-      pendientes,
-      porcentajeHabilitados,
-      incrementoTotal: Math.floor(Math.random() * 20) - 5, // Simulado por ahora
-      tiempoPromedio: Math.floor(Math.random() * 10) + 5, // Simulado
-      urgentes: Math.floor(pendientes * 0.3), // 30% de las pendientes
-      rechazadosMes: Math.floor(Math.random() * 10),
-      nuevasSolicitudesMes: Math.floor(Math.random() * 15) + 5,
-      aprobadasMes: Math.floor(Math.random() * 10) + 3
-    }
-    
-    console.log('Estadísticas calculadas:', estadisticas.value)
-    
-  } catch (error) {
-    console.error('Error al cargar estadísticas:', error)
-    
-    // Datos de ejemplo en caso de error
-    estadisticas.value = {
-      totalDirigentes: 1087,
-      habilitados: 45,
-      inhabilitados: 1042,
-      pendientes: 44,
-      porcentajeHabilitados: 4.1,
-      incrementoTotal: 12,
-      tiempoPromedio: 8,
-      urgentes: 13,
-      rechazadosMes: 3,
-      nuevasSolicitudesMes: 18,
-      aprobadasMes: 7
-    }
-    
-    alert('Error al cargar estadísticas. Mostrando datos de ejemplo.')
+
+    const res = await registroService.getEstadisticas()
+    estadisticas.value = res.data
+
+    fechaActualizada.value = new Date().toLocaleString('es-BO')
+  } catch (err) {
+    console.error(err)
   } finally {
     cargando.value = false
   }
@@ -335,12 +299,13 @@ const navegarA = (destino) => {
   
   switch(destino) {
     case 'inicio-registro':
-      if (router.currentRoute.value.path !== '/registro') {
-        router.push('/registro')
-      }
+      router.push('/registro')
       break
     case 'solicitudes-pendientes-registro':
       router.push('/registro/solicitudes-pendientes')
+      break
+    case 'solicitudes-rechazadas-registro':
+      router.push('/registro/solicitudes-rechazadas')
       break
     case 'lista-dirigentes-habilitados':
       router.push('/registro/dirigentes-habilitados')
@@ -358,4 +323,13 @@ const cerrarSesion = () => {
   localStorage.removeItem('token')
   router.push('/')
 }
+
+// Observar cambios en la ruta
+import { watch } from 'vue'
+watch(
+  () => route.path,
+  () => {
+    sincronizarRutaActiva()
+  }
+)
 </script>
