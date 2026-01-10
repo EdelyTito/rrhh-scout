@@ -10,8 +10,8 @@ export const validarLogin = [
 
   body("contrasena")
     .isString()
-    .isLength({ min: 6 })
-    .withMessage("Contraseña mínima 6 caracteres")
+    .isLength({ min: 12 })
+    .withMessage("Contraseña mínima 12 caracteres")
 ]
 
 export const validarRegistro = [
@@ -26,8 +26,8 @@ export const validarRegistro = [
     .normalizeEmail(),
 
   body("contrasena")
-    .isLength({ min: 6 })
-    .withMessage("La contraseña debe tener al menos 6 caracteres"),
+    .isLength({ min: 12 })
+    .withMessage("La contraseña debe tener al menos 12 caracteres"),
 
   body("cargo")
   .trim()

@@ -373,21 +373,23 @@
                     >
                 </div>
 
-                <!-- Contraseña -->
+                <!-- Contraseña (generada automáticamente) -->
                 <div>
-                    <label for="contrasena" class="block text-sm font-medium text-gray-700 mb-1">
-                        Contraseña *
-                    </label>
-                    <input
-                        id="contrasena"
-                        v-model="nuevoUsuario.contrasena"
-                        type="password"
-                        required
-                        minlength="6"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                        placeholder="Mínimo 6 caracteres"
-                    >
-                    <p class="text-xs text-gray-500 mt-1">La contraseña debe tener al menos 6 caracteres</p>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Contraseña
+                  </label>
+
+                  <input
+                    type="text"
+                    value="Se generará automáticamente"
+                    disabled
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md
+                          bg-gray-100 text-gray-500 cursor-not-allowed"
+                  >
+
+                  <p class="text-xs text-gray-500 mt-1">
+                    La contraseña será generada automáticamente y enviada al correo del usuario.
+                  </p>
                 </div>
 
                 <!-- Cargo -->
@@ -615,8 +617,7 @@ const filtroRol = ref('')
 const nuevoUsuario = ref({
   nombre: '',
   correo: '',
-  contrasena: '',
-  cargo: '',
+  cargo: ''
 })
 
 const usuarioEditando = ref({
@@ -763,7 +764,7 @@ const rolAutomatico = computed(() => {
 
 
 const crearUsuario = async () => {
-  if (!nuevoUsuario.value.nombre || !nuevoUsuario.value.correo || !nuevoUsuario.value.contrasena) {
+  if (!nuevoUsuario.value.nombre || !nuevoUsuario.value.correo || !nuevoUsuario.value.cargo) {
     errorMessage.value = 'Por favor completa todos los campos obligatorios'
     return
   }
@@ -774,7 +775,6 @@ const crearUsuario = async () => {
     const payload = {
       nombre: nuevoUsuario.value.nombre,
       correo: nuevoUsuario.value.correo,
-      contrasena: nuevoUsuario.value.contrasena,
       cargo: nuevoUsuario.value.cargo
     }
     const res = await authService.register(payload)

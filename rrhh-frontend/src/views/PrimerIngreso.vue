@@ -2,7 +2,7 @@
   <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
     <div class="bg-white max-w-md w-full rounded-lg shadow-lg p-6">
       <h1 class="text-2xl font-bold text-gray-800 mb-2">
-        🔐 Primer ingreso al sistema
+        Primer ingreso al sistema
       </h1>
 
       <p class="text-gray-600 mb-6">
@@ -17,7 +17,6 @@
           <input
             v-model="nuevaContrasena"
             type="password"
-            minlength="6"
             required
             class="w-full mt-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-[#009d71]"
           />
@@ -34,11 +33,14 @@
             required
             class="w-full mt-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-[#009d71]"
           />
+          <ul class="text-xs text-gray-500 mt-2 space-y-1">
+            <li>• Mínimo 12 caracteres</li>
+            <li>• Una mayúscula</li>
+            <li>• Una minúscula</li>
+            <li>• Un número</li>
+            <li>• Un símbolo (!@#$%^&*)</li>
+          </ul>
         </div>
-
-        <p v-if="error" class="text-sm text-red-600 bg-red-50 p-2 rounded">
-          {{ error }}
-        </p>
 
         <button
           type="submit"
@@ -62,9 +64,26 @@ const nuevaContrasena = ref('')
 const confirmarContrasena = ref('')
 const loading = ref(false)
 
+const validarPasswordOWASP = (password) => {
+  const errores = []
+
+  if (password.length < 12) errores.push('Mínimo 12 caracteres')
+  if (!/[A-Z]/.test(password)) errores.push('Al menos una mayúscula')
+  if (!/[a-z]/.test(password)) errores.push('Al menos una minúscula')
+  if (!/[0-9]/.test(password)) errores.push('Al menos un número')
+  if (!/[!@#$%^&*]/.test(password)) errores.push('Al menos un símbolo (!@#$%^&*)')
+
+  return errores
+}
+
 const cambiarContrasena = async () => {
-  if (!nuevaContrasena.value || nuevaContrasena.value.length < 6) {
-    alert('La contraseña debe tener al menos 6 caracteres')
+  const errores = validarPasswordOWASP(nuevaContrasena.value)
+
+  if (errores.length > 0) {
+    alert(
+      'La contraseña no cumple los requisitos:\n\n' +
+      errores.map(e => `• ${e}`).join('\n')
+    )
     return
   }
 

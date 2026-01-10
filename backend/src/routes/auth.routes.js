@@ -9,8 +9,10 @@ import {authorizeRoles} from "../middleware/authorize.js";
 import crypto from "crypto";
 import {sendEmail} from "../utils/email.js";
 import authConfig from "../config/auth.config.js";
-import {validarLogin, validarRegistro, validar} from "../middleware/validators/index.js";
+import { validarLogin, validar } from "../middleware/validators/index.js";
+import { validarRegistroAdmin } from "../middleware/validators/admin.validators.js";
 import {CARGOS} from "../config/cargos.config.js";
+import { generarPasswordSegura } from "../utils/password.js";
 
 
 dotenv.config();
@@ -19,9 +21,9 @@ const router = express.Router();
 //
 // REGISTRO DE USUARIO
 //
-router.post("/register", validarRegistro, validar, async (req, res) => {
+router.post("/register", verifyToken, authorizeRoles(1), validarRegistroAdmin, validar, async (req, res) => {
   try {
-    const { nombre, correo, contrasena, cargo } = req.body;
+    const { nombre, correo, cargo } = req.body;
 
     const cargoConfig = Object.values(CARGOS)
       .find(c => c.label === cargo);
@@ -40,18 +42,37 @@ router.post("/register", validarRegistro, validar, async (req, res) => {
       return res.status(400).json({ error: "El correo ya está registrado" });
     }
 
-    const hashed = await bcrypt.hash(contrasena, 10);
+    // 🔐 generar contraseña segura
+    const passwordPlano = generarPasswordSegura();
+    const hashed = await bcrypt.hash(passwordPlano, 10);
 
     const result = await pool.query(
       `INSERT INTO usuarios (nombre, correo, contrasena, cargo, rol_id, primer_ingreso)
        VALUES ($1,$2,$3,$4,$5,true)
-       RETURNING id, nombre, correo, cargo, primer_ingreso`,
+       RETURNING id, nombre, correo, cargo`,
       [nombre, correo, hashed, cargo, rol_id]
     );
 
+    // 📧 enviar correo
+    await sendEmail(
+      correo,
+      "Acceso al Sistema RRHH – Distrito Scout La Paz",
+      `
+        <p>Hola <b>${nombre}</b>,</p>
+
+        <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
+        
+        <b>Contraseña temporal:</b> ${passwordPlano}</p>
+
+        <p>Ingresa aquí:<br>
+        <a href="https://rrhh-dslp.netlify.app/">https://rrhh-dslp.netlify.app/</a></p>
+
+        <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
+      `
+    );
+
     res.status(201).json({
-      message: "Usuario registrado con éxito",
-      usuario: result.rows[0]
+      message: "Usuario creado y correo enviado correctamente"
     });
 
   } catch (err) {
@@ -489,35 +510,36 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
-router.post(
-  "/primer-ingreso",
-  verifyToken,
-  async (req, res) => {
-    try {
-      console.log("REQ.USER:", req.user)
-      console.log("BODY:", req.body)
-      const { nuevaContrasena } = req.body
+const validarPasswordOWASP = (password) => {
+  return (
+    password.length >= 12 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[!@#$%^&*]/.test(password)
+  )
+}
 
-      if (!nuevaContrasena || nuevaContrasena.length < 6) {
-        return res.status(400).json({ error: "Contraseña inválida" })
-      }
+router.post("/primer-ingreso", verifyToken, async (req, res) => {
+  const { nuevaContrasena } = req.body
 
-      const hashed = await bcrypt.hash(nuevaContrasena, 10)
-
-      await pool.query(
-        `UPDATE usuarios
-         SET contrasena = $1,
-             primer_ingreso = false
-         WHERE id = $2`,
-        [hashed, req.user.id]
-      )
-
-      res.json({ message: "Contraseña actualizada" })
-    } catch (err) {
-      console.error("Error primer ingreso:", err)
-      res.status(500).json({ error: "Error al actualizar contraseña" })
-    }
+  if (!validarPasswordOWASP(nuevaContrasena)) {
+    return res.status(400).json({
+      error: "La contraseña no cumple con los criterios de seguridad"
+    })
   }
-)
+
+  const hashed = await bcrypt.hash(nuevaContrasena, 10)
+
+  await pool.query(
+    `UPDATE usuarios
+     SET contrasena = $1,
+         primer_ingreso = false
+     WHERE id = $2`,
+    [hashed, req.user.id]
+  )
+
+  res.json({ message: "Contraseña actualizada correctamente" })
+})
 
 export default router;
