@@ -60,15 +60,6 @@
           <div>
             <p class="font-medium">Error de autenticación</p>
             <p class="text-sm mt-1">{{ errorMessage }}</p>
-            
-            <!-- Sugerencias según el tipo de error -->
-            <div v-if="showPasswordSuggestions" class="mt-2 text-xs">
-              <p class="font-medium">Sugerencias:</p>
-              <ul class="list-disc list-inside mt-1 space-y-1">
-                <li>Verifica que tu contraseña sea correcta</li>
-                <li>Recuerda que las contraseñas distinguen entre mayúsculas y minúsculas</li>
-              </ul>
-            </div>
           </div>
         </div>
 
@@ -137,6 +128,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authService } from '../services/api'
+
 
 const router = useRouter()
 

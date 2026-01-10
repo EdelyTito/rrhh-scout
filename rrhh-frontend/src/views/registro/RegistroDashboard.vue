@@ -85,48 +85,34 @@
 
           <!-- Estadísticas principales -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Total de dirigentes -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Total dirigentes</p>
-                  <p class="text-3xl font-bold text-gray-900">{{ estadisticas.totalDirigentes }}</p>
-                </div>
-                <div class="bg-blue-100 rounded-full p-3">
-                  <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
 
             <!-- Dirigentes habilitados -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Dirigentes habilitados</p>
-                  <p class="text-3xl font-bold text-gray-900">{{ estadisticas.habilitados }}</p>
+                  <p class="text-sm font-medium text-gray-700 mb-1">
+                    Dirigentes habilitados
+                  </p>
+                  <p class="text-3xl font-bold text-gray-900">
+                    {{ estadisticas.solicitudes.aprobadas }}
+                  </p>
                 </div>
                 <div class="bg-green-100 rounded-full p-3">
                   <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
-              <div class="mt-4">
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div class="bg-green-600 h-2 rounded-full" :style="{ width: estadisticas.porcentajeHabilitados + '%' }"></div>
-                </div>
-                <p class="text-xs text-gray-600 mt-1">{{ estadisticas.porcentajeHabilitados.toFixed(1) }}% del total</p>
-              </div>
             </div>
+
 
             <!-- Solicitudes pendientes -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm font-medium text-gray-700 mb-1">Solicitudes pendientes</p>
-                  <p class="text-3xl font-bold text-gray-900">{{ estadisticas.pendientes }}</p>
+                  <p class="text-3xl font-bold text-gray-900">{{ estadisticas.solicitudes.pendientes }}</p>
                 </div>
                 <div class="bg-yellow-100 rounded-full p-3">
                   <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,70 +121,82 @@
                 </div>
               </div>
             </div>
+
+            <!-- Solicitudes rechazadas -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-700 mb-1">Solicitudes rechazadas (histórico)</p>
+                  <p class="text-3xl font-bold text-gray-900">
+                    {{ estadisticas.solicitudes.rechazadas }}
+                  </p>
+                </div>
+                <div class="bg-red-100 rounded-full p-3">
+                  <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Gráfico de distribución y estadísticas -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Distribución de dirigentes</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <!-- Gráfico circular -->
-              <div>
-                <div class="flex items-center justify-center">
-                  <div class="relative w-48 h-48">
-                    <!-- Círculo de fondo -->
-                    <div class="absolute inset-0 rounded-full border-8 border-gray-200"></div>
-                    <!-- Segmento habilitados -->
-                    <div class="absolute inset-0 rounded-full border-8 border-green-600" 
-                         :style="{ clipPath: `polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%)`, 
-                                  transform: `rotate(${anguloHabilitados}deg)` }">
-                    </div>
-                    <!-- Segmento inhabilitados -->
-                    <div class="absolute inset-0 rounded-full border-8 border-red-600" 
-                         :style="{ clipPath: `polygon(50% 50%, 50% 0%, 0% 0%, 0% 50%)`, 
-                                  transform: `rotate(${anguloHabilitados}deg)` }">
-                    </div>
-                    <!-- Centro -->
-                    <div class="absolute inset-0 m-auto w-32 h-32 bg-white rounded-full"></div>
-                    <!-- Texto central -->
-                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                      <span class="text-2xl font-bold text-gray-900">{{ estadisticas.totalDirigentes }}</span>
-                      <span class="text-sm text-gray-600">Total</span>
-                    </div>
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Distribución de solicitudes de Registro y Habilitación</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+
+              <!-- GRÁFICO DE PASTEL -->
+              <div class="flex justify-center">
+                <div
+                  class="w-56 h-56 rounded-full relative"
+                  :style="pieStyle"
+                >
+                  <div class="absolute inset-6 bg-white rounded-full flex flex-col items-center justify-center">
+                    <p class="text-2xl font-bold text-gray-900">
+                      {{ totalSolicitudes }}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                      Solicitudes
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <!-- Leyenda y estadísticas detalladas -->
-              <div>
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div class="flex items-center">
-                      <div class="h-3 w-3 rounded-full bg-green-600 mr-3"></div>
-                      <div>
-                        <p class="font-medium text-gray-900">Habilitados</p>
-                        <p class="text-sm text-gray-600">Cumplen todos los requisitos</p>
-                      </div>
-                    </div>
-                    <div class="text-right">
-                      <p class="font-bold text-gray-900">{{ estadisticas.habilitados }}</p>
-                      <p class="text-sm text-gray-600">{{ estadisticas.porcentajeHabilitados.toFixed(1) }}%</p>
-                    </div>
+              <!-- LEYENDA -->
+              <div class="space-y-4">
+                <div class="flex items-center justify-between bg-yellow-50 p-3 rounded">
+                  <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                    <span class="font-medium">Pendientes</span>
                   </div>
+                  <span class="font-semibold">
+                    {{ porcentajePendientesFmt }}%
+                  </span>
+                </div>
 
-                  <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                    <div class="flex items-center">
-                      <div class="h-3 w-3 rounded-full bg-red-600 mr-3"></div>
-                      <div>
-                        <p class="font-medium text-gray-900">Pendientes</p>
-                      </div>
-                    </div>
-                    <div class="text-right">
-                      <p class="font-bold text-gray-900">{{ estadisticas.inhabilitados }}</p>
-                      <p class="text-sm text-gray-600">{{ (100 - estadisticas.porcentajeHabilitados).toFixed(1) }}%</p>
-                    </div>
+                <div class="flex items-center justify-between bg-green-50 p-3 rounded">
+                  <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-green-600"></span>
+                    <span class="font-medium">Habilitadas</span>
                   </div>
+                  <span class="font-semibold">
+                    {{ porcentajeHabilitadasFmt }}%
+                  </span>
+                </div>
+
+                <div class="flex items-center justify-between bg-red-50 p-3 rounded">
+                  <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-red-600"></span>
+                    <span class="font-medium">Rechazadas</span>
+                  </div>
+                  <span class="font-semibold">
+                    {{ porcentajeRechazadasFmt }}%
+                  </span>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
@@ -217,7 +215,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { registroService, dirigentesService } from '../../services/api'
+import { registroService} from '../../services/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -229,16 +227,58 @@ const fechaActualizada = ref('')
 // Estadísticas
 const estadisticas = ref({
   totalDirigentes: 0,
-  habilitados: 0,
-  inhabilitados: 0,
-  pendientes: 0,
-  porcentajeHabilitados: 0,
-  incrementoTotal: 0,
-  tiempoPromedio: 0,
-  urgentes: 0,
-  rechazadosMes: 0,
-  nuevasSolicitudesMes: 0,
-  aprobadasMes: 0
+  solicitudes: {
+    pendientes: 0,
+    aprobadas: 0,
+    rechazadas: 0,
+    total: 0
+  }
+})
+
+const totalSolicitudes = computed(() => estadisticas.value.solicitudes.total)
+
+const porcentajePendientes = computed(() =>
+  totalSolicitudes.value
+    ? (estadisticas.value.solicitudes.pendientes / totalSolicitudes.value) * 100
+    : 0
+)
+
+const porcentajeHabilitadas = computed(() =>
+  totalSolicitudes.value
+    ? (estadisticas.value.solicitudes.aprobadas / totalSolicitudes.value) * 100
+    : 0
+)
+
+const porcentajeRechazadas = computed(() =>
+  totalSolicitudes.value
+    ? (estadisticas.value.solicitudes.rechazadas / totalSolicitudes.value) * 100
+    : 0
+)
+
+const porcentajePendientesFmt = computed(() =>
+  porcentajePendientes.value.toFixed(1)
+)
+
+const porcentajeHabilitadasFmt = computed(() =>
+  porcentajeHabilitadas.value.toFixed(1)
+)
+
+const porcentajeRechazadasFmt = computed(() =>
+  porcentajeRechazadas.value.toFixed(1)
+)
+
+const pieStyle = computed(() => {
+  const pPend = porcentajePendientes.value
+  const pHab = porcentajeHabilitadas.value
+  const pRech = porcentajeRechazadas.value
+
+  return {
+    background: `conic-gradient(
+      #eab308 0% ${pPend}%,
+      #16a34a ${pPend}% ${pPend + pHab}%,
+      #dc2626 ${pPend + pHab}% 100%
+    )`
+  }
 })
 
 onMounted(async () => {
@@ -288,9 +328,5 @@ const cerrarSesion = () => {
   localStorage.removeItem('token')
   router.push('/')
 }
-
-const anguloHabilitados = computed(() => {
-  return (estadisticas.value.porcentajeHabilitados / 100) * 360
-})
 
 </script>

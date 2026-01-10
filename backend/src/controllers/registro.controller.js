@@ -10,7 +10,7 @@ export const rechazarSolicitud = async (req, res) => {
     await pool.query(
       `
       UPDATE solicitudes_registro
-      SET estado = 'RECHAZADO',
+      SET estado = 'rechazado',
           motivo_rechazo = $1,
           fecha_estado = NOW()
       WHERE id = $2

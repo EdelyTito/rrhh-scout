@@ -85,42 +85,34 @@ router.post("/public", validarSolicitudPublica, validar, async (req, res) => {
 });
 
 // Endpoint para estadísticas del dashboard
-router.get("/estadisticas", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
-  try {
-    const [
-      totalDirigentes,
-      habilitados,
-      pendientes,
-      nuevasSolicitudesMes,
-      aprobadasMes,
-      rechazadosMes
-    ] = await Promise.all([
-      pool.query("SELECT COUNT(*) FROM dirigentes"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'habilitado'"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'pendiente'"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'habilitado' AND fecha_aprobacion >= DATE_TRUNC('month', CURRENT_DATE)"),
-      pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'rechazado' AND fecha_revision >= DATE_TRUNC('month', CURRENT_DATE)")
-    ]);
+router.get("/estadisticas", verifyToken, authorizeRoles(1,2,5), async (req, res) => {
+  const [
+    totalDirigentes,
+    solicitudesPendientes,
+    solicitudesAprobadas,
+    solicitudesRechazadas
+  ] = await Promise.all([
+    pool.query("SELECT COUNT(*) FROM dirigentes"),
+    pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'pendiente'"),
+    pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'habilitado'"),
+    pool.query("SELECT COUNT(*) FROM solicitudes_registro WHERE estado = 'rechazado'")
+  ])
 
-    const estadisticas = {
-      totalDirigentes: parseInt(totalDirigentes.rows[0].count),
-      habilitados: parseInt(habilitados.rows[0].count),
-      pendientes: parseInt(pendientes.rows[0].count),
-      nuevasSolicitudesMes: parseInt(nuevasSolicitudesMes.rows[0].count),
-      aprobadasMes: parseInt(aprobadasMes.rows[0].count),
-      rechazadosMes: parseInt(rechazadosMes.rows[0].count),
-      porcentajeHabilitados: totalDirigentes.rows[0].count > 0 ? 
-        (parseInt(habilitados.rows[0].count) / parseInt(totalDirigentes.rows[0].count)) * 100 : 0
-    };
+  const totalSolicitudes =
+    +solicitudesPendientes.rows[0].count +
+    +solicitudesAprobadas.rows[0].count +
+    +solicitudesRechazadas.rows[0].count
 
-    res.json(estadisticas);
-    
-  } catch (err) {
-    console.error("Error al obtener estadísticas:", err);
-    res.status(500).json({ error: "Error al obtener estadísticas" });
-  }
-});
+  res.json({
+    totalDirigentes: +totalDirigentes.rows[0].count,
+    solicitudes: {
+      pendientes: +solicitudesPendientes.rows[0].count,
+      aprobadas: +solicitudesAprobadas.rows[0].count,
+      rechazadas: +solicitudesRechazadas.rows[0].count,
+      total: totalSolicitudes
+    }
+  })
+})
 
 router.get("/:id",
   verifyToken,
