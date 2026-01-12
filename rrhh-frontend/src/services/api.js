@@ -120,17 +120,42 @@ export const seguimientoService = {
 }
 
 export const registroService = {
-  getSolicitudes: () => api.get('/registro'),
+  // SOLICITUDES
+  getSolicitudesPendientes: () => api.get('/registro'),
+  getTodasSolicitudes: () => api.get('/registro/todas'),
+
+  // DETALLE
   getSolicitudById: (id) => api.get(`/registro/${id}`),
+
+  // ACCIONES
   actualizarSolicitud: (id, data) => api.put(`/registro/${id}`, data),
-  actualizarDirigente: (id, data) => api.put(`/registro/dirigente/${id}`, data),
   eliminarSolicitud: (id) => api.delete(`/registro/${id}`),
-  enviarSolicitudPublica: (data) => apiFormData.post('/registro/public', data),
-  getDirigentesHabilitados: () => {return api.get('/registro/dirigentes-habilitados');},
-  actualizarEstadoDirigente: (id, data) => {return api.put(`/dirigentes/${id}`, data);},
-  getTodasSolicitudes: () => {return api.get('/registro/todas');},
-  getEstadisticas() {return api.get('/registro/estadisticas')}
+
+  // RECHAZO (endpoint específico)
+  rechazarSolicitud: (id, data) =>
+    api.put(`/registro/${id}`, {
+      estado: 'rechazado',
+      observaciones: data.observaciones
+    }),
+
+  // DIRIGENTES
+  getDirigentesHabilitados: () =>
+    api.get('/registro/dirigentes-habilitados'),
+
+  actualizarDirigente: (id, data) =>
+    api.put(`/registro/dirigente/${id}`, data),
+
+  actualizarEstadoDirigente: (id, data) =>
+    api.put(`/dirigentes/${id}`, data),
+
+  // DASHBOARD
+  getEstadisticas: () => api.get('/registro/estadisticas'),
+
+  // PÚBLICO
+  enviarSolicitudPublica: (data) => api.post('/registro/public', data),
+  subirDocumento: (formData) => api.post('/documentos', formData, {headers: { 'Content-Type': 'multipart/form-data' }})
 }
+
 
 
 export default api

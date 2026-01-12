@@ -354,9 +354,7 @@ const cargarSolicitudes = async () => {
     cargando.value = true
     console.log('Intentando cargar solicitudes desde:', 'http://localhost:4000/api/registro')
     
-    const response = await registroService.getSolicitudes({
-        estado: 'rechazado'
-    })
+    const response = await registroService.getTodasSolicitudes()
     
     console.log('Respuesta recibida del backend:', response)
     console.log('Datos recibidos:', response.data)
@@ -378,7 +376,9 @@ const cargarSolicitudes = async () => {
       }
     }
     
-    solicitudesPendientes.value = response.data.map(s => ({
+    solicitudesPendientes.value = response.data
+      .filter(s => s.estado === 'rechazado')
+      .map(s => ({
         id: s.id,
         nombre: s.nombre_completo,
         ci: s.ci,
@@ -386,9 +386,9 @@ const cargarSolicitudes = async () => {
         grupo: s.grupo,
         distrito: s.distrito || 'Distrito La Paz',
         fecha: s.created_at
-            ? new Date(s.created_at).toLocaleDateString('es-BO')
-            : '—',
-        motivo: s.motivo_rechazo || s.observaciones || '—',
+          ? new Date(s.created_at).toLocaleDateString('es-BO')
+          : '—',
+        motivo: s.observaciones || '—',
         estado: s.estado
     }))
     
@@ -418,6 +418,7 @@ const cargarSolicitudes = async () => {
     cargando.value = false
   }
 }
+
 const solicitudesFiltradas = computed(() => {
   let filtradas = [...solicitudesPendientes.value]
   

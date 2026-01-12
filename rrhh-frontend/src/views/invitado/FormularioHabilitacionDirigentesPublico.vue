@@ -19,15 +19,18 @@
           </div>
         </div>
 
-        <!-- Progreso -->
-        <div class="px-6 pt-6">
-          <div class="mb-8">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-medium text-gray-700">Progreso del formulario</span>
-              <span class="text-sm text-gray-600">{{ progreso }}%</span>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+              </svg>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-[#009d71] h-2 rounded-full transition-all duration-300" :style="{ width: progreso + '%' }"></div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-yellow-800">Información importante</h3>
+              <div class="mt-2 text-sm text-yellow-700">
+                <p>• Los campos marcados con * son obligatorios</p>
+              </div>
             </div>
           </div>
         </div>
@@ -37,7 +40,8 @@
           <!-- Pregunta ASB -->
           <div class="border-b border-gray-200 pb-8">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">
-              ¿Usted llenó el formulario de habilitación de la ASB? *
+              ¿Usted llenó el formulario de habilitación de la ASB?
+              <span class="text-red-500 font-semibold">*</span>
             </h2>
             <div class="flex space-x-6">
               <label class="flex items-center">
@@ -74,7 +78,8 @@
               <!-- Nombre completo -->
               <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre completo (NOMBRE1 NOMBRE2 APELLIDO1 APELLIDO2) *
+                  Nombre completo (NOMBRE1 NOMBRE2 APELLIDO1 APELLIDO2)
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <input 
                   v-model="formulario.nombreCompleto"
@@ -88,7 +93,8 @@
               <!-- Género -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Género *
+                  Género
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <div class="space-y-2">
                   <label class="flex items-center">
@@ -117,7 +123,8 @@
               <!-- Fecha de nacimiento -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de nacimiento *
+                  Fecha de nacimiento
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <input 
                   v-model="formulario.fechaNacimiento"
@@ -130,7 +137,8 @@
               <!-- Carnet de identidad -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Carnet de identidad *
+                  Carnet de identidad
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <input 
                   v-model="formulario.ci"
@@ -151,7 +159,8 @@
               <!-- Años registrados -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Años registrados en la oficina Nacional *
+                  Años registrados en la oficina Nacional
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <input 
                   v-model="formulario.anosRegistrados"
@@ -167,7 +176,8 @@
               <!-- Grupo Scout -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Grupo Scout *
+                  Grupo Scout
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <select 
                   v-model="formulario.grupoScout"
@@ -175,19 +185,25 @@
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
                 >
                   <option value="">Seleccione su grupo</option>
-                  <option value="Boliviano Israelita">Boliviano Israelita</option>
                   <option value="Amerinst 301">Amerinst 301</option>
-                  <option value="San Calixto">San Calixto</option>
-                  <option value="Kantutani">Kantutani</option>
-                  <option value="Illimani">Illimani</option>
-                  <option value="San Miguel">San Miguel</option>
+                  <option value="Boliviano Israelita">Boliviano Israelita</option>
+                  <option value="IMPEESA">IMPEESA</option>
+                  <option value="Los Pinos">Los Pinos</option>
+                  <option value="Los Robles">Los Robles</option>
+                  <option value="Loyola San Calixto">Loyola San Calixto</option>
+                  <option value="Loyola San Ignacio">Loyola San Ignacio</option>
+                  <option value="Naval Crux UENHDP">Naval Crux UENHDP</option>
+                  <option value="Hans Philippsberg Saint Andrews">Hans Philippsberg Saint Andrews</option>
+                  <option value="Naval Almte Mihuel Grau S.">Naval Almte Mihuel Grau S.</option>
+                  <option value="Equipo Distrital">Equipo Distrital</option>
                 </select>
               </div>
 
               <!-- Rama que dirige -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Rama que dirige *
+                  Rama que dirige
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <select 
                   v-model="formulario.rama"
@@ -199,36 +215,84 @@
                   <option value="Exploradores">Exploradores</option>
                   <option value="Pioneros">Pioneros</option>
                   <option value="Rovers">Rovers</option>
-                  <option value="Todos">Todos</option>
+                  <option value="Institucional">Institucional</option>
+                  <option value="Distrital">Distrital</option>
                 </select>
               </div>
 
               <!-- Cargo Distrital -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Cargo Distrital *
+                  Cargo Distrital
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
-                <input 
+                <select 
                   v-model="formulario.cargoDistrital"
-                  type="text" 
                   required
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                  placeholder="Ej: Programa, Formación, etc."
                 >
+                  <option value="">Seleccione cargo distrital</option>
+                  <option value="Director Distrital">Director Distrital</option>
+                  <option value="Coordinador de Programa de Jóvenes">Coordinador de Programa de Jóvenes</option>
+                  <option value="Comisionado de Rama Lobatos">Comisionado de Rama Lobatos</option>
+                  <option value="Comisionado de Rama Exploradores">Comisionado de Rama Exploradores</option>
+                  <option value="Comisionado de Rama Pioneros">Comisionado de Rama Pioneros</option>
+                  <option value="Comisionado de Rama Rovers">Comisionado de Rama Rovers</option>
+                  <option value="Coordinador de Recursos Adultos">Coordinador de Recursos Adultos</option>
+                  <option value="Comisionado de Registro y Habilitación">Comisionado de Registro y Habilitación</option>
+                  <option value="Comisionado de Seguimiento">Comisionado de Seguimiento</option>
+                  <option value="Comisionado de Formación">Comisionado de Formación</option>
+                  <option value="Coordinador de Gestión Institucional">Coordinador de Gestión Institucional</option>
+                  <option value="Comisionado de Tienda e Inscripción">Comisionado de Tienda e Inscripción</option>
+                  <option value="Comisionado de CSC">Comisionado de CSC</option>
+                  <option value="Sub comisionado de CSC">Sub comisionado de CSC</option>
+                  <option value="Comisionado de Crecimiento">Comisionado de Crecimiento</option>
+                  <option value="Comisionado de Relaciones Interinstitucionales">Comisionado de Relaciones Interinstitucionales</option>
+                  <option value="Comisionado de Amistades">Comisionado de Amistades</option>
+                  <option value="Coordinador de Asuntos de Desarrollo">Coordinador de Asuntos de Desarrollo</option>
+                  <option value="Comisionado de Proyectos de Desarrollo">Comisionado de Proyectos de Desarrollo</option>
+                  <option value="Comisionado de Actividades de Desarrollo">Comisionado de Actividades de Desarrollo</option>
+                  <option value="Coordinador de Comunicación">Coordinador de Comunicación</option>
+                  <option value="Comisionado de Diseño Gráfico">Comisionado de Diseño Gráfico</option>
+                  <option value="Comisionado de Redes Sociales">Comisionado de Redes Sociales</option>
+                  <option value="Sub comisionado de Redes Sociales">Sub comisionado de Redes Sociales</option>
+                </select>
               </div>
 
               <!-- Cargo Grupo 1 -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Cargo Grupo 1 *
+                  Cargo Grupo 1
+                  <span class="text-red-500 font-semibold">*</span>
                 </label>
-                <input 
+                <select 
                   v-model="formulario.cargoGrupo1"
-                  type="text" 
                   required
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                  placeholder="Ej: Programa, Administración, etc."
                 >
+                  <option value="">Seleccione cargo de grupo 1</option>
+                  <option value="Responsable de Grupo">Responsable de Grupo</option>
+                  <option value="Responsable de Adultos">Responsable de Adultos</option>
+                  <option value="Responsable de Programa">Responsable de Programa</option>
+                  <option value="Responsable de Administración y Finanzas">Responsable de Administración y Finanzas</option>
+                  <option value="Animador de la Fe">Animador de la Fe</option>
+                  <option value="Presidente del Comité de Grupo">Presidente del Comité de Grupo</option>
+                  <option value="Tesorero del Comité de Grupo">Tesorero del Comité de Grupo</option>
+                  <option value="Secretario del Comité de Grupo">Secretario del Comité de Grupo</option>
+                  <option value="Miembro del Comité de Grupo">Miembro del Comité de Grupo</option>
+                  <option value="Responsable de Manada">Responsable de Manada</option>
+                  <option value="Asistente de Manada">Asistente de Manada</option>
+                  <option value="Responsable de Tropa">Responsable de Tropa</option>
+                  <option value="Asistente de Tropa">Asistente de Tropa</option>
+                  <option value="Responsable de Unidad Pionera">Responsable de Unidad Pionera</option>
+                  <option value="Asistente de Unidad Pionera">Asistente de Unidad Pionera</option>
+                  <option value="Responsable de Clan">Responsable de Clan</option>
+                  <option value="Asistente de Clan">Asistente de Clan</option>
+                  <option value="Responsable de Asuntos de desarrollo">Responsable de Asuntos de desarrollo</option>
+                  <option value="Responsable de Comunicaciones">Responsable de Comunicaciones</option>
+                  <option value="Colaborador de grupo">Colaborador de grupo</option>
+                  <option value="Sin cargo">Sin cargo</option>
+                </select>
               </div>
 
               <!-- Cargo Grupo 2 -->
@@ -236,12 +300,33 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   Cargo Grupo 2
                 </label>
-                <input 
+                <select 
                   v-model="formulario.cargoGrupo2"
-                  type="text" 
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                  placeholder="Opcional"
                 >
+                  <option value="">Seleccione cargo de grupo 2</option>
+                  <option value="Responsable de Grupo">Responsable de Grupo</option>
+                  <option value="Responsable de Adultos">Responsable de Adultos</option>
+                  <option value="Responsable de Programa">Responsable de Programa</option>
+                  <option value="Responsable de Administración y Finanzas">Responsable de Administración y Finanzas</option>
+                  <option value="Animador de la Fe">Animador de la Fe</option>
+                  <option value="Presidente del Comité de Grupo">Presidente del Comité de Grupo</option>
+                  <option value="Tesorero del Comité de Grupo">Tesorero del Comité de Grupo</option>
+                  <option value="Secretario del Comité de Grupo">Secretario del Comité de Grupo</option>
+                  <option value="Miembro del Comité de Grupo">Miembro del Comité de Grupo</option>
+                  <option value="Responsable de Manada">Responsable de Manada</option>
+                  <option value="Asistente de Manada">Asistente de Manada</option>
+                  <option value="Responsable de Tropa">Responsable de Tropa</option>
+                  <option value="Asistente de Tropa">Asistente de Tropa</option>
+                  <option value="Responsable de Unidad Pionera">Responsable de Unidad Pionera</option>
+                  <option value="Asistente de Unidad Pionera">Asistente de Unidad Pionera</option>
+                  <option value="Responsable de Clan">Responsable de Clan</option>
+                  <option value="Asistente de Clan">Asistente de Clan</option>
+                  <option value="Responsable de Asuntos de desarrollo">Responsable de Asuntos de desarrollo</option>
+                  <option value="Responsable de Comunicaciones">Responsable de Comunicaciones</option>
+                  <option value="Colaborador de grupo">Colaborador de grupo</option>
+                  <option value="Sin cargo">Sin cargo</option>
+                </select>
               </div>
 
               <!-- Cargo Grupo 3 -->
@@ -249,12 +334,33 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   Cargo Grupo 3
                 </label>
-                <input 
+                <select 
                   v-model="formulario.cargoGrupo3"
-                  type="text" 
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                  placeholder="Opcional"
                 >
+                  <option value="">Seleccione cargo de grupo 3</option>
+                  <option value="Responsable de Grupo">Responsable de Grupo</option>
+                  <option value="Responsable de Adultos">Responsable de Adultos</option>
+                  <option value="Responsable de Programa">Responsable de Programa</option>
+                  <option value="Responsable de Administración y Finanzas">Responsable de Administración y Finanzas</option>
+                  <option value="Animador de la Fe">Animador de la Fe</option>
+                  <option value="Presidente del Comité de Grupo">Presidente del Comité de Grupo</option>
+                  <option value="Tesorero del Comité de Grupo">Tesorero del Comité de Grupo</option>
+                  <option value="Secretario del Comité de Grupo">Secretario del Comité de Grupo</option>
+                  <option value="Miembro del Comité de Grupo">Miembro del Comité de Grupo</option>
+                  <option value="Responsable de Manada">Responsable de Manada</option>
+                  <option value="Asistente de Manada">Asistente de Manada</option>
+                  <option value="Responsable de Tropa">Responsable de Tropa</option>
+                  <option value="Asistente de Tropa">Asistente de Tropa</option>
+                  <option value="Responsable de Unidad Pionera">Responsable de Unidad Pionera</option>
+                  <option value="Asistente de Unidad Pionera">Asistente de Unidad Pionera</option>
+                  <option value="Responsable de Clan">Responsable de Clan</option>
+                  <option value="Asistente de Clan">Asistente de Clan</option>
+                  <option value="Responsable de Asuntos de desarrollo">Responsable de Asuntos de desarrollo</option>
+                  <option value="Responsable de Comunicaciones">Responsable de Comunicaciones</option>
+                  <option value="Colaborador de grupo">Colaborador de grupo</option>
+                  <option value="Sin cargo">Sin cargo</option>
+                </select>
               </div>
             </div>
           </div>
@@ -262,6 +368,8 @@
           <!-- FORMACIÓN SCOUT -->
           <div class="border-b border-gray-200 pb-8">
             <h2 class="text-lg font-semibold text-gray-800 mb-6">FORMACIÓN SCOUT</h2>
+            <p class="mb-4">Seleccione el nivel más alto de cada línea de formación</p>
+            <div class="mt-4"></div>
             
             <!-- Programa de jóvenes -->
             <div class="mb-6">
@@ -435,8 +543,11 @@
                     <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    <span class="text-sm text-gray-900">{{ archivos.certificadosFormacion?.name || 'No hay archivo cargado' }}</span>
+                    <span class="text-sm text-gray-700 font-medium">
+                      Archivos cargados
+                    </span>
                   </div>
+                  
                   <button 
                     type="button"
                     @click="abrirSubirArchivo('certificadosFormacion')"
@@ -445,13 +556,39 @@
                     Agregar archivo
                   </button>
                 </div>
+
+                <ul
+                  v-if="archivos.certificadosFormacion.length"
+                  class="space-y-1 text-sm text-gray-700"
+                >
+                  <li
+                    v-for="(file, index) in archivos.certificadosFormacion"
+                    :key="index"
+                    class="flex items-center justify-between bg-gray-50 px-3 py-1 rounded"
+                  >
+                    <span class="truncate">{{ file.name }}</span>
+                    <button
+                      type="button"
+                      class="text-red-500 hover:text-red-700 text-xs"
+                      @click="archivos.certificadosFormacion.splice(index, 1)"
+                    >
+                      Quitar
+                    </button>
+                  </li>
+                </ul>
+
+                <p v-else class="text-sm text-gray-400">
+                  No hay archivos cargados
+                </p>
+
                 <input 
                   type="file"
+                  multiple
                   ref="certificadosFormacionInput"
                   class="hidden"
-                  @change="manejarArchivo($event, 'certificadosFormacion')"
+                  @change="manejarArchivos($event, 'certificadosFormacion')"
                   accept=".pdf,.jpg,.jpeg,.png"
-                >
+                />
                 <p class="text-xs text-gray-500 mt-2">Puede subir múltiples archivos en un ZIP si es necesario</p>
               </div>
             </div>
@@ -459,7 +596,8 @@
             <!-- Certificado de No Violencia -->
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Certificado de No Violencia *
+                Certificado de No Violencia
+                <span class="text-red-500 font-semibold">*</span>
               </label>
               <div class="border border-gray-300 rounded-lg p-4">
                 <div class="flex items-center justify-between mb-3">
@@ -481,9 +619,8 @@
                   type="file"
                   ref="certificadoNoViolenciaInput"
                   class="hidden"
-                  @change="manejarArchivo($event, 'certificadoNoViolencia')"
+                  @change="manejarArchivos($event, 'certificadoNoViolencia')"
                   accept=".pdf,.jpg,.jpeg,.png"
-                  required
                 >
                 <p class="text-xs text-gray-500 mt-2">Formato: PDF, JPG, PNG (máx. 5MB)</p>
               </div>
@@ -514,7 +651,7 @@
                   type="file"
                   ref="valoracionPerfilInput"
                   class="hidden"
-                  @change="manejarArchivo($event, 'valoracionPerfil')"
+                  @change="manejarArchivos($event, 'valoracionPerfil')"
                   accept=".pdf,.jpg,.jpeg,.png"
                 >
                 <p class="text-xs text-gray-500 mt-2">
@@ -526,23 +663,6 @@
 
           <!-- Confirmación y Envío -->
           <div>
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-yellow-800">Información importante</h3>
-                  <div class="mt-2 text-sm text-yellow-700">
-                    <p>• Los campos marcados con * son obligatorios</p>
-                    <p>• Recibirá un correo de confirmación al enviar el formulario</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <!-- Botones de acción -->
             <div class="flex justify-between pt-6">
               <button 
@@ -616,27 +736,9 @@ const formulario = ref({
 })
 
 const archivos = ref({
-  certificadosFormacion: null,
+  certificadosFormacion: [],
   certificadoNoViolencia: null,
   valoracionPerfil: null
-})
-
-const progreso = computed(() => {
-  let camposCompletados = 0
-  const camposTotales = 10 // Campos obligatorios principales
-  
-  if (formulario.value.formularioASB) camposCompletados++
-  if (formulario.value.nombreCompleto) camposCompletados++
-  if (formulario.value.genero) camposCompletados++
-  if (formulario.value.fechaNacimiento) camposCompletados++
-  if (formulario.value.ci) camposCompletados++
-  if (formulario.value.anosRegistrados) camposCompletados++
-  if (formulario.value.grupoScout) camposCompletados++
-  if (formulario.value.rama) camposCompletados++
-  if (formulario.value.cargoDistrital) camposCompletados++
-  if (formulario.value.cargoGrupo1) camposCompletados++
-  
-  return Math.round((camposCompletados / camposTotales) * 100)
 })
 
 const abrirSubirArchivo = (tipoArchivo) => {
@@ -653,24 +755,27 @@ const abrirSubirArchivo = (tipoArchivo) => {
   }
 }
 
-const manejarArchivo = (event, tipo) => {
-  const file = event.target.files[0]
-  if (file) {
+const manejarArchivos = (event, tipo) => {
+  const files = Array.from(event.target.files)
+
+  if (tipo === 'certificadosFormacion') {
+    files.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`El archivo ${file.name} supera los 5MB`)
+        return
+      }
+      archivos.value.certificadosFormacion.push(file)
+    })
+  } else {
+    const file = files[0]
+    if (!file) return
+
     if (file.size > 5 * 1024 * 1024) {
-      alert('El archivo es demasiado grande. El tamaño máximo es 5MB.')
-      event.target.value = ''
+      alert(`El archivo ${file.name} supera los 5MB`)
       return
     }
-    
-    const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
-    if (!tiposPermitidos.includes(file.type)) {
-      alert('Formato de archivo no permitido. Solo se aceptan PDF, JPG y PNG.')
-      event.target.value = ''
-      return
-    }
-    
+
     archivos.value[tipo] = file
-    console.log(`Archivo ${tipo} subido:`, file.name)
   }
 }
 
@@ -705,37 +810,62 @@ const validarFormulario = () => {
 
 const enviarFormulario = async () => {
   if (!validarFormulario()) return
-  
+
   enviando.value = true
-  
+
   try {
-    const formData = new FormData()
-    
-    Object.keys(formulario.value).forEach(key => {
-      formData.append(key, formulario.value[key])
-    })
-    
+    // 1️⃣ Crear solicitud (SIN archivos)
+    const payload = {
+      formulario_asb: formulario.value.formularioASB === 'SI',
+      nombre_completo: formulario.value.nombreCompleto,
+      genero: formulario.value.genero,
+      fecha_nacimiento: formulario.value.fechaNacimiento,
+      ci: formulario.value.ci,
+      anios_registrados: formulario.value.anosRegistrados,
+      grupo: formulario.value.grupoScout,
+      rama: formulario.value.rama,
+      cargo_distrital: formulario.value.cargoDistrital,
+      cargo_grupo_1: formulario.value.cargoGrupo1,
+      cargo_grupo_2: formulario.value.cargoGrupo2 || null,
+      cargo_grupo_3: formulario.value.cargoGrupo3 || null,
+      programa_jovenes: formulario.value.programaJovenes,
+      formador_lideres: formulario.value.formadorLideres,
+      gestion_institucional: formulario.value.gestionInstitucional
+    }
+
+    const res = await registroService.enviarSolicitudPublica(payload)
+    const solicitudId = res.data.solicitud_id
+
+    await subirArchivo(solicitudId, 'CERTIFICADO_NO_VIOLENCIA', archivos.value.certificadoNoViolencia)
+
     if (archivos.value.certificadosFormacion) {
-      formData.append('archivo_certificado_formacion', archivos.value.certificadosFormacion)
+      for (const file of archivos.value.certificadosFormacion) {
+        await subirArchivo(solicitudId, 'CERTIFICADOS_FORMACION', file)
+      }
     }
-    if (archivos.value.certificadoNoViolencia) {
-      formData.append('archivo_certificado_no_violencia', archivos.value.certificadoNoViolencia)
-    }
+
     if (archivos.value.valoracionPerfil) {
-      formData.append('archivo_valoracion_perfil', archivos.value.valoracionPerfil)
+      await subirArchivo(solicitudId, 'VALORACION_PERFIL', archivos.value.valoracionPerfil)
     }
-    
-    await registroService.enviarSolicitudPublica(formData)
-    
-    alert('¡Formulario enviado con éxito! Recibirá un correo de confirmación pronto.')
+
+    alert('¡Formulario enviado con éxito!')
     limpiarFormulario()
-    
-  } catch (error) {
-    console.error('Error al enviar formulario:', error)
-    alert('Error al enviar el formulario. Por favor intente nuevamente.')
+
+  } catch (err) {
+    console.error(err)
+    alert('Error al enviar el formulario')
   } finally {
     enviando.value = false
   }
+}
+
+const subirArchivo = async (solicitudId, tipoDocumento, archivo) => {
+  const formData = new FormData()
+  formData.append('solicitud_id', solicitudId)
+  formData.append('tipo', tipoDocumento)
+  formData.append('archivo', archivo)
+
+  await registroService.subirDocumento(formData)
 }
 
 const limpiarFormulario = () => {
@@ -758,7 +888,7 @@ const limpiarFormulario = () => {
   }
   
   archivos.value = {
-    certificadosFormacion: null,
+    certificadosFormacion: [],
     certificadoNoViolencia: null,
     valoracionPerfil: null
   }

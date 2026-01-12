@@ -113,7 +113,7 @@
                 
                 <div>
                   <p class="text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</p>
-                  <p class="text-gray-900">{{ dirigente.fechaNacimiento }}</p>
+                  <p class="text-gray-900">{{ formatearFecha(dirigente.fechaNacimiento) }}</p>
                   <p class="text-xs text-gray-500">{{ calcularEdad(dirigente.fechaNacimiento) }} años</p>
                 </div>
                 
@@ -218,22 +218,33 @@
               <div class="space-y-4">
                 <!-- Certificado de formación scout -->
                 <div class="border border-gray-200 rounded-lg p-4">
-                  <p class="text-sm font-medium text-gray-700 mb-2">Certificado de formación scout</p>
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                      </svg>
-                      <span class="text-sm text-gray-900">{{ dirigente.certificadoFormacion.nombre }}</span>
-                    </div>
-                    <button 
-                      @click="descargarArchivo(dirigente.certificadoFormacion)"
-                      class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
-                    >
-                      Ver
-                    </button>
+                  <p class="text-sm font-medium text-gray-700 mb-2">
+                    Certificados de formación scout
+                  </p>
+
+                  <div v-if="dirigente.certificadosFormacion?.length">
+                    <ul class="space-y-2">
+                      <li
+                        v-for="(archivo, index) in dirigente.certificadosFormacion"
+                        :key="index"
+                        class="flex items-center justify-between"
+                      >
+                        <span class="text-sm text-gray-900 truncate">
+                          {{ archivo.nombre }}
+                        </span>
+                        <button
+                          @click="descargarArchivo(archivo)"
+                          class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
+                        >
+                          Ver
+                        </button>
+                      </li>
+                    </ul>
                   </div>
+
+                  <p v-else class="text-sm text-gray-500">No adjuntado</p>
                 </div>
+
 
                 <!-- Certificado de No Violencia -->
                 <div class="border border-gray-200 rounded-lg p-4">
@@ -399,37 +410,11 @@ const route = useRoute()
 
 const nombreResponsable = ref('Responsable de Registro')
 
-const dirigente = ref({
-  id: 1,
-  nombreCompleto: 'Felipe Alejandro Lopez',
-  genero: 'Masculino',
-  fechaNacimiento: '26/05/1990',
-  ci: '2065866',
-  anosRegistrados: '10',
-  grupoScout: 'Boliviano Israelita',
-  rama: 'Exploradores',
-  distrito: 'Distrito La Paz',
-  cargoDistrital: 'Programa',
-  cargoGrupo1: 'Programa',
-  cargoGrupo2: null,
-  cargoGrupo3: null,
-  programaJovenes: 'Cursado Insignia de Madera Nivel II',
-  formadorLideres: null,
-  gestionInstitucional: null,
-  certificadoFormacion: {
-    nombre: 'Certificados.pdf',
-    url: '/certificados/001.pdf'
-  },
-  certificadoNoViolencia: {
-    nombre: 'CertificadoNoViolencia.pdf',
-    url: '/certificados/no-violencia-001.pdf'
-  },
-  valoracionPerfil: null,
-  fechaHabilitacion: '25/03/2025',
-  fechaVencimiento: '25/03/2027',
-  estadoHabilitacion: 'habilitado',
-  diasParaVencer: null
-})
+const formatearFecha = (fecha) =>
+  new Date(fecha).toLocaleDateString('es-BO')
+
+const dirigente = ref(null)
+const cargando = ref(true)
 
 const historial = ref([
   {
@@ -446,13 +431,16 @@ const historial = ref([
   }
 ])
 
-onMounted(() => {
-  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-  nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
-  
-  const dirigenteId = route.params.id
-  if (dirigenteId) {
-    console.log(`Cargando datos del dirigente ${dirigenteId}`)
+onMounted(async () => {
+  const id = route.params.id
+  try {
+    const response = await registroService.getDirigenteDetalle(id)
+    dirigente.value = response.data
+  } catch (error) {
+    console.error(error)
+    alert('Error al cargar dirigente')
+  } finally {
+    cargando.value = false
   }
 })
 
@@ -475,18 +463,15 @@ const volverALista = () => {
   router.push('/registro/dirigentes-habilitados')
 }
 
-const calcularEdad = (fechaNacimiento) => {
+const calcularEdad = (fechaISO) => {
   const hoy = new Date()
-  const nacimiento = new Date(fechaNacimiento.split('/').reverse().join('-'))
+  const nacimiento = new Date(fechaISO)
   let edad = hoy.getFullYear() - nacimiento.getFullYear()
-  const mes = hoy.getMonth() - nacimiento.getMonth()
-  
-  if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-    edad--
-  }
-  
+  const m = hoy.getMonth() - nacimiento.getMonth()
+  if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad--
   return edad
 }
+
 
 const descargarArchivo = (archivo) => {
   if (archivo && archivo.url) {

@@ -219,7 +219,7 @@
                       <div class="text-xs text-gray-500">{{ dirigente.distrito || 'Distrito La Paz' }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">{{ dirigente.cargo_grupo || 'Sin cargo' }}</div>
+                      <div class="text-sm text-gray-900">{{ dirigente.cargo_grupo_1 || 'Sin cargo' }}</div>
                       <div v-if="dirigente.nivel_scout" class="text-xs text-gray-500">
                         {{ dirigente.nivel_scout }}
                       </div>
@@ -367,49 +367,8 @@ const cargarDirigentesHabilitados = async () => {
     
   } catch (error) {
     console.error('Error al cargar dirigentes habilitados:', error)
-    
-    // Datos de prueba en caso de error o mientras desarrollas
-    dirigentesHabilitados.value = [
-      {
-        id: 1,
-        nombre: 'Juan Pérez',
-        ci: '1234567',
-        rama: 'Lobatos',
-        grupo: 'Grupo Scout Boliviano Israelita',
-        distrito: 'Distrito La Paz',
-        cargo_grupo: 'Jefe de Manada',
-        nivel_scout: 'Formación básica',
-        fecha_aprobacion_formateada: '15/01/2024',
-        anios_servicio: 3
-      },
-      {
-        id: 2,
-        nombre: 'María García',
-        ci: '7654321',
-        rama: 'Exploradores',
-        grupo: 'Grupo Scout San Calixto',
-        distrito: 'Distrito La Paz',
-        cargo_grupo: 'Jefe de Tropa',
-        nivel_scout: 'Formación avanzada',
-        fecha_aprobacion_formateada: '20/02/2024',
-        anios_servicio: 5
-      },
-      {
-        id: 3,
-        nombre: 'Carlos Rodríguez',
-        ci: '9876543',
-        rama: 'Pioneros',
-        grupo: 'Grupo Scout Alemán',
-        distrito: 'Distrito La Paz',
-        cargo_grupo: 'Jefe de Comunidad',
-        nivel_scout: 'Formación completa',
-        fecha_aprobacion_formateada: '10/03/2024',
-        anios_servicio: 8
-      }
-    ]
-    
-    console.log('Usando datos de prueba:', dirigentesHabilitados.value.length, 'dirigentes')
-    
+    alert('No se pudo cargar la lista de dirigentes habilitados')
+    dirigentesHabilitados.value = []
   } finally {
     cargando.value = false
   }
@@ -454,7 +413,30 @@ const ramasUnicas = computed(() => {
 })
 
 const totalPaginas = computed(() => {
-  return Math.ceil(dirigentesHabilitados.value.length / itemsPorPagina)
+  const totalFiltrados = (() => {
+    let filtrados = [...dirigentesHabilitados.value]
+
+    if (filtroBusqueda.value) {
+      const busqueda = filtroBusqueda.value.toLowerCase()
+      filtrados = filtrados.filter(d =>
+        (d.nombre && d.nombre.toLowerCase().includes(busqueda)) ||
+        (d.ci && d.ci.toString().includes(busqueda)) ||
+        (d.grupo && d.grupo.toLowerCase().includes(busqueda))
+      )
+    }
+
+    if (filtroGrupo.value) {
+      filtrados = filtrados.filter(d => d.grupo === filtroGrupo.value)
+    }
+
+    if (filtroRama.value) {
+      filtrados = filtrados.filter(d => d.rama === filtroRama.value)
+    }
+
+    return filtrados.length
+  })()
+
+  return Math.ceil(totalFiltrados / itemsPorPagina) || 1
 })
 
 const navClass = (pathExacto, incluye = false) => {

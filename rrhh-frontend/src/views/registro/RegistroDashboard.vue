@@ -80,7 +80,12 @@
           <!-- Título con saludo -->
           <div class="mb-8">
             <h1 class="text-2xl font-bold text-gray-900">Bienvenido a Registro y Habilitación</h1>
-            <p class="text-sm text-gray-500 mt-2">Última actualización: {{ fechaActualizada }}</p>
+            <p class="text-sm text-gray-500 mt-2">
+              Último inicio de sesión:
+              <span class="font-medium text-gray-700">
+                Hora y fecha
+              </span>
+            </p>
           </div>
 
           <!-- Estadísticas principales -->
@@ -94,7 +99,7 @@
                     Dirigentes habilitados
                   </p>
                   <p class="text-3xl font-bold text-gray-900">
-                    {{ estadisticas.solicitudes.aprobadas }}
+                    {{ estadisticas.solicitudes.habilitadas }}
                   </p>
                 </div>
                 <div class="bg-green-100 rounded-full p-3">
@@ -230,12 +235,14 @@ const estadisticas = ref({
   solicitudes: {
     pendientes: 0,
     aprobadas: 0,
-    rechazadas: 0,
-    total: 0
+    rechazadas: 0
   }
 })
 
-const totalSolicitudes = computed(() => estadisticas.value.solicitudes.total)
+const totalSolicitudes = computed(() => {
+  const s = estadisticas.value.solicitudes
+  return s.pendientes + s.habilitadas + s.rechazadas
+})
 
 const porcentajePendientes = computed(() =>
   totalSolicitudes.value
@@ -245,7 +252,7 @@ const porcentajePendientes = computed(() =>
 
 const porcentajeHabilitadas = computed(() =>
   totalSolicitudes.value
-    ? (estadisticas.value.solicitudes.aprobadas / totalSolicitudes.value) * 100
+    ? (estadisticas.value.solicitudes.habilitadas / totalSolicitudes.value) * 100
     : 0
 )
 

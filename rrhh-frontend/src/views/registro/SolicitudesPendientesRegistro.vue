@@ -427,7 +427,7 @@ const cargarSolicitudes = async () => {
     cargando.value = true
     console.log('Intentando cargar solicitudes desde:', 'http://localhost:4000/api/registro')
     
-    const response = await registroService.getSolicitudes()
+    const response = await registroService.getSolicitudesPendientes()
     
     console.log('Respuesta recibida del backend:', response)
     console.log('Datos recibidos:', response.data)

@@ -95,7 +95,7 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Grupo Scout</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Seleccione grupo scout *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Seleccione grupo scout</label>
                 <select 
                   v-model="formulario.grupoScout"
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
@@ -117,7 +117,7 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos personales</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Nombre completo</label>
                 <input 
                   v-model="formulario.nombreCompleto"
                   type="text"
@@ -128,7 +128,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Género *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Género</label>
                 <select 
                   v-model="formulario.genero"
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
@@ -142,7 +142,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Fecha de nacimiento</label>
                 <input 
                   v-model="formulario.fechaNacimiento"
                   type="date"
@@ -152,7 +152,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Carnet de identidad *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Carnet de identidad</label>
                 <input 
                   v-model="formulario.ci"
                   type="text"
@@ -169,7 +169,7 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Datos Scout</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Años registrados *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Años registrados</label>
                 <input 
                   v-model="formulario.anosRegistrados"
                   type="number"
@@ -182,7 +182,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Rama *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Rama</label>
                 <select 
                   v-model="formulario.rama"
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
@@ -198,7 +198,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Cargo distrital *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Cargo distrital</label>
                 <input 
                   v-model="formulario.cargoDistrital"
                   type="text"
@@ -209,7 +209,7 @@
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Distrito *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Distrito</label>
                 <input 
                   v-model="formulario.distrito"
                   type="text"
@@ -226,7 +226,7 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Cargos de Grupo</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Cargo Grupo 1 *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1 required">Cargo Grupo 1</label>
                 <input 
                   v-model="formulario.cargoGrupo1"
                   type="text"
@@ -322,7 +322,10 @@
                     <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    <span class="text-sm text-gray-900">{{ formulario.certificadoFormacion.nombre || 'No hay archivo cargado' }}</span>
+                    <span v-if="formulario.certificadosFormacion.length">
+                      {{ formulario.certificadosFormacion.length }} archivo(s) cargado(s)
+                    </span>
+                    <span v-else>No hay archivos cargados</span>
                   </div>
                   <div class="flex space-x-2">
                     <button 
@@ -354,7 +357,7 @@
 
             <!-- Certificado de No Violencia -->
             <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Certificado de No Violencia *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2 required">Certificado de No Violencia</label>
               <div class="border border-gray-300 rounded-lg p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div class="flex items-center">
@@ -432,6 +435,39 @@
                 </p>
               </div>
             </div>
+
+            <div class="mb-8">
+              <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                Datos administrativos (Registro)
+              </h2>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Estado
+                  </label>
+                  <select v-model="formulario.estado">
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de habilitación
+                  </label>
+                  <input type="date" v-model="formulario.fechaHabilitacion" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha de vencimiento
+                  </label>
+                  <input type="date" v-model="formulario.fechaVencimiento" />
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Botones de acción -->
@@ -518,10 +554,9 @@ const formulario = ref({
   formadorLideres: '',
   gestionInstitucional: '',
   
-  certificadoFormacion: {
-    nombre: 'Certificados.pdf',
-    url: '/certificados/001.pdf'
-  },
+  certificadosFormacion: [
+    { nombre: 'Certificados.pdf', url: '/certificados/001.pdf' }
+  ],
   certificadoNoViolencia: {
     nombre: 'CertificadoNoViolencia.pdf',
     url: '/certificados/no-violencia-001.pdf'
@@ -675,3 +710,11 @@ const cerrarSesion = () => {
   router.push('/')
 }
 </script>
+
+<style scoped>
+.required::after {
+  content: " *";
+  color: #ef4444;
+  font-weight: 600;
+}
+</style>

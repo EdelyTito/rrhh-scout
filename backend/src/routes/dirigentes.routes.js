@@ -17,11 +17,11 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
       SELECT d.*, u.nombre AS creado_por
       FROM dirigentes d
       LEFT JOIN usuarios u ON d.id_usuario = u.id
-      ORDER BY d.id ASC;
+      ORDER BY d.id ASC
     `);
     res.json(result.rows);
   } catch (err) {
-    console.error("Error al obtener dirigentes:", err);
+    console.error(err);
     res.status(500).json({ error: "Error al obtener dirigentes" });
   }
 });
@@ -29,163 +29,165 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
 //
 // CREAR NUEVO DIRIGENTE
 //
-router.post("/", verifyToken, authorizeRoles(1, 2, 5), validarCrearDirigente, validar, async (req, res) => {
-  try {
-    const data = req.body || {};
-    const {
-      nombre,
-      ci,
-      fecha_nacimiento,
-      genero,
-      telefono,
-      correo,
-      direccion,
-      grupo,
-      rama,
-      cargo_actual,
-      nivel_scout,
-      anios_servicio,
-      grupo_anterior,
-      fecha_ingreso,
-      estado = "Activo",
-      distrito,
-      archivo_ci_anverso,
-      archivo_ci_reverso,
-      direccion_domicilio,
-      archivo_croquis_domicilio,
-      archivo_safe_from_harm,
-      archivo_codigo_conducta,
-      archivo_certificado_no_violencia,
-    } = data;
+router.post(
+  "/",
+  verifyToken,
+  authorizeRoles(1),
+  validarCrearDirigente,
+  validar,
+  async (req, res) => {
+    try {
+      const {
+        nombre,
+        ci,
+        fecha_nacimiento,
+        genero,
+        telefono,
+        correo,
+        direccion,
+        grupo,
+        rama,
+        cargo_actual,
+        nivel_scout,
+        anios_servicio,
+        grupo_anterior,
+        fecha_ingreso,
+        estado = "Habilitado",
+        distrito
+      } = req.body;
 
-    if (!nombre || !grupo) {
-      return res.status(400).json({
-        error: "Los campos 'nombre' y 'grupo' son obligatorios.",
-      });
+      const result = await pool.query(
+        `INSERT INTO dirigentes (
+          nombre, ci, fecha_nacimiento, genero,
+          telefono, correo, direccion,
+          grupo, rama, cargo_actual, nivel_scout,
+          anios_servicio, grupo_anterior,
+          fecha_ingreso, estado,
+          fecha_actualizacion, id_usuario, distrito
+        )
+        VALUES (
+          $1,$2,$3,$4,$5,$6,$7,
+          $8,$9,$10,$11,$12,
+          $13,$14,$15,NOW(),$16,$17
+        )
+        RETURNING *`,
+        [
+          nombre,
+          ci,
+          fecha_nacimiento,
+          genero,
+          telefono,
+          correo,
+          direccion,
+          grupo,
+          rama,
+          cargo_actual,
+          nivel_scout,
+          anios_servicio,
+          grupo_anterior,
+          fecha_ingreso,
+          estado,
+          req.user.id,
+          distrito
+        ]
+      );
+
+      await registrarLog(
+        req.user.id,
+        "Creó dirigente manualmente",
+        "dirigentes",
+        result.rows[0].id,
+        `Dirigente: ${nombre}`
+      );
+
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error al crear dirigente" });
     }
-
-    const result = await pool.query(
-      `INSERT INTO dirigentes (
-        nombre, ci, fecha_nacimiento, genero, telefono, correo, direccion,
-        grupo, rama, cargo_actual, nivel_scout, anios_servicio, grupo_anterior,
-        fecha_ingreso, estado, fecha_actualizacion, id_usuario, distrito,
-        archivo_ci_anverso, archivo_ci_reverso, direccion_domicilio,
-        archivo_croquis_domicilio, archivo_safe_from_harm,
-        archivo_codigo_conducta, archivo_certificado_no_violencia
-      )
-      VALUES (
-        $1,$2,$3,$4,$5,$6,$7,
-        $8,$9,$10,$11,$12,
-        $13,$14,NOW(),$15,$16,
-        $17,$18,$19,
-        $20,$21,$22,$23,$24
-      )
-      RETURNING *`,
-      [
-        nombre, ci, fecha_nacimiento, genero, telefono, correo, direccion,
-        grupo, rama, cargo_actual, nivel_scout, anios_servicio, grupo_anterior,
-        fecha_ingreso, estado, req.user.id, distrito,
-        archivo_ci_anverso, archivo_ci_reverso, direccion_domicilio,
-        archivo_croquis_domicilio, archivo_safe_from_harm,
-        archivo_codigo_conducta, archivo_certificado_no_violencia,
-      ]
-    );
-
-    const nuevoDirigente = result.rows[0];
-
-    await registrarLog(
-      req.user.id,
-      "Creó un nuevo dirigente",
-      "dirigentes",
-      nuevoDirigente.id,
-      `Dirigente: ${nombre}, Grupo: ${grupo}, Rama: ${rama || 'N/A'}, Estado: ${estado}, Distrito: ${distrito}`
-    );
-
-    res.status(201).json(nuevoDirigente);
-  } catch (err) {
-    console.error("Error al crear dirigente:", err);
-    res.status(500).json({ error: "Error interno al crear dirigente" });
   }
-});
+);
 
 //
 // ACTUALIZAR DIRIGENTE EXISTENTE
 //
-router.put("/:id", verifyToken, authorizeRoles(1, 2, 5), validarActualizarDirigente, validar, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = req.body || {};
-    const {
-      nombre,
-      ci,
-      fecha_nacimiento,
-      genero,
-      telefono,
-      correo,
-      direccion,
-      grupo,
-      rama,
-      cargo_actual,
-      nivel_scout,
-      anios_servicio,
-      grupo_anterior,
-      fecha_ingreso,
-      estado,
-      distrito,
-      archivo_ci_anverso,
-      archivo_ci_reverso,
-      direccion_domicilio,
-      archivo_croquis_domicilio,
-      archivo_safe_from_harm,
-      archivo_codigo_conducta,
-      archivo_certificado_no_violencia,
-    } = data;
+router.put(
+  "/:id",
+  verifyToken,
+  authorizeRoles(1, 2, 5),
+  validarActualizarDirigente,
+  validar,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        nombre,
+        ci,
+        fecha_nacimiento,
+        genero,
+        telefono,
+        correo,
+        direccion,
+        grupo,
+        rama,
+        cargo_actual,
+        nivel_scout,
+        anios_servicio,
+        grupo_anterior,
+        fecha_ingreso,
+        estado,
+        distrito
+      } = req.body;
 
-    if (!nombre) {
-      return res.status(400).json({ error: "El campo 'nombre' es obligatorio" });
+      const result = await pool.query(
+        `UPDATE dirigentes SET
+          nombre=$1,
+          ci=$2,
+          fecha_nacimiento=$3,
+          genero=$4,
+          telefono=$5,
+          correo=$6,
+          direccion=$7,
+          grupo=$8,
+          rama=$9,
+          cargo_actual=$10,
+          nivel_scout=$11,
+          anios_servicio=$12,
+          grupo_anterior=$13,
+          fecha_ingreso=$14,
+          estado=$15,
+          distrito=$16,
+          fecha_actualizacion=NOW()
+        WHERE id=$17
+        RETURNING *`,
+        [
+          nombre,
+          ci,
+          fecha_nacimiento,
+          genero,
+          telefono,
+          correo,
+          direccion,
+          grupo,
+          rama,
+          cargo_actual,
+          nivel_scout,
+          anios_servicio,
+          grupo_anterior,
+          fecha_ingreso,
+          estado,
+          distrito,
+          id
+        ]
+      );
+
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Error al actualizar dirigente" });
     }
-
-    const result = await pool.query(
-      `UPDATE dirigentes SET
-        nombre=$1, ci=$2, fecha_nacimiento=$3, genero=$4, telefono=$5, correo=$6,
-        direccion=$7, grupo=$8, rama=$9, cargo_actual=$10, nivel_scout=$11,
-        anios_servicio=$12, grupo_anterior=$13, fecha_ingreso=$14,
-        estado=$15, fecha_actualizacion=NOW(), distrito=$16,
-        archivo_ci_anverso=$17, archivo_ci_reverso=$18,
-        direccion_domicilio=$19, archivo_croquis_domicilio=$20,
-        archivo_safe_from_harm=$21, archivo_codigo_conducta=$22,
-        archivo_certificado_no_violencia=$23
-      WHERE id=$24
-      RETURNING *`,
-      [
-        nombre, ci, fecha_nacimiento, genero, telefono, correo,
-        direccion, grupo, rama, cargo_actual, nivel_scout,
-        anios_servicio, grupo_anterior, fecha_ingreso,
-        estado, distrito,
-        archivo_ci_anverso, archivo_ci_reverso,
-        direccion_domicilio, archivo_croquis_domicilio,
-        archivo_safe_from_harm, archivo_codigo_conducta,
-        archivo_certificado_no_violencia,
-        id,
-      ]
-    );
-
-    const dirigenteActualizado = result.rows[0];
-
-    await registrarLog(
-      req.user.id,
-      "Actualizó datos de un dirigente",
-      "dirigentes",
-      id,
-      `Actualización de: ${nombre}, Rama: ${rama || 'N/A'}, Estado: ${estado}, Distrito: ${distrito}`
-    );
-
-    res.json(dirigenteActualizado);
-  } catch (err) {
-    console.error("Error al actualizar dirigente:", err);
-    res.status(500).json({ error: "Error interno al actualizar dirigente" });
   }
-});
+);
 
 //
 // ELIMINAR DIRIGENTE

@@ -1,7 +1,7 @@
 import { body, param } from "express-validator"
 
 // ===============================
-// 📌 VALIDAR ID SOLICITUD
+// VALIDAR ID SOLICITUD
 // ===============================
 export const validarIdSolicitud = [
   param("id")
@@ -10,40 +10,28 @@ export const validarIdSolicitud = [
 ]
 
 // ===============================
-// 📌 SOLICITUD PÚBLICA
+// SOLICITUD PÚBLICA
 // ===============================
 export const validarSolicitudPublica = [
 
-  body("nombre")
+  body("nombre_completo")
     .trim()
     .isLength({ min: 3 })
     .withMessage("Nombre inválido"),
 
-  body("ci")
-    .trim()
-    .isLength({ min: 5 })
-    .withMessage("CI inválido"),
-
-  body("fecha_nacimiento")
-    .isISO8601()
-    .withMessage("Fecha de nacimiento inválida"),
-
   body("correo")
     .optional()
-    .isEmail()
-    .withMessage("Correo inválido"),
+    .isEmail(),
 
   body("telefono")
     .optional()
-    .isLength({ min: 6 })
-    .withMessage("Teléfono inválido"),
-
-  body("grupo")
-    .trim()
-    .notEmpty()
-    .withMessage("Grupo es obligatorio"),
+    .isLength({ min: 6 }),
 
   body("rama")
+    .optional()
+    .isString(),
+
+  body("cargo_actual")
     .optional()
     .isString(),
 
@@ -51,19 +39,25 @@ export const validarSolicitudPublica = [
     .optional()
     .isString(),
 
-  body("distrito")
+  body("anios_registrados")
     .optional()
-    .isString(),
+    .isInt({ min: 0 }),
 
-  body("archivo_ci_anverso").notEmpty(),
-  body("archivo_ci_reverso").notEmpty(),
-  body("archivo_safe_from_harm").notEmpty(),
-  body("archivo_codigo_conducta").notEmpty(),
-  body("archivo_certificado_no_violencia").notEmpty()
+  body("cargo_distrital").optional(),
+  body("cargo_grupo_1").optional(),
+  body("cargo_grupo_2").optional(),
+  body("cargo_grupo_3").optional(),
+
+  body("programa_jovenes").optional(),
+  body("formador_lideres").optional(),
+  body("gestion_institucional").optional(),
+
+  body("formulario_asb")
+    .isBoolean()
 ]
 
 // ===============================
-// 📌 ACTUALIZAR SOLICITUD
+// ACTUALIZAR SOLICITUD
 // ===============================
 export const validarActualizarSolicitud = [
 
@@ -78,11 +72,11 @@ export const validarActualizarSolicitud = [
 ]
 
 // ===============================
-// 📌 EDITAR DIRIGENTE DESDE REGISTRO
+// EDITAR DIRIGENTE DESDE REGISTRO
 // ===============================
 export const validarActualizarDirigenteRegistro = [
 
-  body("nombre")
+  body("nombre_completo")
     .trim()
     .isLength({ min: 3 })
     .withMessage("Nombre inválido"),

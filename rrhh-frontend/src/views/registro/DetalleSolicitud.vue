@@ -63,290 +63,313 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div v-if="cargando" class="text-center py-20">
-        <p class="text-gray-500">Cargando solicitud...</p>
-      </div>
-      <div class="px-4 py-6 sm:px-0">
-        <!-- Título y botón volver -->
-        <div class="mb-8 flex justify-between items-center">
-          <div class="flex items-center space-x-4">
-            <button 
-              @click="volverASolicitudes"
-              class="text-gray-600 hover:text-gray-900 flex items-center"
-            >
-              <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-              </svg>
-              Volver
-            </button>
-            <h1 v-if="solicitud" class="text-2xl font-bold text-gray-900">
-              Solicitud #{{ solicitud.id }}
-            </h1>
-          </div>
-          
-          <!-- Estado de la solicitud -->
-          <span :class="[
-            'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
-            solicitud.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
-            solicitud.estado === 'aprobada' ? 'bg-green-100 text-green-800' :
-            'bg-red-100 text-red-800'
-          ]">
-            {{ solicitud.estado === 'pendiente' ? 'PENDIENTE' : solicitud.estado === 'aprobada' ? 'APROBADA' : 'RECHAZADA' }}
-          </span>
+      <div v-if="solicitud">
+        <div v-if="cargando" class="text-center py-20">
+          <p class="text-gray-500">Cargando solicitud...</p>
         </div>
-
-        <!-- Contenido principal -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Columna izquierda - Datos principales -->
-          <div class="lg:col-span-2">
-            <!-- Pregunta ASB -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h2 class="text-lg font-semibold text-gray-800 mb-4">
-                ¿Llenó el formulario de habilitación de la ASB?
-              </h2>
-              <div class="flex items-center space-x-4">
-                <span :class="[
-                  'px-4 py-2 rounded-lg font-medium',
-                  solicitud.formularioASB === 'SI' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                ]">
-                  {{ solicitud.formularioASB }}
-                </span>
-                <p class="text-gray-600 text-sm">
-                  {{ solicitud.formularioASB === 'SI' 
-                    ? 'El dirigente ha completado el formulario oficial de la ASB.' 
-                    : 'El dirigente NO ha completado el formulario oficial de la ASB.' }}
-                </p>
-              </div>
+        <div class="px-4 py-6 sm:px-0">
+          <!-- Título y botón volver -->
+          <div class="mb-8 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+              <button 
+                @click="volverASolicitudes"
+                class="text-gray-600 hover:text-gray-900 flex items-center"
+              >
+                <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Volver
+              </button>
+              <h1 v-if="solicitud" class="text-2xl font-bold text-gray-900">
+                Solicitud #{{ solicitud.id }}
+              </h1>
             </div>
-
-            <!-- Datos personales -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h2 class="text-lg font-semibold text-gray-800 mb-6">Datos personales</h2>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Nombre completo</p>
-                  <p class="text-gray-900 font-medium">{{ solicitud.nombreCompleto }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Género</p>
-                  <p class="text-gray-900">{{ solicitud.genero }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</p>
-                  <p class="text-gray-900">{{ solicitud.fechaNacimiento }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Carnet de identidad</p>
-                  <p class="text-gray-900">{{ solicitud.ci }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Datos scout -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h2 class="text-lg font-semibold text-gray-800 mb-6">Datos scout</h2>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Años registrados</p>
-                  <p class="text-gray-900 font-medium">{{ solicitud.anosRegistrados }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Grupo Scout</p>
-                  <p class="text-gray-900">{{ solicitud.grupoScout }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Rama</p>
-                  <p class="text-gray-900">{{ solicitud.rama }}</p>
-                </div>
-              </div>
-            </div>
+            
+            <!-- Estado de la solicitud -->
+            <span :class="[
+              'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
+              solicitud.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
+              solicitud.estado === 'habilitado' ? 'bg-green-100 text-green-800' :
+              'bg-red-100 text-red-800'
+            ]">
+              {{ solicitud.estado === 'pendiente' ? 'PENDIENTE' : solicitud.estado === 'habilitado' ? 'HABILITADA' : 'RECHAZADA' }}
+            </span>
           </div>
 
-          <!-- Columna derecha - Requisitos y acciones -->
-          <div>
-            <!-- Formación Scout -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h2 class="text-lg font-semibold text-gray-800 mb-4">Formación Scout</h2>
-              
-              <div class="space-y-4">
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Programa de jóvenes</p>
-                  <p class="text-gray-900">{{ solicitud.programaJovenes }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Formador de líderes</p>
-                  <p class="text-gray-900">{{ solicitud.formadorLideres || 'No aplica' }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Gestión Institucional</p>
-                  <p class="text-gray-900">{{ solicitud.gestionInstitucional || 'No aplica' }}</p>
+          <!-- Contenido principal -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Columna izquierda - Datos principales -->
+            <div class="lg:col-span-2">
+              <!-- Pregunta ASB -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                  ¿Llenó el formulario de habilitación de la ASB?
+                </h2>
+                <div class="flex items-center space-x-4">
+                  <span :class="[
+                    'px-4 py-2 rounded-lg font-medium',
+                    solicitud.formularioASB === 'SI' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  ]">
+                    {{ solicitud.formularioASB }}
+                  </span>
+                  <p class="text-gray-600 text-sm">
+                    {{ solicitud.formularioASB === 'SI' 
+                      ? 'El dirigente ha completado el formulario oficial de la ASB.' 
+                      : 'El dirigente NO ha completado el formulario oficial de la ASB.' }}
+                  </p>
                 </div>
               </div>
-            </div>
 
-            <!-- Requisitos adjuntos -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h2 class="text-lg font-semibold text-gray-800 mb-4">Requisitos</h2>
-              
-              <div class="space-y-4">
-                <!-- Certificado de formación scout -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                  <p class="text-sm font-medium text-gray-700 mb-2">Certificado de formación scout</p>
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                      </svg>
-                      <span class="text-sm text-gray-900">{{ solicitud.certificadoFormacion.nombre }}</span>
-                    </div>
-                    <button 
-                      @click="descargarArchivo(solicitud.certificadoFormacion)"
-                      class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
-                    >
-                      Ver
-                    </button>
+              <!-- Datos personales -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-6">Datos personales</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Nombre completo</p>
+                    <p class="text-gray-900 font-medium">{{ solicitud.nombreCompleto }}</p>
+                  </div>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Género</p>
+                    <p class="text-gray-900">{{ solicitud.genero }}</p>
+                  </div>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</p>
+                    <p class="text-gray-900">{{ solicitud.fechaNacimiento }}</p>
+                  </div>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Carnet de identidad</p>
+                    <p class="text-gray-900">{{ solicitud.ci }}</p>
                   </div>
                 </div>
+              </div>
 
-                <!-- Certificado de No Violencia -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                  <p class="text-sm font-medium text-gray-700 mb-2">Certificado de No Violencia</p>
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                      </svg>
-                      <span class="text-sm text-gray-900">{{ solicitud.certificadoNoViolencia.nombre }}</span>
-                    </div>
-                    <button 
-                      @click="descargarArchivo(solicitud.certificadoNoViolencia)"
-                      class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
-                    >
-                      Ver
-                    </button>
+              <!-- Datos scout -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-6">Datos scout</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Años registrados</p>
+                    <p class="text-gray-900 font-medium">{{ solicitud.anosRegistrados }}</p>
                   </div>
-                </div>
-
-                <!-- Valoración del Perfil del Dirigente -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                  <p class="text-sm font-medium text-gray-700 mb-2">Valoración del Perfil del Dirigente</p>
-                  <div v-if="solicitud.valoracionPerfil" class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                      </svg>
-                      <span class="text-sm text-gray-900">{{ solicitud.valoracionPerfil.nombre }}</span>
-                    </div>
-                    <button 
-                      @click="descargarArchivo(solicitud.valoracionPerfil)"
-                      class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
-                    >
-                      Ver
-                    </button>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Grupo Scout</p>
+                    <p class="text-gray-900">{{ solicitud.grupoScout }}</p>
                   </div>
-                  <div v-else class="text-center py-2">
-                    <span class="text-sm text-gray-500">No adjuntado</span>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Rama</p>
+                    <p class="text-gray-900">{{ solicitud.rama }}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Cargos -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <h2 class="text-lg font-semibold text-gray-800 mb-4">Cargos</h2>
-              
-              <div class="space-y-3">
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Cargo distrital</p>
-                  <p class="text-gray-900">{{ solicitud.cargoDistrital }}</p>
-                </div>
+            <!-- Columna derecha - Requisitos y acciones -->
+            <div>
+              <!-- Formación Scout -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Formación Scout</h2>
                 
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Cargo Grupo 1</p>
-                  <p class="text-gray-900">{{ solicitud.cargoGrupo1 }}</p>
-                </div>
-                
-                <div v-if="solicitud.cargoGrupo2">
-                  <p class="text-sm font-medium text-gray-700 mb-1">Cargo Grupo 2</p>
-                  <p class="text-gray-900">{{ solicitud.cargoGrupo2 }}</p>
-                </div>
-                
-                <div v-if="solicitud.cargoGrupo3">
-                  <p class="text-sm font-medium text-gray-700 mb-1">Cargo Grupo 3</p>
-                  <p class="text-gray-900">{{ solicitud.cargoGrupo3 }}</p>
+                <div class="space-y-4">
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Programa de jóvenes</p>
+                    <p class="text-gray-900">{{ solicitud.programaJovenes }}</p>
+                  </div>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Formador de líderes</p>
+                    <p class="text-gray-900">{{ solicitud.formadorLideres || 'No aplica' }}</p>
+                  </div>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Gestión Institucional</p>
+                    <p class="text-gray-900">{{ solicitud.gestionInstitucional || 'No aplica' }}</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Acciones -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 class="text-lg font-semibold text-gray-800 mb-4">Acciones</h2>
-              
-              <div class="space-y-3">
-                <button 
-                  @click="aprobarSolicitud"
-                  :disabled="solicitud.estado !== 'pendiente'"
-                  :class="[
-                    'w-full py-3 px-4 rounded-lg font-medium transition duration-200',
-                    solicitud.estado === 'pendiente'
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-green-100 text-green-800 cursor-not-allowed'
-                  ]"
-                >
-                  Aceptar solicitud
-                </button>
+              <!-- Requisitos adjuntos -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Requisitos</h2>
                 
-                <button 
-                  @click="rechazarSolicitud"
-                  :disabled="solicitud.estado !== 'pendiente'"
-                  :class="[
-                    'w-full py-3 px-4 rounded-lg font-medium transition duration-200',
-                    solicitud.estado === 'pendiente'
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-red-100 text-red-800 cursor-not-allowed'
-                  ]"
-                >
-                  Rechazar solicitud
-                </button>
+                <div class="space-y-4">
+                  <!-- Certificado de formación scout -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">
+                      Certificados de formación scout
+                    </p>
 
-                <!-- Botones adicionales -->
-                <div class="pt-4 border-t border-gray-200">
+                    <ul
+                      v-if="documentos.CERTIFICADOS_FORMACION.length"
+                      class="space-y-2"
+                    >
+                      <li
+                        v-for="doc in documentos.CERTIFICADOS_FORMACION"
+                        :key="doc.id"
+                        class="flex items-center justify-between"
+                      >
+                        <div class="flex items-center">
+                          <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                          </svg>
+                          <span class="text-sm text-gray-900">{{ doc.url.split('/').pop() }}</span>
+                        </div>
+
+                        <button
+                          @click="descargarArchivo(doc)"
+                          class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
+                        >
+                          Ver
+                        </button>
+                      </li>
+                    </ul>
+
+                    <p v-else class="text-sm text-gray-500 text-center">
+                      No se adjuntaron certificados
+                    </p>
+                  </div>
+
+                  <!-- Certificado de No Violencia -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">Certificado de No Violencia</p>
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-sm text-gray-900">
+                          {{ documentos.CERTIFICADO_NO_VIOLENCIA?.url.split('/').pop() || 'No adjuntado' }}
+                        </span>
+                      </div>
+                      <button
+                        v-if="documentos.CERTIFICADO_NO_VIOLENCIA"
+                        @click="descargarArchivo(documentos.CERTIFICADO_NO_VIOLENCIA)"
+                      >
+                        Ver
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Valoración del Perfil del Dirigente -->
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-700 mb-2">
+                      Valoración del Perfil del Dirigente
+                    </p>
+
+                    <div v-if="documentos.VALORACION_PERFIL" class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="text-sm text-gray-900">
+                          {{ documentos.VALORACION_PERFIL.url.split('/').pop() }}
+                        </span>
+                      </div>
+
+                      <button
+                        @click="descargarArchivo(documentos.VALORACION_PERFIL)"
+                        class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
+                      >
+                        Ver
+                      </button>
+                    </div>
+
+                    <p v-else class="text-sm text-gray-500 text-center">
+                      No adjuntado
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cargos -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Cargos</h2>
+                
+                <div class="space-y-3">
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Cargo distrital</p>
+                    <p class="text-gray-900">{{ solicitud.cargoDistrital }}</p>
+                  </div>
+                  
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Cargo Grupo 1</p>
+                    <p class="text-gray-900">{{ solicitud.cargoGrupo1 }}</p>
+                  </div>
+                  
+                  <div v-if="solicitud.cargoGrupo2">
+                    <p class="text-sm font-medium text-gray-700 mb-1">Cargo Grupo 2</p>
+                    <p class="text-gray-900">{{ solicitud.cargoGrupo2 }}</p>
+                  </div>
+                  
+                  <div v-if="solicitud.cargoGrupo3">
+                    <p class="text-sm font-medium text-gray-700 mb-1">Cargo Grupo 3</p>
+                    <p class="text-gray-900">{{ solicitud.cargoGrupo3 }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Acciones</h2>
+                
+                <div class="space-y-3">
                   <button 
-                    @click="descargarTodo"
-                    class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium mb-2"
+                    @click="aprobarSolicitud"
+                    :disabled="solicitud.estado !== 'pendiente'"
+                    :class="[
+                      'w-full py-3 px-4 rounded-lg font-medium transition duration-200',
+                      solicitud.estado === 'pendiente'
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-green-100 text-green-800 cursor-not-allowed'
+                    ]"
                   >
-                    Descargar todo
+                    Aceptar solicitud
                   </button>
                   
                   <button 
-                    @click="imprimirSolicitud"
-                    class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium"
+                    @click="rechazarSolicitud"
+                    :disabled="solicitud.estado !== 'pendiente'"
+                    :class="[
+                      'w-full py-3 px-4 rounded-lg font-medium transition duration-200',
+                      solicitud.estado === 'pendiente'
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-red-100 text-red-800 cursor-not-allowed'
+                    ]"
                   >
-                    Imprimir solicitud
+                    Rechazar solicitud
                   </button>
+
+                  <!-- Botones adicionales -->
+                  <div class="pt-4 border-t border-gray-200">
+                    <button 
+                      @click="descargarTodo"
+                      class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium mb-2"
+                    >
+                      Descargar todo
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Footer del módulo -->
-        <footer class="mt-8 text-center">
-          <p class="text-gray-500 text-sm">
-            Desarrollado por Edely Tito - GSA • Distrito Scout La Paz
-          </p>
-        </footer>
+          <!-- Footer del módulo -->
+          <footer class="mt-8 text-center">
+            <p class="text-gray-500 text-sm">
+              Desarrollado por Edely Tito - GSA • Distrito Scout La Paz
+            </p>
+          </footer>
+        </div>
       </div>
     </main>
   </div>
@@ -376,33 +399,45 @@ onMounted(async () => {
   }
 
   try {
-    const response = await registroService.getSolicitudById(solicitudId)
-    const data = response.data
+    // 1️⃣ Solicitud
+    const { data } = await registroService.getSolicitudById(solicitudId)
 
     solicitud.value = {
       id: data.id,
       estado: data.estado,
-      nombreCompleto: data.nombre,
-      genero: data.genero,
-      fechaNacimiento: data.fecha_nacimiento
-        ? new Date(data.fecha_nacimiento).toLocaleDateString('es-BO')
-        : '—',
-      ci: data.ci,
-      grupoScout: data.grupo,
-      rama: data.rama || 'Sin rama',
-      distrito: data.distrito,
-      cargoGrupo1: data.cargo_actual,
-      nivelScout: data.nivel_scout,
+      formularioASB: data.formulario_asb ? 'SI' : 'NO',
 
-      archivos: {
-        ciAnverso: data.archivo_ci_anverso,
-        ciReverso: data.archivo_ci_reverso,
-        croquis: data.archivo_croquis_domicilio,
-        safeFromHarm: data.archivo_safe_from_harm,
-        codigoConducta: data.archivo_codigo_conducta,
-        noViolencia: data.archivo_certificado_no_violencia
-      }
+      nombreCompleto: data.nombre_completo,
+      genero: data.genero,
+      fechaNacimiento: data.fecha_nacimiento,
+      ci: data.ci,
+
+      anosRegistrados: data.anios_registrados,
+      grupoScout: data.grupo,
+      rama: data.rama,
+
+      programaJovenes: data.programa_jovenes,
+      formadorLideres: data.formador_lideres,
+      gestionInstitucional: data.gestion_institucional,
+
+      cargoDistrital: data.cargo_distrital,
+      cargoGrupo1: data.cargo_grupo_1,
+      cargoGrupo2: data.cargo_grupo_2,
+      cargoGrupo3: data.cargo_grupo_3
     }
+
+    // 2️⃣ Documentos
+    const docs = await registroService.getDocumentosPorSolicitud(solicitudId)
+
+    docs.data.forEach(doc => {
+      if (doc.tipo_documento === 'CERTIFICADOS_FORMACION') {
+        documentos.value.CERTIFICADOS_FORMACION.push(doc)
+      } else if (doc.tipo_documento === 'CERTIFICADO_NO_VIOLENCIA') {
+        documentos.value.CERTIFICADO_NO_VIOLENCIA = doc
+      } else if (doc.tipo_documento === 'VALORACION_PERFIL') {
+        documentos.value.VALORACION_PERFIL = doc
+      }
+    })
 
   } catch (error) {
     console.error(error)
@@ -466,26 +501,26 @@ const rechazarSolicitud = async () => {
   }
 }
 
-const descargarArchivo = (archivo) => {
-  if (archivo && archivo.url) {
-    const link = document.createElement('a')
-    link.href = archivo.url
-    link.download = archivo.nombre
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    console.log(`Descargando: ${archivo.nombre}`)
-  } else {
+const documentos = ref({
+  CERTIFICADO_NO_VIOLENCIA: null,
+  CERTIFICADOS_FORMACION: [],
+  VALORACION_PERFIL: null
+})
+
+const descargarArchivo = (doc) => {
+  if (!doc?.url) {
     alert('Archivo no disponible')
+    return
   }
+
+  const link = document.createElement('a')
+  link.href = doc.url
+  link.target = '_blank'
+  link.click()
 }
 
 const descargarTodo = () => {
   alert('Descargando todos los archivos de la solicitud...')
-}
-
-const imprimirSolicitud = () => {
-  window.print()
 }
 
 const cerrarSesion = () => {
