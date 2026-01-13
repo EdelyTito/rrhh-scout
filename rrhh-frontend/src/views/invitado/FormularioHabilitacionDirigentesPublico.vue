@@ -224,11 +224,9 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                   Cargo Distrital
-                  <span class="text-red-500 font-semibold">*</span>
                 </label>
                 <select 
                   v-model="formulario.cargoDistrital"
-                  required
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
                 >
                   <option value="">Seleccione cargo distrital</option>
@@ -700,7 +698,7 @@
           Desarrollado por Edely Tito - GSA • Distrito Scout La Paz
         </p>
         <p class="text-gray-400 text-xs mt-1">
-          Si tiene problemas con el formulario, contacte a: rrhh@scoutslapaz.org
+          Si tiene problemas con el formulario, contacte a: 
         </p>
       </footer>
     </main>
@@ -789,7 +787,6 @@ const validarFormulario = () => {
     'anosRegistrados',
     'grupoScout',
     'rama',
-    'cargoDistrital',
     'cargoGrupo1'
   ]
   
@@ -860,9 +857,13 @@ const enviarFormulario = async () => {
 }
 
 const subirArchivo = async (solicitudId, tipoDocumento, archivo) => {
+  if (!archivo) {
+    throw new Error(`Archivo faltante: ${tipoDocumento}`)
+  }
+
   const formData = new FormData()
   formData.append('solicitud_id', solicitudId)
-  formData.append('tipo', tipoDocumento)
+  formData.append('tipo_documento', tipoDocumento)
   formData.append('archivo', archivo)
 
   await registroService.subirDocumento(formData)

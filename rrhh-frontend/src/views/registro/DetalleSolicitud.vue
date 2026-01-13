@@ -221,10 +221,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                           </svg>
-                          <span class="text-sm text-gray-900">{{ doc.url.split('/').pop() }}</span>
+                          <span class="text-sm text-gray-900">{{ doc.nombre_archivo }}</span>
                         </div>
 
                         <button
+                          v-if="documentos.CERTIFICADOS_FORMACION"
                           @click="descargarArchivo(doc)"
                           class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
                         >
@@ -247,12 +248,13 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         <span class="text-sm text-gray-900">
-                          {{ documentos.CERTIFICADO_NO_VIOLENCIA?.url.split('/').pop() || 'No adjuntado' }}
+                          {{ documentos.CERTIFICADO_NO_VIOLENCIA?.nombre_archivo || 'No adjuntado' }}
                         </span>
                       </div>
                       <button
-                        v-if="documentos.CERTIFICADO_NO_VIOLENCIA"
+                        v-if="documentos.CERTIFICADO_NO_VIOLENCIA?.id"
                         @click="descargarArchivo(documentos.CERTIFICADO_NO_VIOLENCIA)"
+                        class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
                       >
                         Ver
                       </button>
@@ -272,11 +274,12 @@
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                         <span class="text-sm text-gray-900">
-                          {{ documentos.VALORACION_PERFIL.url.split('/').pop() }}
+                          {{ documentos.VALORACION_PERFIL.nombre_archivo }}
                         </span>
                       </div>
 
                       <button
+                        v-if="documentos.VALORACION_PERFIL?.id"
                         @click="descargarArchivo(documentos.VALORACION_PERFIL)"
                         class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
                       >
@@ -348,16 +351,6 @@
                   >
                     Rechazar solicitud
                   </button>
-
-                  <!-- Botones adicionales -->
-                  <div class="pt-4 border-t border-gray-200">
-                    <button 
-                      @click="descargarTodo"
-                      class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium mb-2"
-                    >
-                      Descargar todo
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -399,7 +392,6 @@ onMounted(async () => {
   }
 
   try {
-    // 1️⃣ Solicitud
     const { data } = await registroService.getSolicitudById(solicitudId)
 
     solicitud.value = {
@@ -426,7 +418,6 @@ onMounted(async () => {
       cargoGrupo3: data.cargo_grupo_3
     }
 
-    // 2️⃣ Documentos
     const docs = await registroService.getDocumentosPorSolicitud(solicitudId)
 
     docs.data.forEach(doc => {
@@ -508,15 +499,22 @@ const documentos = ref({
 })
 
 const descargarArchivo = (doc) => {
-  if (!doc?.url) {
+  if (!doc?.id) {
     alert('Archivo no disponible')
     return
   }
 
-  const link = document.createElement('a')
-  link.href = doc.url
-  link.target = '_blank'
-  link.click()
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+
+  if (!apiBaseUrl) {
+    alert('Error de configuración del sistema')
+    return
+  }
+
+  window.open(
+    `${apiBaseUrl}/documentos/${doc.id}/descargar`,
+    '_blank'
+  )
 }
 
 const descargarTodo = () => {

@@ -26,6 +26,35 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
   }
 });
 
+// DETALLE COMPLETO DE DIRIGENTE (CON DOCUMENTOS)
+router.get("/:id/detalle", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const dirigenteRes = await pool.query(
+      `SELECT * FROM dirigentes WHERE id = $1`,
+      [id]
+    );
+
+    if (!dirigenteRes.rowCount) {
+      return res.status(404).json({ error: "Dirigente no encontrado" });
+    }
+
+    const documentosRes = await pool.query(
+      `SELECT * FROM documentos_dirigente WHERE dirigente_id = $1`,
+      [id]
+    );
+
+    res.json({
+      dirigente: dirigenteRes.rows[0],
+      documentos: documentosRes.rows
+    });
+  } catch (error) {
+    console.error("Error detalle dirigente:", error);
+    res.status(500).json({ error: "Error al obtener detalle del dirigente" });
+  }
+});
+
 //
 // CREAR NUEVO DIRIGENTE
 //
@@ -188,29 +217,5 @@ router.put(
     }
   }
 );
-
-//
-// ELIMINAR DIRIGENTE
-//
-router.delete("/:id", verifyToken, authorizeRoles(1), validarIdDirigente, validar, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await pool.query("DELETE FROM dirigentes WHERE id=$1", [id]);
-
-    await registrarLog(
-      req.user.id,
-      "Eliminó un dirigente",
-      "dirigentes",
-      id,
-      "Registro eliminado por administrador"
-    );
-
-    res.json({ message: "Dirigente eliminado correctamente" });
-  } catch (err) {
-    console.error("Error al eliminar dirigente:", err);
-    res.status(500).json({ error: "Error interno al eliminar dirigente" });
-  }
-});
 
 export default router;

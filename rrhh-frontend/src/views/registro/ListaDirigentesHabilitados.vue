@@ -216,7 +216,6 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm text-gray-900">{{ dirigente.grupo || 'Grupo no especificado' }}</div>
-                      <div class="text-xs text-gray-500">{{ dirigente.distrito || 'Distrito La Paz' }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm text-gray-900">{{ dirigente.cargo_grupo_1 || 'Sin cargo' }}</div>
@@ -244,12 +243,6 @@
                         class="text-blue-600 hover:text-blue-900 mr-3 font-medium"
                       >
                         Editar
-                      </button>
-                      <button 
-                        @click="deshabilitarDirigente(dirigente.id)"
-                        class="text-red-600 hover:text-red-900 font-medium"
-                      >
-                        Deshabilitar
                       </button>
                     </td>
                   </tr>
@@ -491,31 +484,6 @@ const verDirigente = (id) => {
 
 const editarDirigente = (id) => {
   router.push(`/registro/dirigente/${id}/editar`)
-}
-
-const deshabilitarDirigente = async (id) => {
-  const dirigente = dirigentesHabilitados.value.find(d => d.id === id)
-  if (dirigente && confirm(`¿Está seguro de deshabilitar a ${dirigente.nombre}?`)) {
-    try {
-      // Actualizar el estado del dirigente
-      await registroService.actualizarEstadoDirigente(id, { estado: 'Inactivo' })
-      
-      // Si tienes el ID de la solicitud, también puedes actualizarla
-      if (dirigente.solicitud_id) {
-        await registroService.actualizarSolicitud(dirigente.solicitud_id, { 
-          estado: 'rechazado',
-          observaciones: 'Dirigente deshabilitado por administrador' 
-        })
-      }
-      
-      // Eliminar de la lista local
-      dirigentesHabilitados.value = dirigentesHabilitados.value.filter(d => d.id !== id)
-      alert('Dirigente deshabilitado exitosamente')
-    } catch (error) {
-      console.error('Error al deshabilitar dirigente:', error)
-      alert('Error al deshabilitar el dirigente')
-    }
-  }
 }
 
 const limpiarFiltros = () => {

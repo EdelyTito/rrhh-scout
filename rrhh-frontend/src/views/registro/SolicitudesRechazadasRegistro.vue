@@ -107,7 +107,7 @@
         <div v-else>
           <!-- Filtros -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Filtro por grupo -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Grupo Scout</label>
@@ -133,20 +133,6 @@
                   <option v-for="rama in ramasUnicas" :key="rama" :value="rama">
                     {{ rama }}
                   </option>
-                </select>
-              </div>
-              
-              <!-- Filtro por fecha -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                <select 
-                  v-model="filtroFecha"
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent"
-                >
-                  <option value="">Todas las fechas</option>
-                  <option value="ultima-semana">Última semana</option>
-                  <option value="ultimo-mes">Último mes</option>
-                  <option value="ultimos-3-meses">Últimos 3 meses</option>
                 </select>
               </div>
               
@@ -227,9 +213,6 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm text-gray-900">
                         {{ solicitud.grupo}}
-                      </div>
-                      <div class="text-xs text-gray-500">
-                        {{ solicitud.distrito}}
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -384,7 +367,6 @@ const cargarSolicitudes = async () => {
         ci: s.ci,
         rama: s.rama || 'Sin rama',
         grupo: s.grupo,
-        distrito: s.distrito || 'Distrito La Paz',
         fecha: s.created_at
           ? new Date(s.created_at).toLocaleDateString('es-BO')
           : '—',

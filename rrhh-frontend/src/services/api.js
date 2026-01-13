@@ -92,7 +92,9 @@ export const dirigentesService = {
   getDirigentes: () => api.get('/dirigentes'),
   createDirigente: (data) => api.post('/dirigentes', data),
   updateDirigente: (id, data) => api.put(`/dirigentes/${id}`, data),
-  deleteDirigente: (id) => api.delete(`/dirigentes/${id}`)
+  deleteDirigente: (id) => api.delete(`/dirigentes/${id}`),
+  getDirigenteDetalle: (id) =>
+    api.get(`/dirigentes/${id}/detalle`)
 }
 
 export const formacionService = {
@@ -148,12 +150,21 @@ export const registroService = {
   actualizarEstadoDirigente: (id, data) =>
     api.put(`/dirigentes/${id}`, data),
 
+  getDirigentePorId: (id) =>
+    api.get(`/registro/dirigente/${id}`),
+
   // DASHBOARD
   getEstadisticas: () => api.get('/registro/estadisticas'),
 
   // PÚBLICO
   enviarSolicitudPublica: (data) => api.post('/registro/public', data),
-  subirDocumento: (formData) => api.post('/documentos', formData, {headers: { 'Content-Type': 'multipart/form-data' }})
+  subirDocumento: (formData) =>
+    api.post('/documentos', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 80000
+    }),
+  getDocumentosPorSolicitud: (solicitudId) =>
+    api.get(`/documentos/solicitud/${solicitudId}`),
 }
 
 

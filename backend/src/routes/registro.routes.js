@@ -30,16 +30,11 @@ router.post(
     try {
       const {
         nombre_completo,
+        ci,
         fecha_nacimiento,
         genero,
-        telefono,
-        correo,
-        direccion,
         grupo,
         rama,
-        cargo_actual,
-        nivel_scout,
-        distrito,
         formulario_asb,
         anios_registrados,
         cargo_distrital,
@@ -54,11 +49,11 @@ router.post(
       const result = await pool.query(
         `INSERT INTO solicitudes_registro (
           nombre_completo,
-          telefono,
-          correo,
+          ci,
+          fecha_nacimiento,
+          genero,
+          grupo,
           rama,
-          cargo_actual,
-          nivel_scout,
           formulario_asb,
           anios_registrados,
           cargo_distrital,
@@ -67,18 +62,20 @@ router.post(
           cargo_grupo_3,
           programa_jovenes,
           formador_lideres,
-          gestion_institucional
-        ) VALUES (
-          $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15
+          gestion_institucional,
+          estado
+        )
+        VALUES (
+          $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'pendiente'
         )
         RETURNING id`,
         [
           nombre_completo,
-          telefono,
-          correo,
+          ci,
+          fecha_nacimiento,
+          genero,
+          grupo,
           rama,
-          cargo_actual,
-          nivel_scout,
           formulario_asb,
           anios_registrados,
           cargo_distrital,
@@ -90,14 +87,6 @@ router.post(
           gestion_institucional
         ]
       );
-
-      if (correo) {
-        await sendEmail(
-          correo,
-          "Solicitud recibida - Distrito Scout La Paz",
-          `<p>Tu solicitud fue recibida correctamente.</p>`
-        );
-      }
 
       res.status(201).json({
         message: "Solicitud enviada correctamente",
@@ -142,32 +131,6 @@ router.get(
   }
 );
 
-router.get(
-  "/dashboard",
-  verifyToken,
-  authorizeRoles(2, 5),
-  async (req, res) => {
-    try {
-      const ultimoLogin = await pool.query(`
-        SELECT fecha_accion
-        FROM logs
-        WHERE usuario_id = $2, $5
-          AND accion ILIKE '%inicio de sesión%'
-        ORDER BY fecha_accion DESC
-        LIMIT 1
-      `, [req.user.id])
-
-      res.json({
-        ultimo_login: ultimoLogin.rows[0]?.fecha_accion || null
-      })
-
-    } catch (err) {
-      console.error("Error dashboard registro:", err)
-      res.status(500).json({ error: "Error al cargar dashboard" })
-    }
-  }
-);
-
 // ======================================================
 // LISTADOS
 // ======================================================
@@ -177,13 +140,17 @@ router.get(
   authorizeRoles(1, 2, 5),
   async (req, res) => {
     const result = await pool.query(`
-      SELECT s.*, COALESCE(d.rama, s.rama) AS rama, d.grupo, d.ci, d.distrito
+      SELECT
+        s.*,
+        COALESCE(d.grupo, s.grupo) AS grupo,
+        COALESCE(d.rama, s.rama) AS rama,
+        COALESCE(d.ci, s.ci) AS ci,
+        d.distrito
       FROM solicitudes_registro s
       LEFT JOIN dirigentes d ON d.id = s.dirigente_id
       WHERE s.estado = 'rechazado'
       ORDER BY s.created_at DESC
     `);
-
     res.json(result.rows);
   }
 );
@@ -194,12 +161,15 @@ router.get(
   authorizeRoles(1, 2, 5),
   async (req, res) => {
     const result = await pool.query(`
-      SELECT s.*, d.grupo, d.ci, d.distrito
+      SELECT
+        s.*,
+        COALESCE(d.grupo, s.grupo) AS grupo,
+        COALESCE(d.ci, s.ci) AS ci,
+        d.distrito
       FROM solicitudes_registro s
       LEFT JOIN dirigentes d ON s.dirigente_id = d.id
       ORDER BY s.created_at DESC
     `);
-
     res.json(result.rows);
   }
 );
@@ -229,13 +199,16 @@ router.get(
   authorizeRoles(1, 2, 5),
   async (req, res) => {
     const result = await pool.query(`
-      SELECT s.*, COALESCE(s.rama, d.rama) AS rama, d.grupo, d.nombre AS nombre_dirigente
+      SELECT
+        s.*,
+        COALESCE(d.grupo, s.grupo) AS grupo,
+        COALESCE(d.rama, s.rama) AS rama,
+        d.nombre AS nombre_dirigente
       FROM solicitudes_registro s
       LEFT JOIN dirigentes d ON d.id = s.dirigente_id
       WHERE s.estado = 'pendiente'
       ORDER BY s.created_at DESC
     `);
-
     res.json(result.rows);
   }
 );
@@ -296,27 +269,26 @@ router.put(
       if (estado === "habilitado") {
         const dirigente = await client.query(
           `INSERT INTO dirigentes (
-            nombre, ci, fecha_nacimiento, genero,
-            telefono, correo, direccion, grupo, rama,
-            cargo_actual, nivel_scout, distrito,
-            estado, fecha_actualizacion
-          ) VALUES (
-            $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
-            'Habilitado', NOW()
-          ) RETURNING id`,
+            nombre,
+            ci,
+            fecha_nacimiento,
+            genero,
+            grupo,
+            rama,
+            estado,
+            fecha_actualizacion
+          )
+          VALUES (
+            $1,$2,$3,$4,$5,$6,'Habilitado', NOW()
+          )
+          RETURNING id`,
           [
             s.nombre_completo,
             s.ci,
             s.fecha_nacimiento,
             s.genero,
-            s.telefono,
-            s.correo,
-            s.direccion,
             s.grupo,
             s.rama,
-            s.cargo_actual,
-            s.nivel_scout,
-            s.distrito
           ]
         );
 
@@ -324,21 +296,31 @@ router.put(
 
         await client.query(
           `UPDATE solicitudes_registro
-           SET estado='habilitado',
-               observaciones=$1,
-               fecha_revision=NOW(),
-               fecha_aprobacion=NOW(),
-               dirigente_id=$2
-           WHERE id=$3`,
+          SET estado='habilitado',
+              observaciones=$1,
+              fecha_revision=NOW(),
+              fecha_aprobacion=NOW(),
+              dirigente_id=$2
+          WHERE id=$3`,
           [observaciones, dirigente_id, id]
         );
 
-        // 🔗 Vincular documentos
         await client.query(
           `UPDATE documentos_dirigente
-           SET dirigente_id=$1
-           WHERE solicitud_id=$2`,
+          SET dirigente_id=$1
+          WHERE solicitud_id=$2`,
           [dirigente_id, id]
+        );
+      }
+
+      if (estado === "rechazado") {
+        await client.query(
+          `UPDATE solicitudes_registro
+          SET estado='rechazado',
+              observaciones=$1,
+              fecha_revision=NOW()
+          WHERE id=$2`,
+          [observaciones, id]
         );
       }
 
@@ -354,22 +336,6 @@ router.put(
     }
   }
 );
-
-// ======================================================
-// ELIMINAR SOLICITUD
-// ======================================================
-router.delete(
-  "/:id",
-  verifyToken,
-  authorizeRoles(1),
-  validarIdSolicitud,
-  validar,
-  async (req, res) => {
-    await pool.query("DELETE FROM solicitudes_registro WHERE id=$1", [req.params.id]);
-    res.json({ message: "Solicitud eliminada correctamente" });
-  }
-);
-
 
 // ======================================================
 // DIRIGENTES
@@ -391,6 +357,51 @@ router.get(
     }
 
     res.json(result.rows[0]);
+  }
+);
+
+// ======================================================
+// DETALLE DE DIRIGENTE PARA REGISTRO (CON DOCUMENTOS)
+// ======================================================
+router.get(
+  "/dirigente/:id/detalle",
+  verifyToken,
+  authorizeRoles(2, 5), // SOLO REGISTRO
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // 1. Dirigente
+      const dirigenteRes = await pool.query(
+        `SELECT *
+         FROM dirigentes
+         WHERE id = $1`,
+        [id]
+      );
+
+      if (!dirigenteRes.rowCount) {
+        return res.status(404).json({ error: "Dirigente no encontrado" });
+      }
+
+      const dirigente = dirigenteRes.rows[0];
+
+      // 2. Documentos
+      const documentosRes = await pool.query(
+        `SELECT *
+         FROM documentos
+         WHERE dirigente_id = $1`,
+        [id]
+      );
+
+      res.json({
+        dirigente,
+        documentos: documentosRes.rows
+      });
+
+    } catch (error) {
+      console.error("Error detalle dirigente (registro):", error);
+      res.status(500).json({ error: "Error al obtener detalle del dirigente" });
+    }
   }
 );
 

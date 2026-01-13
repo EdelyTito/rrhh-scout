@@ -62,7 +62,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <main v-if="!cargando" class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
         <!-- Título y botón volver -->
         <div class="mb-8 flex justify-between items-center">
@@ -142,11 +142,6 @@
                 <div>
                   <p class="text-sm font-medium text-gray-700 mb-1">Rama</p>
                   <p class="text-gray-900">{{ dirigente.rama }}</p>
-                </div>
-                
-                <div>
-                  <p class="text-sm font-medium text-gray-700 mb-1">Distrito</p>
-                  <p class="text-gray-900">{{ dirigente.distrito }}</p>
                 </div>
               </div>
             </div>
@@ -339,53 +334,7 @@
                 >
                   Modificar dirigente
                 </button>
-                
-                <button 
-                  @click="deshabilitarDirigente"
-                  class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition duration-200 font-medium"
-                >
-                  Eliminar dirigente
-                </button>
-
-                <!-- Botones adicionales -->
-                <div class="pt-4 border-t border-gray-200">
-                  <button 
-                    @click="descargarTodo"
-                    class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium mb-2"
-                  >
-                    Descargar todo
-                  </button>
-                  
-                  <button 
-                    @click="generarCertificado"
-                    class="w-full py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium"
-                  >
-                    Generar certificado
-                  </button>
-                </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Historial de cambios -->
-        <div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-800 mb-4">Historial de cambios</h2>
-          
-          <div class="space-y-4">
-            <div v-for="cambio in historial" :key="cambio.id" class="border-l-4 border-gray-300 pl-4 py-2">
-              <div class="flex justify-between items-start">
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ cambio.descripcion }}</p>
-                  <p class="text-xs text-gray-500">{{ cambio.detalle }}</p>
-                </div>
-                <span class="text-xs text-gray-500">{{ cambio.fecha }}</span>
-              </div>
-            </div>
-            
-            <!-- Sin historial -->
-            <div v-if="historial.length === 0" class="text-center py-4">
-              <p class="text-sm text-gray-500">No hay historial de cambios registrado</p>
             </div>
           </div>
         </div>
@@ -398,12 +347,16 @@
         </footer>
       </div>
     </main>
+    <div v-else class="flex justify-center py-20">
+      <span class="text-gray-500">Cargando dirigente...</span>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { dirigentesService } from '../../services/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -416,33 +369,71 @@ const formatearFecha = (fecha) =>
 const dirigente = ref(null)
 const cargando = ref(true)
 
-const historial = ref([
-  {
-    id: 1,
-    fecha: '25/03/2025',
-    descripcion: 'Habilitación aprobada',
-    detalle: 'Solicitud #001 aprobada por Responsable de Registro'
-  },
-  {
-    id: 2,
-    fecha: '20/03/2025',
-    descripcion: 'Solicitud recibida',
-    detalle: 'Formulario de habilitación enviado por el dirigente'
-  }
-])
-
 onMounted(async () => {
-  const id = route.params.id
+  console.log('Entró al detalle');
+  const id = route.params.id;
+
   try {
-    const response = await registroService.getDirigenteDetalle(id)
-    dirigente.value = response.data
+    const response = await dirigentesService.getDirigenteDetalle(id);
+    console.log('Respuesta del servidor:', response.data);
+
+    const { dirigente: dirigenteData, documentos } = response.data;
+    dirigente.value = mapearDirigente(dirigenteData, documentos);
+
   } catch (error) {
-    console.error(error)
-    alert('Error al cargar dirigente')
+    console.error(error);
+    alert("Error al cargar dirigente");
   } finally {
-    cargando.value = false
+    console.log('Finalizando carga');
+    cargando.value = false;
   }
-})
+});
+
+const mapearDirigente = (d = {}, documentos = []) => {
+  const certFormacion = documentos.filter(doc => doc.tipo === 'FORMACION');
+  const certNoViolencia = documentos.find(doc => doc.tipo === 'NO_VIOLENCIA');
+  const valoracion = documentos.find(doc => doc.tipo === 'VALORACION');
+
+  return {
+    id: d.id,
+    nombreCompleto: d.nombre ?? '—',
+    ci: d.ci ?? '—',
+    genero: d.genero ?? '—',
+    fechaNacimiento: d.fecha_nacimiento ?? null,
+    grupoScout: d.grupo ?? '—',
+    rama: d.rama ?? '—',
+    estadoHabilitacion: (d.estado || 'habilitado').toLowerCase(),
+    anosRegistrados: d.anios_servicio ?? '—',
+
+    cargoDistrital: d.cargo_actual ?? '—',
+    cargoGrupo1: d.cargo_actual ?? '—',
+    cargoGrupo2: null,
+    cargoGrupo3: null,
+
+    programaJovenes: '—',
+    formadorLideres: null,
+    gestionInstitucional: null,
+
+    certificadosFormacion: certFormacion.map(doc => ({
+      nombre: doc.nombre_archivo,
+      url: doc.url
+    })),
+
+    certificadoNoViolencia: certNoViolencia
+      ? { nombre: certNoViolencia.nombre_archivo, url: certNoViolencia.url }
+      : { nombre: 'No adjuntado', url: null },
+
+    valoracionPerfil: valoracion
+      ? { nombre: valoracion.nombre_archivo, url: valoracion.url }
+      : null,
+
+    fechaHabilitacion: d.fecha_actualizacion
+      ? new Date(d.fecha_actualizacion).toLocaleDateString('es-BO')
+      : '—',
+
+    fechaVencimiento: '—'
+  };
+};
 
 const navClass = (pathExacto, incluye = false) => {
   const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
@@ -487,23 +478,8 @@ const descargarArchivo = (archivo) => {
   }
 }
 
-const descargarTodo = () => {
-  alert('Descargando todos los archivos del dirigente...')
-}
-
-const generarCertificado = () => {
-  alert('Generando certificado de habilitación...')
-}
-
 const editarDirigente = () => {
   router.push(`/registro/dirigente/${dirigente.value.id}/editar`)
-}
-
-const deshabilitarDirigente = () => {
-  if (confirm(`¿Está seguro de eliminar al dirigente ${dirigente.value.nombreCompleto}? Esta acción no se puede deshacer.`)) {
-    alert('Dirigente eliminado exitosamente')
-    router.push('/registro/dirigentes-habilitados')
-  }
 }
 
 const cerrarSesion = () => {
