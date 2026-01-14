@@ -10,6 +10,7 @@ import AdminDashboard from '../views/admin/AdminDashboard.vue'
 import ListaUsuarios from '../views/admin/ListaUsuarios.vue'
 import LogsSistema from '../views/admin/LogsSistema.vue'
 import AdminRegistro from '../views/admin/dashboard/AdminRegistro.vue'
+import AdminFormacion from '../views/admin/dashboard/AdminFormacion.vue'
 import AdminInicio from '../views/admin/dashboard/AdminInicio.vue'
 
 // SEGUIMIENTO

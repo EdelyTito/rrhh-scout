@@ -157,12 +157,15 @@ router.get("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM
     }
 
     const result = await pool.query(
-      `
-      SELECT m.*
+      `SELECT 
+        m.*,
+        tm.nombre AS tipo_modulo,
+        f.nombre AS formador
       FROM modulos_curso m
-      WHERE m.curso_id = $1
-      ORDER BY m.id ASC
-      `,
+      LEFT JOIN tipos_modulo tm ON tm.id = m.tipo_modulo_id
+      LEFT JOIN formadores f ON f.id = m.formador_id
+      WHERE m.curso_id = $1;
+      ORDER BY m.id ASC`,
       [cursoId]
     );
 
@@ -177,7 +180,13 @@ router.post("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FOR
   try {
     const { cursoId } = req.params;
     const data = req.body || {};
-    const { titulo, descripcion, duracion_horas } = data;
+    const {
+      titulo,
+      descripcion,
+      duracion_horas,
+      tipo_modulo_id,
+      formador_id
+    } = data;
 
     if (!titulo || !duracion_horas) {
       return res.status(400).json({ error: "Debe especificar título y duración del módulo" });
@@ -186,10 +195,37 @@ router.post("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FOR
     const curso = await pool.query("SELECT id FROM cursos WHERE id=$1", [cursoId]);
     if (curso.rowCount === 0) return res.status(404).json({ error: "Curso no encontrado" });
 
+    // Validar que el formador pueda dictar ese tipo de módulo
+    const validacion = await pool.query(
+      `
+      SELECT 1
+      FROM formadores_tipos_modulo
+      WHERE formador_id = $1
+        AND tipo_modulo_id = $2
+      `,
+      [formador_id, tipo_modulo_id]
+    );
+
+    if (validacion.rowCount === 0) {
+      return res.status(400).json({
+        error: "El formador no está habilitado para este tipo de módulo"
+      });
+    }
+
+
     const result = await pool.query(
-      `INSERT INTO modulos_curso (curso_id, titulo, descripcion, duracion_horas)
-       VALUES ($1,$2,$3,$4) RETURNING *`,
-      [cursoId, titulo, descripcion, duracion_horas]
+      `INSERT INTO modulos_curso
+      (curso_id, titulo, descripcion, duracion_horas, tipo_modulo_id, formador_id)
+      VALUES ($1,$2,$3,$4,$5,$6)
+      RETURNING *`,
+      [
+        cursoId,
+        titulo,
+        descripcion,
+        duracion_horas,
+        tipo_modulo_id,
+        formador_id
+      ]
     );
 
     await registrarLog(
@@ -205,6 +241,290 @@ router.post("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FOR
     res.status(500).json({ error: "Error interno al crear módulo" });
   }
 });
+
+////editar modulo
+router.put(
+  "/modulos/:moduloId",
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  validarModuloId,
+  validarModulo,
+  validar,
+  async (req, res) => {
+    try {
+      const { moduloId } = req.params;
+      const {
+        titulo,
+        descripcion,
+        duracion_horas,
+        tipo_modulo_id,
+        formador_id
+      } = req.body || {};
+
+      // Verificar que el módulo exista
+      const moduloExist = await pool.query(
+        "SELECT id, curso_id FROM modulos_curso WHERE id = $1",
+        [moduloId]
+      );
+
+      if (moduloExist.rowCount === 0) {
+        return res.status(404).json({ error: "Módulo no encontrado" });
+      }
+
+      // Validar que el formador pueda dictar el tipo de módulo
+      const validacion = await pool.query(
+        `
+        SELECT 1
+        FROM formadores_tipos_modulo
+        WHERE formador_id = $1
+          AND tipo_modulo_id = $2
+        `,
+        [formador_id, tipo_modulo_id]
+      );
+
+      if (validacion.rowCount === 0) {
+        return res.status(400).json({
+          error: "El formador no está habilitado para este tipo de módulo"
+        });
+      }
+
+      // Actualizar módulo
+      const result = await pool.query(
+        `
+        UPDATE modulos_curso
+        SET titulo = $1,
+            descripcion = $2,
+            duracion_horas = $3,
+            tipo_modulo_id = $4,
+            formador_id = $5
+        WHERE id = $6
+        RETURNING *
+        `,
+        [
+          titulo,
+          descripcion,
+          duracion_horas,
+          tipo_modulo_id,
+          formador_id,
+          moduloId
+        ]
+      );
+
+      await registrarLog(
+        req.user.id,
+        "Actualizó módulo de curso",
+        "modulos_curso",
+        moduloId,
+        `Módulo actualizado: ${titulo}`
+      );
+
+      res.json({
+        message: "Módulo actualizado correctamente",
+        modulo: result.rows[0]
+      });
+
+    } catch (err) {
+      console.error("Error al actualizar módulo:", err);
+      res.status(500).json({ error: "Error interno al actualizar módulo" });
+    }
+  }
+);
+
+
+//////////////////////
+////FORMADORES////////
+//////////////////////
+
+router.get('/formadores', verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM formadores
+      ORDER BY nombre
+    `)
+    res.json(result.rows)
+  } catch (err) {
+    console.error('Error obteniendo formadores:', err)
+    res.status(500).json({ error: 'Error obteniendo formadores' })
+  }
+})
+
+router.post('/formadores', verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+  try {
+    const {
+      nombre,
+      nivel_programa,
+      nivel_formador,
+      nivel_gestion,
+      telefono,
+      email
+    } = req.body
+
+    if (!nombre) {
+      return res.status(400).json({ error: 'El nombre es obligatorio' })
+    }
+
+    const result = await pool.query(`
+      INSERT INTO formadores
+      (nombre, nivel_programa, nivel_formador, nivel_gestion, telefono, email)
+      VALUES ($1,$2,$3,$4,$5,$6)
+      RETURNING *
+    `, [
+      nombre,
+      nivel_programa,
+      nivel_formador,
+      nivel_gestion,
+      telefono,
+      email
+    ])
+
+    res.status(201).json(result.rows[0])
+  } catch (err) {
+    console.error('Error creando formador:', err)
+    res.status(500).json({ error: 'Error creando formador' })
+  }
+})
+
+router.put(
+  '/formadores/:id/tipos-modulo',
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+      const { tipos_modulo } = req.body // array de IDs
+
+      if (!Array.isArray(tipos_modulo)) {
+        return res.status(400).json({ error: 'tipos_modulo debe ser un array' })
+      }
+
+      await pool.query(
+        'DELETE FROM formadores_tipos_modulo WHERE formador_id = $1',
+        [id]
+      )
+
+      for (const tipoId of tipos_modulo) {
+        await pool.query(
+          `INSERT INTO formadores_tipos_modulo (formador_id, tipo_modulo_id)
+           VALUES ($1, $2)`,
+          [id, tipoId]
+        )
+      }
+
+      res.json({ message: 'Módulos actualizados correctamente' })
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error actualizando módulos del formador' })
+    }
+  }
+)
+
+
+//////////////////////
+////TIPOS MODULO//////
+//////////////////////
+
+router.get('/tipos-modulo', verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM tipos_modulo
+      WHERE activo = true
+      ORDER BY nombre
+    `)
+    res.json(result.rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Error obteniendo tipos de módulo' })
+  }
+})
+
+router.post('/tipos-modulo', verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+  try {
+    const { nombre } = req.body
+    if (!nombre) {
+      return res.status(400).json({ error: 'Nombre obligatorio' })
+    }
+
+    const result = await pool.query(`
+      INSERT INTO tipos_modulo (nombre)
+      VALUES ($1)
+      RETURNING *
+    `, [nombre])
+
+    res.status(201).json(result.rows[0])
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Error creando tipo de módulo' })
+  }
+})
+
+router.get('/tipos-modulo/:id/formadores', verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const result = await pool.query(`
+      SELECT f.id, f.nombre
+      FROM formadores f
+      JOIN formadores_tipos_modulo ftm
+        ON ftm.formador_id = f.id
+      WHERE ftm.tipo_modulo_id = $1
+        AND f.activo = true
+      ORDER BY f.nombre
+    `, [id])
+
+    res.json(result.rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Error obteniendo formadores por tipo de módulo' })
+  }
+})
+
+router.get(
+  '/formadores/:id/tipos-modulo',
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+
+      const result = await pool.query(`
+        SELECT tm.id, tm.nombre
+        FROM tipos_modulo tm
+        JOIN formadores_tipos_modulo ftm
+          ON ftm.tipo_modulo_id = tm.id
+        WHERE ftm.formador_id = $1
+        ORDER BY tm.nombre
+      `, [id])
+
+      res.json(result.rows)
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error obteniendo módulos del formador' })
+    }
+  }
+)
+
+
+//TIPO DE MODULO QUE DA FORMADOR
+router.post('/formadores/:id/tipos-modulo', verifyToken, authorizeRoles(...ROLES_FORM), async (req, res) => {
+  try {
+    const { id } = req.params
+    const { tipo_modulo_id } = req.body
+
+    await pool.query(`
+      INSERT INTO formadores_tipos_modulo (formador_id, tipo_modulo_id)
+      VALUES ($1, $2)
+      ON CONFLICT DO NOTHING
+    `, [id, tipo_modulo_id])
+
+    res.status(201).json({ message: 'Tipo de módulo asignado al formador' })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Error asignando tipo de módulo' })
+  }
+})
+
 
 //
 // 🟣 ASISTENCIAS

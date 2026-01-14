@@ -67,7 +67,15 @@ export const validarModulo = [
 
   body("duracion_horas")
     .isInt({ min: 1, max: 500 })
-    .withMessage("Duración inválida")
+    .withMessage("Duración inválida"),
+
+  body("tipo_modulo_id")
+    .isInt()
+    .withMessage("Tipo de módulo inválido"),
+
+  body("formador_id")
+    .isInt()
+    .withMessage("Formador inválido")
 ]
 
 /* ============================
