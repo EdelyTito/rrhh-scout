@@ -180,7 +180,7 @@
                       Cargo Grupo
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha Aprobación
+                      Años de servicio
                     </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Acciones
@@ -193,16 +193,11 @@
                     :key="dirigente.id"
                     class="hover:bg-gray-50 transition duration-150"
                   >
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-5 py-4 whitespace-nowrap">
                       <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
-                          <span class="text-sm font-medium text-gray-700">
-                            {{ obtenerIniciales(dirigente.nombre) }}
-                          </span>
-                        </div>
-                        <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">{{ dirigente.nombre }}</div>
-                          <div class="text-xs text-gray-500">{{ dirigente.ci || 'CI no disponible' }}</div>
+                        <div class="ml-1">
+                          <div class="text-sm font-medium text-gray-900">{{ dirigente.nombre_completo }}</div>
+                          <div class="text-xs text-gray-500">CI: {{ dirigente.ci || 'CI no disponible' }}</div>
                         </div>
                       </div>
                     </td>
@@ -224,11 +219,8 @@
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">
-                        {{ dirigente.fecha_aprobacion_formateada || 'Sin fecha' }}
-                      </div>
-                      <div v-if="dirigente.anios_servicio" class="text-xs text-gray-500">
-                        {{ dirigente.anios_servicio }} años de servicio
+                      <div v-if="dirigente.anios_servicio !== null" class="text-s text-gray-500">
+                        {{ dirigente.anios_servicio }} años
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -349,7 +341,7 @@ const cargarDirigentesHabilitados = async () => {
     const response = await registroService.getDirigentesHabilitados()
     console.log('Respuesta recibida:', response.data)
     
-    dirigentesHabilitados.value = response.data || []
+    dirigentesHabilitados.value = (response.data || []).map(mapearDirigente)
     
     console.log('Dirigentes cargados:', dirigentesHabilitados.value.length)
     
@@ -367,13 +359,28 @@ const cargarDirigentesHabilitados = async () => {
   }
 }
 
+const mapearDirigente = (d = {}) => ({
+  id: d.id,
+
+  nombre_completo: d.nombre_completo ?? '—',
+  ci: d.ci ?? null,
+
+  grupo: d.grupo ?? 'Grupo no especificado',
+  rama: d.rama ?? 'Rama no especificada',
+
+  cargo_grupo_1: d.cargo_grupo_1 ?? 'Sin cargo',
+  nivel_scout: d.nivel_scout ?? null,
+
+  anios_servicio: d.anios_servicio ?? null
+})
+
 const dirigentesFiltrados = computed(() => {
   let filtrados = [...dirigentesHabilitados.value]
   
   if (filtroBusqueda.value) {
     const busqueda = filtroBusqueda.value.toLowerCase()
     filtrados = filtrados.filter(d => 
-      (d.nombre && d.nombre.toLowerCase().includes(busqueda)) ||
+      (d.nombre_completo && d.nombre_completo.toLowerCase().includes(busqueda)) ||
       (d.ci && d.ci.toString().includes(busqueda)) ||
       (d.grupo && d.grupo.toLowerCase().includes(busqueda))
     )
@@ -412,7 +419,7 @@ const totalPaginas = computed(() => {
     if (filtroBusqueda.value) {
       const busqueda = filtroBusqueda.value.toLowerCase()
       filtrados = filtrados.filter(d =>
-        (d.nombre && d.nombre.toLowerCase().includes(busqueda)) ||
+        (d.nombre_completo && d.nombre_completo.toLowerCase().includes(busqueda)) ||
         (d.ci && d.ci.toString().includes(busqueda)) ||
         (d.grupo && d.grupo.toLowerCase().includes(busqueda))
       )
@@ -447,12 +454,12 @@ const navegarA = (path) => {
   router.push(path)
 }
 
-const obtenerIniciales = (nombre) => {
-  if (!nombre || typeof nombre !== 'string') {
+const obtenerIniciales = (nombreCompleto) => {
+  if (!nombreCompleto || typeof nombreCompleto !== 'string') {
     return 'NN'
   }
-  
-  const partes = nombre.trim().split(' ')
+
+  const partes = nombreCompleto.trim().split(' ')
   const iniciales = partes
     .filter(parte => parte.length > 0)
     .map(parte => parte[0].toUpperCase())

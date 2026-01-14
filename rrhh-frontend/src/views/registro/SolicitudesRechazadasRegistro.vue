@@ -183,11 +183,6 @@
                   >
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
-                          <span class="text-sm font-medium text-gray-700">
-                            {{ obtenerIniciales(solicitud.nombre) }}
-                          </span>
-                        </div>
                         <div class="ml-4">
                           <div class="text-sm font-medium text-gray-900">
                             {{ solicitud.nombre }}
@@ -212,7 +207,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm text-gray-900">
-                        {{ solicitud.grupo}}
+                        {{ solicitud.grupo || 'Grupo no especificado'}}
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -443,25 +438,6 @@ const navClass = (pathExacto, incluye = false) => {
 
 const navegarA = (path) => {
   router.push(path)
-}
-
-const obtenerIniciales = (nombre) => {
-  // Si nombre es undefined, null o vacío, retorna "NN"
-  if (!nombre || typeof nombre !== 'string') {
-    return 'NN'
-  }
-  
-  // Divide el nombre y obtiene las iniciales
-  const partes = nombre.trim().split(' ')
-  
-  // Filtra partes vacías y obtiene las primeras letras
-  const iniciales = partes
-    .filter(parte => parte.length > 0)
-    .map(parte => parte[0].toUpperCase())
-    .join('')
-  
-  // Retorna máximo 2 iniciales
-  return iniciales.slice(0, 2) || 'NN'
 }
 
 const getColorRama = (rama) => {

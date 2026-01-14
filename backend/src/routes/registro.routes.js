@@ -2,8 +2,6 @@ import express from "express";
 import { pool } from "../config/db.js";
 import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
-import { sendEmail } from "../utils/email.js";
-import { registrarLog } from "../utils/logger.js";
 
 import {
   validarIdSolicitud,
@@ -14,7 +12,6 @@ import {
 
 import { validarIdDirigente } from "../middleware/validators/dirigentes.validators.js";
 import { validar } from "../middleware/validators/index.js";
-import { rechazarSolicitud } from "../controllers/registro.controller.js";
 
 const router = express.Router();
 
@@ -36,7 +33,7 @@ router.post(
         grupo,
         rama,
         formulario_asb,
-        anios_registrados,
+        anios_servicio,
         cargo_distrital,
         cargo_grupo_1,
         cargo_grupo_2,
@@ -55,7 +52,7 @@ router.post(
           grupo,
           rama,
           formulario_asb,
-          anios_registrados,
+          anios_servicio,
           cargo_distrital,
           cargo_grupo_1,
           cargo_grupo_2,
@@ -77,7 +74,7 @@ router.post(
           grupo,
           rama,
           formulario_asb,
-          anios_registrados,
+          anios_servicio,
           cargo_distrital,
           cargo_grupo_1,
           cargo_grupo_2,
@@ -183,7 +180,7 @@ router.get(
       SELECT *
       FROM dirigentes
       WHERE estado = 'Habilitado'
-      ORDER BY nombre ASC
+      ORDER BY nombre_completo ASC
     `);
 
     res.json(result.rows);
@@ -203,7 +200,7 @@ router.get(
         s.*,
         COALESCE(d.grupo, s.grupo) AS grupo,
         COALESCE(d.rama, s.rama) AS rama,
-        d.nombre AS nombre_dirigente
+        d.nombre_completo AS nombre_dirigente
       FROM solicitudes_registro s
       LEFT JOIN dirigentes d ON d.id = s.dirigente_id
       WHERE s.estado = 'pendiente'
@@ -269,17 +266,34 @@ router.put(
       if (estado === "habilitado") {
         const dirigente = await client.query(
           `INSERT INTO dirigentes (
-            nombre,
+            nombre_completo,
             ci,
             fecha_nacimiento,
             genero,
             grupo,
             rama,
+
+            anios_servicio,
+
+            cargo_distrital,
+            cargo_grupo_1,
+            cargo_grupo_2,
+            cargo_grupo_3,
+
+            programa_jovenes,
+            formador_lideres,
+            gestion_institucional,
+            formulario_asb,
+
             estado,
             fecha_actualizacion
           )
           VALUES (
-            $1,$2,$3,$4,$5,$6,'Habilitado', NOW()
+            $1,$2,$3,$4,$5,$6,
+            $7,
+            $8,$9,$10,$11,
+            $12,$13,$14,$15,
+            'Habilitado', NOW()
           )
           RETURNING id`,
           [
@@ -289,6 +303,18 @@ router.put(
             s.genero,
             s.grupo,
             s.rama,
+
+            s.anios_servicio,        // ✅ CLAVE
+
+            s.cargo_distrital,
+            s.cargo_grupo_1,
+            s.cargo_grupo_2,
+            s.cargo_grupo_3,
+
+            s.programa_jovenes,
+            s.formador_lideres,
+            s.gestion_institucional,
+            s.formulario_asb
           ]
         );
 
@@ -363,19 +389,49 @@ router.get(
 // ======================================================
 // DETALLE DE DIRIGENTE PARA REGISTRO (CON DOCUMENTOS)
 // ======================================================
+// registro.routes.js
 router.get(
   "/dirigente/:id/detalle",
   verifyToken,
-  authorizeRoles(2, 5), // SOLO REGISTRO
+  authorizeRoles(1, 2, 5),
   async (req, res) => {
     try {
       const { id } = req.params;
 
-      // 1. Dirigente
       const dirigenteRes = await pool.query(
-        `SELECT *
-         FROM dirigentes
-         WHERE id = $1`,
+        `SELECT
+          d.id,
+          d.nombre_completo,
+          d.ci,
+          d.genero,
+          d.fecha_nacimiento,
+          d.grupo,
+          d.rama,
+          d.estado,
+          d.fecha_actualizacion,
+
+          -- Scout
+          d.anios_servicio,
+          d.cargo_distrital,
+          d.cargo_grupo_1,
+          d.cargo_grupo_2,
+          d.cargo_grupo_3,
+
+          -- Formación
+          d.programa_jovenes,
+          d.formador_lideres,
+          d.gestion_institucional,
+
+          -- Administrativos
+          d.telefono,
+          d.correo,
+          d.direccion_domicilio,
+          d.grupo_anterior,
+          d.fecha_ingreso,
+          d.distrito,
+          d.formulario_asb
+        FROM dirigentes d
+        WHERE d.id = $1`,
         [id]
       );
 
@@ -383,23 +439,22 @@ router.get(
         return res.status(404).json({ error: "Dirigente no encontrado" });
       }
 
-      const dirigente = dirigenteRes.rows[0];
-
-      // 2. Documentos
       const documentosRes = await pool.query(
-        `SELECT *
-         FROM documentos
-         WHERE dirigente_id = $1`,
+        `
+        SELECT id, tipo_documento, nombre_archivo
+        FROM documentos_dirigente
+        WHERE dirigente_id = $1
+        `,
         [id]
       );
 
       res.json({
-        dirigente,
+        dirigente: dirigenteRes.rows[0],
         documentos: documentosRes.rows
       });
 
     } catch (error) {
-      console.error("Error detalle dirigente (registro):", error);
+      console.error("Error detalle dirigente:", error.message);
       res.status(500).json({ error: "Error al obtener detalle del dirigente" });
     }
   }
@@ -413,8 +468,33 @@ router.put(
   validarActualizarDirigenteRegistro,
   validar,
   async (req, res) => {
-    // (tu lógica intacta)
-    res.json({ message: "Dirigente actualizado correctamente" });
+    const campos = []
+    const valores = []
+    let idx = 1
+
+    for (const [key, value] of Object.entries(req.body)) {
+      campos.push(`${key} = $${idx}`)
+      valores.push(value)
+      idx++
+    }
+
+    if (!campos.length) {
+      return res.status(400).json({ error: 'No hay campos para actualizar' })
+    }
+
+    valores.push(req.params.id)
+
+    await pool.query(
+      `
+      UPDATE dirigentes
+      SET ${campos.join(', ')},
+          fecha_actualizacion = NOW()
+      WHERE id = $${idx}
+      `,
+      valores
+    )
+
+    res.json({ message: 'Dirigente actualizado correctamente' })
   }
 );
 

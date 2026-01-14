@@ -93,8 +93,6 @@ export const dirigentesService = {
   createDirigente: (data) => api.post('/dirigentes', data),
   updateDirigente: (id, data) => api.put(`/dirigentes/${id}`, data),
   deleteDirigente: (id) => api.delete(`/dirigentes/${id}`),
-  getDirigenteDetalle: (id) =>
-    api.get(`/dirigentes/${id}/detalle`)
 }
 
 export const formacionService = {
@@ -152,6 +150,11 @@ export const registroService = {
 
   getDirigentePorId: (id) =>
     api.get(`/registro/dirigente/${id}`),
+  
+  getDirigenteDetalle: (id) =>
+    api.get(`/registro/dirigente/${id}/detalle`,{
+      timeout: 30000
+    }),
 
   // DASHBOARD
   getEstadisticas: () => api.get('/registro/estadisticas'),

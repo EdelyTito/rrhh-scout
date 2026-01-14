@@ -29,6 +29,16 @@ const upload = multer({
   }
 })
 
+const tiposUnicos = [
+  "CI_ANVERSO",
+  "CI_REVERSO",
+  "CROQUIS_DOMICILIO",
+  "SAFE_FROM_HARM",
+  "CODIGO_CONDUCTA",
+  "CERTIFICADO_NO_VIOLENCIA",
+  "VALORACION_PERFIL"
+]
+
 // ===============================
 // SUBIR DOCUMENTO
 // ===============================
@@ -39,21 +49,29 @@ router.post(
     const client = await pool.connect()
 
     try {
-      const { solicitud_id, tipo_documento } = req.body
+      const { solicitud_id, dirigente_id, tipo_documento } = req.body
       const archivo = req.file
 
-      if (!solicitud_id || !tipo_documento || !archivo) {
+      if (!solicitud_id && !dirigente_id || !tipo_documento || !archivo) {
         return res.status(400).json({
-          error: "Datos incompletos"
+          error: "Debe enviar solicitud_id o dirigente_id, tipo_documento y archivo"
         })
       }
 
       // Tipos válidos de documentos
       const tiposValidos = [
-        "CERTIFICADO_NO_VIOLENCIA",
-        "CERTIFICADOS_FORMACION",
-        "VALORACION_PERFIL"
-      ]
+      // Registro administrativo
+      "CI_ANVERSO",
+      "CI_REVERSO",
+      "CROQUIS_DOMICILIO",
+      "SAFE_FROM_HARM",
+      "CODIGO_CONDUCTA",
+
+      // Formación / requisitos
+      "CERTIFICADO_FORMACION",
+      "CERTIFICADO_NO_VIOLENCIA",
+      "VALORACION_PERFIL"
+    ]
 
       if (!tiposValidos.includes(tipo_documento)) {
         return res.status(400).json({
@@ -63,17 +81,39 @@ router.post(
 
       await client.query("BEGIN")
 
+      if (tiposUnicos.includes(tipo_documento)) {
+        if (dirigente_id) {
+          await client.query(
+            `DELETE FROM documentos_dirigente
+            WHERE dirigente_id = $1
+              AND tipo_documento = $2`,
+            [dirigente_id, tipo_documento]
+          )
+        }
+
+        if (solicitud_id) {
+          await client.query(
+            `DELETE FROM documentos_dirigente
+            WHERE solicitud_id = $1
+              AND tipo_documento = $2`,
+            [solicitud_id, tipo_documento]
+          )
+        }
+      }
+
       await client.query(
         `INSERT INTO documentos_dirigente (
           solicitud_id,
+          dirigente_id,
           tipo_documento,
           nombre_archivo,
           mime_type,
           archivo,
           fecha_subida
-        ) VALUES ($1,$2,$3,$4,$5,NOW())`,
+        ) VALUES ($1,$2,$3,$4,$5,$6,NOW())`,
         [
-          solicitud_id,
+          solicitud_id || null,
+          dirigente_id || null,
           tipo_documento,
           archivo.originalname,
           archivo.mimetype,
@@ -126,6 +166,26 @@ router.get(
 
     } catch (err) {
       console.error("Error al obtener documentos:", err)
+      res.status(500).json({ error: "Error al obtener documentos" })
+    }
+  }
+)
+
+router.get(
+  "/dirigente/:id",
+  async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT id, tipo_documento, nombre_archivo, fecha_subida
+         FROM documentos_dirigente
+         WHERE dirigente_id = $1
+         ORDER BY fecha_subida ASC`,
+        [req.params.id]
+      )
+
+      res.json(result.rows)
+    } catch (err) {
+      console.error(err)
       res.status(500).json({ error: "Error al obtener documentos" })
     }
   }

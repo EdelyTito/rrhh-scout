@@ -39,7 +39,7 @@ export const validarSolicitudPublica = [
     .optional()
     .isString(),
 
-  body("anios_registrados")
+  body("anios_servicio")
     .optional()
     .isInt({ min: 0 }),
 
@@ -53,6 +53,7 @@ export const validarSolicitudPublica = [
   body("gestion_institucional").optional(),
 
   body("formulario_asb")
+    .optional()
     .isBoolean()
 ]
 
@@ -77,6 +78,7 @@ export const validarActualizarSolicitud = [
 export const validarActualizarDirigenteRegistro = [
 
   body("nombre_completo")
+    .optional()
     .trim()
     .isLength({ min: 3 })
     .withMessage("Nombre inválido"),
@@ -92,8 +94,8 @@ export const validarActualizarDirigenteRegistro = [
     .withMessage("Correo inválido"),
 
   body("grupo")
-    .notEmpty()
-    .withMessage("Grupo obligatorio"),
+    .optional()
+    .isString(),
 
   body("rama")
     .optional()
@@ -101,5 +103,26 @@ export const validarActualizarDirigenteRegistro = [
 
   body("nivel_scout")
     .optional()
-    .isString()
+    .isString(),
+
+  body("anios_servicio")
+    .optional()
+    .isInt({ min: 0 }),
+
+  body("cargo_distrital").optional(),
+  body("cargo_grupo_1").optional(),
+  body("cargo_grupo_2").optional(),
+  body("cargo_grupo_3").optional(),
+
+  body("programa_jovenes").optional(),
+  body("formador_lideres").optional(),
+  body("gestion_institucional").optional(),
+  body("telefono").optional().isString(),
+  body("correo").optional().isEmail(),
+  body("direccion_domicilio").optional().isString(),
+  body("grupo_anterior").optional().isString(),
+  body("fecha_ingreso").optional().isISO8601(),
+  body("formulario_asb").optional().isBoolean(),
+
+  body("estado").optional().isString()
 ]

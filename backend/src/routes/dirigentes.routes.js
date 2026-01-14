@@ -26,35 +26,6 @@ router.get("/", verifyToken, authorizeRoles(1, 2, 5), async (req, res) => {
   }
 });
 
-// DETALLE COMPLETO DE DIRIGENTE (CON DOCUMENTOS)
-router.get("/:id/detalle", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const dirigenteRes = await pool.query(
-      `SELECT * FROM dirigentes WHERE id = $1`,
-      [id]
-    );
-
-    if (!dirigenteRes.rowCount) {
-      return res.status(404).json({ error: "Dirigente no encontrado" });
-    }
-
-    const documentosRes = await pool.query(
-      `SELECT * FROM documentos_dirigente WHERE dirigente_id = $1`,
-      [id]
-    );
-
-    res.json({
-      dirigente: dirigenteRes.rows[0],
-      documentos: documentosRes.rows
-    });
-  } catch (error) {
-    console.error("Error detalle dirigente:", error);
-    res.status(500).json({ error: "Error al obtener detalle del dirigente" });
-  }
-});
-
 //
 // CREAR NUEVO DIRIGENTE
 //
@@ -67,7 +38,7 @@ router.post(
   async (req, res) => {
     try {
       const {
-        nombre,
+        nombre_completo,
         ci,
         fecha_nacimiento,
         genero,
@@ -87,7 +58,7 @@ router.post(
 
       const result = await pool.query(
         `INSERT INTO dirigentes (
-          nombre, ci, fecha_nacimiento, genero,
+          nombre_completo, ci, fecha_nacimiento, genero,
           telefono, correo, direccion,
           grupo, rama, cargo_actual, nivel_scout,
           anios_servicio, grupo_anterior,
@@ -101,7 +72,7 @@ router.post(
         )
         RETURNING *`,
         [
-          nombre,
+          nombre_completo,
           ci,
           fecha_nacimiento,
           genero,
@@ -126,7 +97,7 @@ router.post(
         "Creó dirigente manualmente",
         "dirigentes",
         result.rows[0].id,
-        `Dirigente: ${nombre}`
+        `Dirigente: ${nombre_completo}`
       );
 
       res.status(201).json(result.rows[0]);
@@ -148,74 +119,95 @@ router.put(
   validar,
   async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.params
+
       const {
-        nombre,
+        nombre_completo,
         ci,
         fecha_nacimiento,
         genero,
         telefono,
         correo,
-        direccion,
         grupo,
         rama,
-        cargo_actual,
-        nivel_scout,
         anios_servicio,
         grupo_anterior,
-        fecha_ingreso,
-        estado,
-        distrito
-      } = req.body;
+        distrito,
+
+        cargo_distrital,
+        cargo_grupo_1,
+        cargo_grupo_2,
+        cargo_grupo_3,
+
+        programa_jovenes,
+        formador_lideres,
+        gestion_institucional,
+
+        estado
+      } = req.body
 
       const result = await pool.query(
-        `UPDATE dirigentes SET
-          nombre=$1,
+        `
+        UPDATE dirigentes SET
+          nombre_completo=$1,
           ci=$2,
           fecha_nacimiento=$3,
           genero=$4,
           telefono=$5,
           correo=$6,
-          direccion=$7,
-          grupo=$8,
-          rama=$9,
-          cargo_actual=$10,
-          nivel_scout=$11,
-          anios_servicio=$12,
-          grupo_anterior=$13,
-          fecha_ingreso=$14,
-          estado=$15,
-          distrito=$16,
+          grupo=$7,
+          rama=$8,
+          anios_servicio=$9,
+          grupo_anterior=$10,
+          distrito=$11,
+
+          cargo_distrital=$12,
+          cargo_grupo_1=$13,
+          cargo_grupo_2=$14,
+          cargo_grupo_3=$15,
+
+          programa_jovenes=$16,
+          formador_lideres=$17,
+          gestion_institucional=$18,
+
+          estado=$19,
           fecha_actualizacion=NOW()
-        WHERE id=$17
-        RETURNING *`,
+        WHERE id=$20
+        RETURNING *
+        `,
         [
-          nombre,
+          nombre_completo,
           ci,
           fecha_nacimiento,
           genero,
           telefono,
           correo,
-          direccion,
           grupo,
           rama,
-          cargo_actual,
-          nivel_scout,
           anios_servicio,
           grupo_anterior,
-          fecha_ingreso,
-          estado,
           distrito,
+
+          cargo_distrital,
+          cargo_grupo_1,
+          cargo_grupo_2,
+          cargo_grupo_3,
+
+          programa_jovenes,
+          formador_lideres,
+          gestion_institucional,
+
+          estado,
           id
         ]
-      );
+      )
 
-      res.json(result.rows[0]);
+      res.json(result.rows[0])
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Error al actualizar dirigente" });
+      console.error(err)
+      res.status(500).json({ error: "Error al actualizar dirigente" })
     }
   }
-);
+)
 
 export default router;

@@ -176,18 +176,18 @@ const routes = [
     },
   },
   {
-    path: '/registro/dirigente/:id',
-    name: 'DetalleDirigenteRegistro',
-    component: DetalleDirigenteRegistro,
+    path: '/registro/dirigente/:id/editar',
+    name: 'EditarDirigenteRegistro',
+    component: EditarDirigenteRegistro,
     meta: {
       requiresAuth: true,
       roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
     },
   },
   {
-    path: '/registro/dirigente/:id/editar',
-    name: 'EditarDirigenteRegistro',
-    component: EditarDirigenteRegistro,
+    path: '/registro/dirigente/:id',
+    name: 'DetalleDirigenteRegistro',
+    component: DetalleDirigenteRegistro,
     meta: {
       requiresAuth: true,
       roles: ['responsable_registro', 'subcomisionado_registro', 'admin']
