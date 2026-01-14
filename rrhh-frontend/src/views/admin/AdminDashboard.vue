@@ -1,180 +1,22 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <img 
-              src="/images/rraa.png" 
-              alt="Logo Distrito Scout"
-              class="h-10 w-auto"
-            >
-            <h1 class="text-2xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-            <button 
-              @click="cerrarSesion"
-              class="bg-white text-[#009d71] px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-200 font-semibold"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <AdminHeader
+      :nombre-responsable="nombreResponsable"
+      @logout="cerrarSesion"
+    />
 
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-          <button 
-            @click="() => navegarA('inicio')"
-            :class="navClass('inicio')"
-          >
-            Inicio
-          </button>
-          
-          <!-- Dropdown Comisiones (solo dashboard) -->
-          <div
-            v-if="rutaActiva === 'inicio'"
-            class="relative"
-          >
-            <button
-              @click="toggleComisiones"
-              :class="comisionesButtonClass()"
-            >
-              Comisiones
-              <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+    <AdminNav
+      :comisionesAbierto="comisionesAbierto"
+      @toggleComisiones="toggleComisiones"
+      @cerrarComisiones="comisionesAbierto = false"
+    />
 
-            <div
-              v-if="comisionesAbierto"
-              class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10"
-            >
-              <button
-                @click="cambiarVistaDashboard('seguimiento')"
-                :class="dropdownItemClass('seguimiento')"
-              >
-                <div class="font-medium">Seguimiento</div>
-                <div class="text-xs text-gray-500">Gestión y monitoreo</div>
-              </button>
-
-              <button
-                @click="cambiarVistaDashboard('formacion')"
-                :class="dropdownItemClass('formacion')"
-              >
-                <div class="font-medium">Formación</div>
-                <div class="text-xs text-gray-500">Cursos y capacitaciones</div>
-              </button>
-
-              <button
-                @click="cambiarVistaDashboard('registro')"
-                :class="dropdownItemClass('registro')"
-              >
-                <div class="font-medium">Registro y Habilitación</div>
-                <div class="text-xs text-gray-500">Dirigentes</div>
-              </button>
-            </div>
-          </div>
-
-          <button 
-            @click="() => navegarA('admin/lista-usuarios')"
-            :class="navClass('admin/lista-usuarios')"
-          >
-            Lista de usuarios
-          </button>
-          
-          <button 
-            @click="() => navegarA('admin/logs')"
-            :class="navClass('admin/logs')"
-          >
-            Logs del sistema
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-4 sm:px-6 lg:px-8">
-
-      <!-- DASHBOARD INICIO -->
-      <template v-if="vistaDashboard === 'inicio'">
-        <div class="px-4 py-4 sm:px-0">
-          <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">
-              Bienvenido Administrador
-            </h2>
-            <p class="text-sm text-gray-500 mt-2">
-              Último inicio de sesión:
-              <span class="font-medium text-gray-700">
-                {{ formatFechaHora(dashboard.ultimo_login) }}
-              </span>
-            </p>
-            <p class="text-gray-600">
-              Panel de control principal del sistema de Recursos Humanos
-            </p>
-          </div>
-
-          <!-- Statistics Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-            <!-- Seguimiento -->
-            <div class="bg-[#009d71] rounded-lg p-8 border-2 border-black shadow-lg">
-              <h3 class="text-lg font-bold text-white mb-4">Seguimiento</h3>
-              <p class="text-sm text-white">Solicitudes totales</p>
-              <p class="text-4xl font-bold text-white">
-                {{ dashboard.seguimiento.total }}
-              </p>
-              <p class="text-xs text-white mt-2">
-                ✔ {{ dashboard.seguimiento.aprobados }} aprobadas<br>
-                ⏳ {{ dashboard.seguimiento.pendientes }} pendientes
-              </p>
-            </div>
-
-            <!-- Formación -->
-            <div class="bg-white rounded-lg p-8 border-2 border-black shadow-lg">
-              <h3 class="text-lg font-bold text-gray-800 mb-4">Formación</h3>
-              <p class="text-sm text-gray-600">Cursos registrados</p>
-              <p class="text-4xl font-bold text-gray-900">
-                {{ dashboard.formacion.total_cursos }}
-              </p>
-              <p class="text-xs text-gray-500 mt-2">
-                {{ dashboard.formacion.cursos_activos }} activos
-              </p>
-            </div>
-
-            <!-- Registro -->
-            <div class="bg-[#d32d27] rounded-lg p-8 border-2 border-black shadow-lg">
-              <h3 class="text-lg font-bold text-white mb-4">
-                Registro y Habilitación
-              </h3>
-              <p class="text-sm text-white">Dirigentes habilitados</p>
-              <p class="text-4xl font-bold text-white">
-                {{ dashboard.registro.habilitados }}
-              </p>
-              <p class="text-xs text-white mt-2">
-                ⏳ {{ dashboard.registro.pendientes }} pendientes
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </template>
-
-      <!-- VISTAS DE COMISIONES -->
-      <AdminSeguimiento v-if="vistaDashboard === 'seguimiento'" />
-      <AdminFormacion v-if="vistaDashboard === 'formacion'" />
-      <AdminRegistro v-if="vistaDashboard === 'registro'" />
-
+      <router-view />
     </main>
 
-    <!-- Footer -->
     <footer class="bg-white border-t mt-12">
-      <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto py-6 px-4">
         <p class="text-center text-gray-500 text-sm">
           Desarrollado por Edely Tito - GSA
         </p>
@@ -184,27 +26,20 @@
 </template>
 
 <script setup>
+import AdminHeader from '../../components/admin/AdminHeader.vue'
+import AdminNav from '../../components/admin/AdminNav.vue'
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { adminService } from '../../services/api'
+import { watch } from 'vue'
 
-import AdminSeguimiento from './dashboard/AdminSeguimiento.vue'
-import AdminFormacion from './dashboard/AdminFormacion.vue'
-import AdminRegistro from './dashboard/AdminRegistro.vue'
-
-const vistaDashboard = ref('inicio')
-// inicio | seguimiento | formacion | registro
 
 const router = useRouter()
-const nombreResponsable = ref('Administrador')
-const rutaActiva = ref('inicio')
-const comisionesAbierto = ref(false)
+const route = useRoute()
 
-const cambiarVistaDashboard = (vista) => {
-  vistaDashboard.value = vista
-  rutaActiva.value = 'inicio' 
-  comisionesAbierto.value = false
-}
+const nombreResponsable = ref('Administrador')
+const comisionesAbierto = ref(false)
+const rutaActiva = ref('inicio')
 
 const dashboard = ref({
   seguimiento: { total: 0, aprobados: 0, pendientes: 0 },
@@ -245,64 +80,17 @@ const toggleComisiones = () => {
   comisionesAbierto.value = !comisionesAbierto.value
 }
 
-const navClass = (destino) => {
-  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
-
-  if (destino === 'inicio' && vistaDashboard.value === 'inicio') {
-    return `${base} border-[#009d71] text-[#009d71]`
-  }
-
-  if (rutaActiva.value === destino && destino !== 'inicio') {
-    return `${base} border-[#009d71] text-[#009d71]`
-  }
-
-  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
-}
-
-const comisionesButtonClass = () => {
-  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center'
-
-  if (comisionesAbierto.value || vistaDashboard.value !== 'inicio') {
-    return `${base} border-[#009d71] text-[#009d71]`
-  }
-
-  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
-}
-
-const dropdownItemClass = (vista) => {
-  const base = 'dropdown-item flex flex-col gap-0.5'
-
-  if (vistaDashboard.value === vista) {
-    return `${base} bg-[#009d71]/10 border-l-4 border-[#009d71]`
-  }
-
-  return base
-}
-
 const navegarA = (destino) => {
   rutaActiva.value = destino
   comisionesAbierto.value = false
-  
-  if (!destino) return
 
   if (destino === 'inicio') {
     vistaDashboard.value = 'inicio'
-    router.push('/admin').catch(()=>{})
+    router.push('/admin').catch(() => {})
     return
   }
 
-  if (destino.startsWith('/')) {
-    router.push(destino).catch(()=>{})
-    return
-  }
-
-  router.push(`/${destino}`).catch(()=>{})
-}
-
-const navegarAComision = (comision) => {
-  comisionesAbierto.value = false
-  rutaActiva.value = comision
-  router.push(`/${comision}`).catch(()=>{})
+  router.push(`/${destino}`).catch(() => {})
 }
 
 const cerrarSesion = () => {
@@ -310,20 +98,15 @@ const cerrarSesion = () => {
   localStorage.removeItem('token')
   router.push('/').catch(()=>{})
 }
+
+watch(
+  () => route.query.comision,
+  (comision) => {
+    if (comision) {
+      vistaDashboard.value = comision
+    }
+  },
+  { immediate: true }
+)
+
 </script>
-
-<style scoped>  
-  .dropdown-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  color: #374151;
-  background: white;
-}
-
-.dropdown-item:hover {
-  background-color: #f3f4f6;
-}
-</style>

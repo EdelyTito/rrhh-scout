@@ -9,6 +9,8 @@ import PrimerIngreso from '../views/PrimerIngreso.vue'
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
 import ListaUsuarios from '../views/admin/ListaUsuarios.vue'
 import LogsSistema from '../views/admin/LogsSistema.vue'
+import AdminRegistro from '../views/admin/dashboard/AdminRegistro.vue'
+import AdminInicio from '../views/admin/dashboard/AdminInicio.vue'
 
 // SEGUIMIENTO
 import SeguimientoDashboard from '../views/seguimiento/SeguimientoDashboard.vue'
@@ -86,30 +88,78 @@ const routes = [
   // ---------- ADMIN ----------
   {
     path: '/admin',
-    name: 'AdminDashboard',
     component: AdminDashboard,
     meta: {
       requiresAuth: true,
       roles: ['admin'],
     },
-  },
-  {
-    path: '/admin/lista-usuarios',
-    name: 'ListaUsuarios',
-    component: ListaUsuarios,
-    meta: {
-      requiresAuth: true,
-      roles: ['admin'],
-    },
-  },
-  {
-    path: '/admin/logs',
-    name: 'LogsSistema',
-    component: LogsSistema,
-    meta: {
-      requiresAuth: true,
-      roles: ['admin'],
-    },
+    children: [
+      {
+        path: '',
+        name: 'AdminInicio',
+        component: AdminInicio
+      },
+      {
+        path: 'lista-usuarios',
+        name: 'ListaUsuarios',
+        component: ListaUsuarios,
+      },
+      {
+        path: 'logs',
+        name: 'LogsSistema',
+        component: LogsSistema,
+      },
+
+      //REGISTRO SCRAPPING
+      {
+        path: 'registro',
+        component: AdminRegistro,
+        children: [
+          {
+            path: '',
+            name: 'AdminRegistroDashboard',
+            component: RegistroDashboard,
+            props: { embebido: true },
+          },
+          {
+            path: 'solicitudes-pendientes',
+            name: 'AdminSolicitudesPendientesRegistro',
+            component: SolicitudesPendientesRegistro,
+            props: { embebido: true },
+          },
+          {
+            path: 'solicitudes-rechazadas',
+            name: 'AdminSolicitudesRechazadasRegistro',
+            component: SolicitudesRechazadasRegistro,
+            props: { embebido: true },
+          },
+          {
+            path: 'dirigentes-habilitados',
+            name: 'AdminListaDirigentesHabilitados',
+            component: ListaDirigentesHabilitados,
+            props: { embebido: true },
+          },
+          {
+            path: 'solicitud/:id',
+            name: 'AdminDetalleSolicitud',
+            component: DetalleSolicitud,
+            props: { embebido: true },
+          },
+          {
+            path: 'dirigente/:id',
+            name: 'AdminDetalleDirigente',
+            component: DetalleDirigenteRegistro,
+            props: { embebido: true },
+          },
+          {
+            path: 'dirigente/:id/editar',
+            name: 'AdminEditarDirigente',
+            component: EditarDirigenteRegistro,
+            props: { embebido: true },
+          },
+        ],
+      },
+    ],
   },
 
   // --- SEGUIMIENTO ---

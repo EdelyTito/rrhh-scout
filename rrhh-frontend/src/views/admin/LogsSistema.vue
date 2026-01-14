@@ -1,35 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <img src="/images/rraa.png" alt="Logo Distrito Scout" class="h-10 w-auto" />
-            <h1 class="text-2xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-            <button @click="cerrarSesion" class="bg-white text-[#009d71] px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-200 font-semibold">
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-          <button @click="navegarA('admin')" :class="navClass('admin')">Inicio</button>
-
-          <button @click="navegarA('admin/lista-usuarios')" :class="navClass('admin/lista-usuarios')">Lista de usuarios</button>
-          <button @click="navegarA('admin/logs')" :class="navClass('admin/logs')">Logs del sistema</button>
-        </div>
-      </div>
-    </nav>
-
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
@@ -264,13 +234,6 @@
 
       </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-      <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <p class="text-center text-gray-500 text-sm">Desarrollado por Edely Tito - GSA</p>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -329,18 +292,6 @@ const paginasVisibles = computed(() => {
   }
 })
 
-const navClass = (destino) => {
-  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200'
-  if (rutaActiva.value === destino) return `${base} border-[#009d71] text-[#009d71]`
-  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
-}
-
-const comisionesButtonClass = () => {
-  const base = 'py-4 px-2 border-b-2 font-medium text-sm transition duration-200 flex items-center'
-  if (comisionesAbierto.value) return `${base} border-[#009d71] text-[#009d71]`
-  return `${base} border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300`
-}
-
 const toggleComisiones = () => {
   comisionesAbierto.value = !comisionesAbierto.value
 }
@@ -359,11 +310,12 @@ const navegarA = (destino) => {
   }
   router.push(`/${destino}`)
 }
-
-const navegarAComision = (comision) => {
+const irAComision = (vista) => {
   comisionesAbierto.value = false
-  rutaActiva.value = comision
-  router.push(`/${comision}`)
+  router.push({
+    path: '/admin',
+    query: { comision: vista }
+  })
 }
 
 const getNivelBadge = (nivel) => {
@@ -451,15 +403,6 @@ const tablasUnicas = computed(() => {
   return Array.from(set).sort()
 })
 
-const logsHoy = computed(() => {
-  const hoy = new Date().toDateString()
-  return logs.value.filter(l => {
-    const fecha = new Date(l.fecha_accion || l.created_at || l.fecha || null)
-    return fecha && fecha.toDateString() === hoy
-  })
-})
-
-
 const logsFiltrados = computed(() => {
   return logs.value.filter(log => {
 
@@ -527,10 +470,6 @@ const formatHora = (fechaStr) => {
   if (!fechaStr) return ''
   const f = new Date(fechaStr)
   return f.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })
-}
-
-const exportarLogs = () => {
-  alert('Función exportar aún no implementada.')
 }
 
 const limpiarFiltros = () => {
@@ -649,4 +588,18 @@ onMounted(() => {
 <style scoped>
 .dropdown-item { display:block; width:100%; text-align:left; padding:.75rem 1rem; font-size:.875rem; color:#374151; border-bottom:1px solid #f3f4f6; background:white }
 .dropdown-item:hover { background:#f3f4f6 }
+
+  .dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
 </style>

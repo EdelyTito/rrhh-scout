@@ -1,65 +1,16 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header específico para Registro y Habilitación -->
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- Logo y título -->
-          <div class="flex items-center space-x-4">
-            <img 
-              src="/images/rraa.png" 
-              alt="Logo Distrito Scout"
-              class="h-10 w-auto"
-            >
-            <h1 class="text-2xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-            <button 
-              @click="cerrarSesion"
-              class="bg-white text-[#009d71] px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-200 font-semibold"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <RegistroHeader
+      v-if="!embebido"
+      :nombre="nombreResponsable"
+      @logout="cerrarSesion"
+    />
 
-    <!-- Navigation específica para Registro y Habilitación -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-          <button
-            @click="navegarA('/registro')"
-            :class="navClass('/registro')"
-          >
-            Inicio
-          </button>
-
-          <button
-            @click="navegarA('/registro/solicitudes-pendientes')"
-            :class="navClass('solicitudes-pendientes', true)"
-          >
-            Solicitudes pendientes
-          </button>
-
-          <button
-            @click="navegarA('/registro/solicitudes-rechazadas')"
-            :class="navClass('solicitudes-rechazadas', true)"
-          >
-            Solicitudes rechazadas
-          </button>
-
-          <button
-            @click="navegarA('/registro/dirigentes-habilitados')"
-            :class="navClass('dirigentes-habilitados', true)"
-          >
-            Dirigentes habilitados
-          </button>
-        </div>
-      </div>
-    </nav>
+    <RegistroNav
+      v-if="!embebido"
+      :navClass="navClass"
+      :navegar="navegarA"
+    />
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -763,10 +714,22 @@
 </template>
 
 <script setup>
+import RegistroHeader from '../../components/registro/RegistroHeader.vue'
+import RegistroNav from '../../components/registro/RegistroNav.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { registroService } from '../../services/api'
 import ArchivoRegistro from '../../components/registro/ArchivoRegistro.vue'
+import { computed } from 'vue'
+
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const esAdmin = computed(() => props.embebido === true)
 
 const router = useRouter()
 const route = useRoute()
@@ -944,7 +907,8 @@ const navegarA = (path) => {
 
 const volverADetalle = () => {
   const dirigenteId = route.params.id
-  router.push(`/registro/dirigente/${dirigenteId}`)
+  const base = esAdmin.value ? '/admin/registro' : '/registro'
+  router.push(`${base}/dirigente/${dirigenteId}`)
 }
 
 const mapearDocumentosRegistro = (documentos = []) => {

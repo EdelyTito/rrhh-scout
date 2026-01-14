@@ -1,112 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <img 
-              src="/images/rraa.png" 
-              alt="Logo Distrito Scout"
-              class="h-10 w-auto"
-            >
-            <h1 class="text-2xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-            <button 
-              @click="cerrarSesion"
-              class="bg-white text-[#009d71] px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-200 font-semibold"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-          <button 
-            @click="navegarA('admin')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'admin' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Inicio
-          </button>
-          
-          <!-- Dropdown Comisiones -->
-          <!--
-          <div class="relative">
-            <button 
-              @click="toggleComisiones"
-              :class="comisionesButtonClass()"
-            >
-              Comisiones
-              <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </button>
-            
-            <!-- Dropdown Menu -->
-            <!--
-            <div v-if="comisionesAbierto" class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-10">
-              <div class="py-1">
-                <button 
-                  @click="() => navegarAComision('seguimiento')"
-                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
-                >
-                  <div class="font-medium">Seguimiento</div>
-                  <div class="text-xs text-gray-500 mt-1">Gestión y monitoreo de actividades</div>
-                </button>
-                
-                <button 
-                  @click="() => navegarAComision('formacion')"
-                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 border-b border-gray-100 transition duration-200"
-                >
-                  <div class="font-medium">Formación</div>
-                  <div class="text-xs text-gray-500 mt-1">Control de cursos y capacitaciones</div>
-                </button>
-                
-                <button 
-                  @click="() => navegarAComision('registro')"
-                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition duration-200"
-                >
-                  <div class="font-medium">Registro y Habilitación</div>
-                  <div class="text-xs text-gray-500 mt-1">Registro y habilitación de personal</div>
-                </button>
-              </div>
-            </div>
-          </div>
-          -->
-
-          <button 
-            @click="navegarA('admin/lista-usuarios')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'admin/lista-usuarios' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Lista de usuarios
-          </button>
-          
-          <button 
-            @click="navegarA('admin/logs')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'admin/logs' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Logs del sistema
-          </button>
-        </div>
-      </div>
-    </nav>
-
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
@@ -315,15 +208,6 @@
         </div>
       </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-      <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <p class="text-center text-gray-500 text-sm">
-          Desarrollado por Edely Tito - GSA
-        </p>
-      </div>
-    </footer>
 
     <!-- Modal Crear Usuario -->
     <div v-if="mostrarModalCrear" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -580,7 +464,7 @@
             </button>
         </div>
         </form>
-    </div>
+      </div>
     </div>
   </div>
 </template>
@@ -592,8 +476,6 @@ import { authService } from '../../services/api'
 
 const router = useRouter()
 const nombreResponsable = ref('Administrador')
-const rutaActiva = ref('admin/lista-usuarios')
-const comisionesAbierto = ref(false)
 const loading = ref(false)
 
 const mostrarModalCrear = ref(false)
@@ -668,48 +550,6 @@ const resetearContrasena = async () => {
     console.error("Error al resetear contraseña:", err)
     alert(err.response?.data?.error || "Error al enviar correo de recuperación")
   }
-}
-
-const mapeoRoles = {
-  'admin': '1',
-  'responsable_registro': '2',
-  'responsable_formacion': '3',
-  'responsable_seguimiento': '4',
-  'subcomisionado_registro': '5',
-  'subcomisionado_formacion': '6',
-  'subcomisionado_seguimiento': '7'
-}
-
-const toggleComisiones = () => {
-  comisionesAbierto.value = !comisionesAbierto.value
-}
-
-const navegarA = (destino) => {
-  rutaActiva.value = destino
-  comisionesAbierto.value = false
-
-  if (!destino) return
-  if (destino === 'admin') {
-    router.push('/admin')
-    return
-  }
-  if (destino.startsWith('/')) {
-    router.push(destino)
-    return
-  }
-  router.push(`/${destino}`)
-}
-
-const navegarAComision = (comision) => {
-  comisionesAbierto.value = false
-  rutaActiva.value = comision
-  router.push(`/${comision}`)
-}
-
-const cerrarSesion = () => {
-  localStorage.removeItem('usuario')
-  localStorage.removeItem('token')
-  router.push('/')
 }
 
 const getBadgeClasses = (rolNombre) => {
@@ -928,3 +768,19 @@ onMounted(() => {
   cargarUsuarios()
 })
 </script>
+
+<style scoped>  
+  .dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+</style>
