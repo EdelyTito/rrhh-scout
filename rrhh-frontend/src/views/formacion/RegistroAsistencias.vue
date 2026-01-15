@@ -2,11 +2,13 @@
   <div class="min-h-screen bg-gray-50">
     
     <FormacionHeader
+      v-if="!embebido"
       :nombreResponsable="nombreResponsable"
       @cerrar-sesion="cerrarSesion"
     />
 
     <FormacionNav
+      v-if="!embebido"
       :rutaActiva="rutaActiva"
       @navegar="navegarA"
     />
@@ -212,6 +214,19 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
 
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const esAdmin = computed(() => props.embebido === true)
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/formacion' : '/formacion'
+)
+
 const route = useRoute()
 const router = useRouter()
 
@@ -315,7 +330,12 @@ const registrarAsistencia = async () => {
 }
 
 const volverAModulos = () => {
-  router.back()
+  const cid = route.query.cursoId
+  if (cid) {
+    router.push(`${baseRuta.value}/curso/${cid}/modulos`)
+  } else {
+    router.back()
+  }
 }
 
 const cerrarSesion = () => {
@@ -326,21 +346,26 @@ const cerrarSesion = () => {
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
+
   switch (destino) {
     case 'inicio-formacion':
-      router.push('/formacion')
+      router.push(baseRuta.value)
       break
+
     case 'lista-cursos':
-      router.push('/formacion/lista-cursos')
+      router.push(`${baseRuta.value}/lista-cursos`)
       break
-    case 'gestion-modulos':
-      const cid = route.query.cursoId || route.query.cursoId || null
+
+    case 'gestion-modulos': {
+      const cid = route.query.cursoId
       if (cid) {
-        router.push(`/formacion/curso/${cid}/modulos`)
+        router.push(`${baseRuta.value}/curso/${cid}/modulos`)
       } else {
         router.back()
       }
       break
+    }
+
     default:
       router.back()
   }

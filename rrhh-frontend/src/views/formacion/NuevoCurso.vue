@@ -2,11 +2,13 @@
   <div class="min-h-screen bg-gray-50">
     
     <FormacionHeader
+      v-if="!embebido"
       :nombreResponsable="nombreResponsable"
       @cerrar-sesion="cerrarSesion"
     />
 
     <FormacionNav
+      v-if="!embebido"
       :rutaActiva="rutaActiva"
       @navegar="navegarA"
     />
@@ -159,9 +161,22 @@
 <script setup>
 import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
 import FormacionNav from '../../components/formacion/FormacionNav.vue'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
+
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const esAdmin = computed(() => props.embebido === true)
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/formacion' : '/formacion'
+)
 
 const router = useRouter()
 const nombreResponsable = ref('Responsable de Formación')
@@ -169,7 +184,7 @@ const rutaActiva = ref('nuevo-curso')
 const guardando = ref(false)
 
 const volverALista = () => {
-  router.push('/formacion/lista-cursos')
+  router.push(`${baseRuta.value}/lista-cursos`)
 }
 
 const formulario = ref({
@@ -188,12 +203,13 @@ onMounted(() => {
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
+
   switch (destino) {
     case 'inicio-formacion':
-      router.push('/formacion')
+      router.push(baseRuta.value)
       break
     case 'lista-cursos':
-      router.push('/formacion/lista-cursos')
+      router.push(`${baseRuta.value}/lista-cursos`)
       break
   }
 }
@@ -226,7 +242,16 @@ const guardarCurso = async () => {
 
     alert('Curso creado correctamente')
 
-    router.push(`/formacion/lista-modulos/${cursoId}`)
+    formulario.value = {
+      nombre: '',
+      descripcion: '',
+      modalidad: '',
+      lugar: '',
+      fecha_inicio: '',
+      fecha_fin: ''
+    }
+
+    router.push(`${baseRuta.value}/detalle-curso/${cursoId}`)
 
   } catch (err) {
     console.error(err)
@@ -238,7 +263,7 @@ const guardarCurso = async () => {
 
 const cancelar = () => {
   if (confirm('¿Cancelar creación? Los datos no guardados se perderán.')) {
-    router.push('/formacion/lista-cursos')
+    router.push('${baseRuta.value}/lista-cursos')
   }
 }
 

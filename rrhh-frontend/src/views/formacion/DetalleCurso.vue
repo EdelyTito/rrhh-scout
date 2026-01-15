@@ -2,11 +2,13 @@
   <div class="min-h-screen bg-gray-50">
     
     <FormacionHeader
+      v-if="!embebido"
       :nombreResponsable="nombreResponsable"
       @cerrar-sesion="cerrarSesion"
     />
 
     <FormacionNav
+      v-if="!embebido"
       :rutaActiva="rutaActiva"
       @navegar="navegarA"
     />
@@ -184,6 +186,19 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
 
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/formacion' : '/formacion'
+)
+
+const esAdmin = computed(() => props.embebido === true)
+
 const route = useRoute()
 const router = useRouter()
 
@@ -227,24 +242,28 @@ onMounted(() => {
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  if (destino === 'lista-cursos') router.push('/formacion/lista-cursos')
-  if (destino === 'inicio-formacion') router.push('/formacion')
+
+  if (destino === 'lista-cursos')
+    router.push(baseRuta.value)
+
+  if (destino === 'inicio-formacion')
+    router.push(baseRuta.value)
 }
 
 const editarCurso = () => {
-  router.push(`/formacion/editar-curso/${cursoId.value}`)
+  router.push(`${baseRuta.value}/editar-curso/${cursoId.value}`)
 }
 
 const gestionarModulos = () => {
-  router.push(`/formacion/curso/${cursoId.value}/modulos`)
+  router.push(`${baseRuta.value}/curso/${cursoId.value}/modulos`)
 }
 
 const verAsistenciasModulo = (moduloId) => {
-  router.push(`/formacion/modulo/${moduloId}/asistencias`)
+  router.push(`${baseRuta.value}/modulo/${moduloId}/asistencias`)
 }
 
 const volverALista = () => {
-  router.push('/formacion/lista-cursos')
+  router.push(`${baseRuta.value}`)
 }
 
 const cerrarSesion = () => {

@@ -2,11 +2,13 @@
   <div class="min-h-screen bg-gray-50">
     
     <FormacionHeader
+      v-if="!embebido"
       :nombreResponsable="nombreResponsable"
       @cerrar-sesion="cerrarSesion"
     />
 
     <FormacionNav
+      v-if="!embebido"
       :rutaActiva="rutaActiva"
       @navegar="navegarA"
     />
@@ -139,9 +141,22 @@
 <script setup>
 import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
 import FormacionNav from '../../components/formacion/FormacionNav.vue'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
+
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const esAdmin = computed(() => props.embebido === true)
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/formacion' : '/formacion'
+)
 
 const router = useRouter()
 const nombreResponsable = ref('Responsable de Formación')
@@ -214,21 +229,22 @@ onMounted(() => {
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  switch (destino) {
-    case 'inicio-formacion':
-      router.push('/formacion')
-      break
-    case 'lista-cursos':
-      break
+
+  if (destino === 'inicio-formacion') {
+    router.push(baseRuta.value)
+  }
+
+  if (destino === 'lista-cursos') {
+    router.push(`${baseRuta.value}/lista-cursos`)
   }
 }
 
 const verCurso = (id) => {
-  router.push(`/formacion/detalle-curso/${id}`)
+  router.push(`${baseRuta.value}/detalle-curso/${id}`)
 }
 
 const crearNuevoCurso = () => {
-  router.push('/formacion/nuevo-curso')
+  router.push(`${baseRuta.value}/nuevo-curso`)
 }
 
 const cerrarSesion = () => {

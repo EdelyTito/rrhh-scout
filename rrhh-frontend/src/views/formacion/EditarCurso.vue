@@ -2,11 +2,13 @@
   <div class="min-h-screen bg-gray-50">
   
     <FormacionHeader
+      v-if="!embebido"
       :nombreResponsable="nombreResponsable"
       @cerrar-sesion="cerrarSesion"
     />
 
     <FormacionNav
+      v-if="!embebido"
       :rutaActiva="rutaActiva"
       @navegar="navegarA"
     />
@@ -178,6 +180,19 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
 
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const esAdmin = computed(() => props.embebido === true)
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/formacion' : '/formacion'
+)
+
 const route = useRoute()
 const router = useRouter()
 
@@ -254,7 +269,7 @@ const guardarCambios = async () => {
     console.log('Curso actualizado:', res.data)
     mensaje.value = 'Curso actualizado correctamente.'
     setTimeout(() => {
-      router.push(`/formacion/detalle-curso/${cursoId.value}`)
+      router.push(`${baseRuta.value}/detalle-curso/${cursoId.value}`)
     }, 800)
   } catch (err) {
     console.error('Error al actualizar curso:', err)
@@ -266,14 +281,18 @@ const guardarCambios = async () => {
 
 const cancelar = () => {
   if (confirm('¿Cancelar los cambios? Se perderán las modificaciones no guardadas.')) {
-    router.push(`/formacion/detalle-curso/${cursoId.value}`)
+    router.push(`${baseRuta.value}/detalle-curso/${cursoId.value}`)
   }
 }
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  if (destino === 'lista-cursos') router.push('/formacion/lista-cursos')
-  if (destino === 'inicio-formacion') router.push('/formacion')
+
+  if (destino === 'lista-cursos')
+    router.push(baseRuta.value)
+
+  if (destino === 'inicio-formacion')
+    router.push(baseRuta.value)
 }
 
 const cerrarSesion = () => {

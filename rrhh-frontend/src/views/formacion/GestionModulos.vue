@@ -2,11 +2,13 @@
   <div class="min-h-screen bg-gray-50">
     
     <FormacionHeader
+      v-if="!embebido"
       :nombreResponsable="nombreResponsable"
       @cerrar-sesion="cerrarSesion"
     />
 
     <FormacionNav
+      v-if="!embebido"
       :rutaActiva="rutaActiva"
       @navegar="navegarA"
     />
@@ -368,6 +370,19 @@ import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
 import { watch } from 'vue'
 
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const esAdmin = computed(() => props.embebido === true)
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/formacion' : '/formacion'
+)
+
 const route = useRoute()
 const router = useRouter()
 
@@ -592,18 +607,25 @@ const eliminarModulo = async (moduloId) => {
 }
 
 const registrarAsistencias = (moduloId) => {
-  router.push(`/formacion/modulo/${moduloId}/asistencias`)
+  router.push(`${baseRuta.value}/modulo/${moduloId}/asistencias`)
 }
 
 const volverAlCurso = () => {
-  router.push(`/formacion/detalle-curso/${cursoId.value}`)
+  router.push(`${baseRuta.value}/detalle-curso/${cursoId.value}`)
 }
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  if (destino === 'detalle-curso') router.push(`/formacion/detalle-curso/${cursoId.value}`)
-  if (destino === 'lista-cursos') router.push('/formacion/lista-cursos')
+
+  if (destino === 'detalle-curso') {
+    router.push(`${baseRuta.value}/detalle-curso/${cursoId.value}`)
+  }
+
+  if (destino === 'lista-cursos') {
+    router.push(`${baseRuta.value}/lista-cursos`)
+  }
 }
+
 const cerrarSesion = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('usuario')
@@ -617,5 +639,16 @@ watch(
     formularioNuevo.value.formador_id = ''
   }
 )
+
+watch(
+  () => formularioEdicion.value.tipo_modulo_id,
+  (nuevoTipo) => {
+    if (moduloEditandoId.value) {
+      cargarFormadoresPorTipo(nuevoTipo)
+      formularioEdicion.value.formador_id = ''
+    }
+  }
+)
+
 
 </script>
