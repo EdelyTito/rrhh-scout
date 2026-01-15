@@ -8,7 +8,7 @@ import { validar } from "../middleware/validators/index.js"
 
 
 const router = express.Router();
-const ROLES_FORM = [1, 3, 6]; // 1=admin, 3=resp_form, 6=sub_form
+const ROLES_FORM = [1, 3, 6];
 
 //
 // CURSOS
@@ -130,9 +130,19 @@ router.post("/cursos", verifyToken, authorizeRoles(...ROLES_FORM), validarCurso,
     }
 
     const result = await pool.query(
-      `INSERT INTO cursos (nombre, descripcion, fecha_inicio, fecha_fin, modalidad, lugar, cupo, responsable_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING *`,
+      `INSERT INTO cursos (
+        nombre,
+        descripcion,
+        fecha_inicio,
+        fecha_fin,
+        modalidad,
+        lugar,
+        cupo,
+        responsable_id,
+        estado
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'planificado')
+      RETURNING *`,
       [nombre, descripcion, fecha_inicio, fecha_fin, modalidad, lugar, cupo, responsableId]
     );
 
@@ -145,8 +155,55 @@ router.post("/cursos", verifyToken, authorizeRoles(...ROLES_FORM), validarCurso,
   }
 });
 
+router.patch(
+  "/cursos/:id/estado",
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  validarId,
+  validar,
+  async (req, res) => {
+    try {
+      const { id } = req.params
+      const { estado } = req.body
+
+      const estadosValidos = ['planificado', 'activo', 'finalizado']
+      if (!estadosValidos.includes(estado)) {
+        return res.status(400).json({ error: 'Estado no válido' })
+      }
+
+      const result = await pool.query(
+        `
+        UPDATE cursos
+        SET estado = $1
+        WHERE id = $2
+        RETURNING *
+        `,
+        [estado, id]
+      )
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Curso no encontrado' })
+      }
+
+      await registrarLog(
+        req.user.id,
+        'Actualizó estado del curso',
+        'cursos',
+        id,
+        `Nuevo estado: ${estado}`,
+        req.user.rol_nombre
+      )
+
+      res.json(result.rows[0])
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error actualizando estado del curso' })
+    }
+  }
+)
+
 //
-// 🧩 MÓDULOS DEL CURSO
+//MÓDULOS DEL CURSO
 //
 router.get("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM), validarCursoId, validar, async (req, res) => {
   try {
@@ -164,7 +221,7 @@ router.get("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM
       FROM modulos_curso m
       LEFT JOIN tipos_modulo tm ON tm.id = m.tipo_modulo_id
       LEFT JOIN formadores f ON f.id = m.formador_id
-      WHERE m.curso_id = $1;
+      WHERE m.curso_id = $1
       ORDER BY m.id ASC`,
       [cursoId]
     );
@@ -176,71 +233,58 @@ router.get("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM
   }
 });
 
-router.post("/cursos/:cursoId/modulos", verifyToken, authorizeRoles(...ROLES_FORM), validarCursoId, validarModulo, validar, async (req, res) => {
-  try {
-    const { cursoId } = req.params;
-    const data = req.body || {};
-    const {
-      titulo,
-      descripcion,
-      duracion_horas,
-      tipo_modulo_id,
-      formador_id
-    } = data;
-
-    if (!titulo || !duracion_horas) {
-      return res.status(400).json({ error: "Debe especificar título y duración del módulo" });
-    }
-
-    const curso = await pool.query("SELECT id FROM cursos WHERE id=$1", [cursoId]);
-    if (curso.rowCount === 0) return res.status(404).json({ error: "Curso no encontrado" });
-
-    // Validar que el formador pueda dictar ese tipo de módulo
-    const validacion = await pool.query(
-      `
-      SELECT 1
-      FROM formadores_tipos_modulo
-      WHERE formador_id = $1
-        AND tipo_modulo_id = $2
-      `,
-      [formador_id, tipo_modulo_id]
-    );
-
-    if (validacion.rowCount === 0) {
-      return res.status(400).json({
-        error: "El formador no está habilitado para este tipo de módulo"
-      });
-    }
-
-
-    const result = await pool.query(
-      `INSERT INTO modulos_curso
-      (curso_id, titulo, descripcion, duracion_horas, tipo_modulo_id, formador_id)
-      VALUES ($1,$2,$3,$4,$5,$6)
-      RETURNING *`,
-      [
-        cursoId,
+router.post(
+  "/cursos/:cursoId/modulos",
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  validarCursoId,
+  validarModulo,
+  validar,
+  async (req, res) => {
+    try {
+      const { cursoId } = req.params
+      const {
         titulo,
         descripcion,
         duracion_horas,
         tipo_modulo_id,
         formador_id
-      ]
-    );
+      } = req.body
 
-    await registrarLog(
-      req.user.id,
-      "Creó módulo de curso",
-      "modulos_curso",
-      result.rows[0].id,
-      `Curso ${cursoId} - ${titulo}`
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error al crear módulo:", err);
-    res.status(500).json({ error: "Error interno al crear módulo" });
+      const insert = await pool.query(
+        `
+        INSERT INTO modulos_curso
+        (curso_id, titulo, descripcion, duracion_horas, tipo_modulo_id, formador_id)
+        VALUES ($1,$2,$3,$4,$5,$6)
+        RETURNING id
+        `,
+        [cursoId, titulo, descripcion, duracion_horas, tipo_modulo_id, formador_id]
+      )
+
+      const moduloId = insert.rows[0].id
+
+      const result = await pool.query(
+        `
+        SELECT 
+          m.*,
+          tm.nombre AS tipo_modulo,
+          f.nombre AS formador
+        FROM modulos_curso m
+        LEFT JOIN tipos_modulo tm ON tm.id = m.tipo_modulo_id
+        LEFT JOIN formadores f ON f.id = m.formador_id
+        WHERE m.id = $1
+        `,
+        [moduloId]
+      )
+
+      res.status(201).json(result.rows[0])
+
+    } catch (err) {
+      console.error("Error al crear módulo:", err)
+      res.status(500).json({ error: "Error interno al crear módulo" })
+    }
   }
-});
+)
 
 ////editar modulo
 router.put(
@@ -252,44 +296,16 @@ router.put(
   validar,
   async (req, res) => {
     try {
-      const { moduloId } = req.params;
+      const { moduloId } = req.params
       const {
         titulo,
         descripcion,
         duracion_horas,
         tipo_modulo_id,
         formador_id
-      } = req.body || {};
+      } = req.body
 
-      // Verificar que el módulo exista
-      const moduloExist = await pool.query(
-        "SELECT id, curso_id FROM modulos_curso WHERE id = $1",
-        [moduloId]
-      );
-
-      if (moduloExist.rowCount === 0) {
-        return res.status(404).json({ error: "Módulo no encontrado" });
-      }
-
-      // Validar que el formador pueda dictar el tipo de módulo
-      const validacion = await pool.query(
-        `
-        SELECT 1
-        FROM formadores_tipos_modulo
-        WHERE formador_id = $1
-          AND tipo_modulo_id = $2
-        `,
-        [formador_id, tipo_modulo_id]
-      );
-
-      if (validacion.rowCount === 0) {
-        return res.status(400).json({
-          error: "El formador no está habilitado para este tipo de módulo"
-        });
-      }
-
-      // Actualizar módulo
-      const result = await pool.query(
+      await pool.query(
         `
         UPDATE modulos_curso
         SET titulo = $1,
@@ -298,7 +314,6 @@ router.put(
             tipo_modulo_id = $4,
             formador_id = $5
         WHERE id = $6
-        RETURNING *
         `,
         [
           titulo,
@@ -308,27 +323,68 @@ router.put(
           formador_id,
           moduloId
         ]
-      );
+      )
 
-      await registrarLog(
-        req.user.id,
-        "Actualizó módulo de curso",
-        "modulos_curso",
-        moduloId,
-        `Módulo actualizado: ${titulo}`
-      );
+      const result = await pool.query(
+        `
+        SELECT 
+          m.*,
+          tm.nombre AS tipo_modulo,
+          f.nombre AS formador
+        FROM modulos_curso m
+        LEFT JOIN tipos_modulo tm ON tm.id = m.tipo_modulo_id
+        LEFT JOIN formadores f ON f.id = m.formador_id
+        WHERE m.id = $1
+        `,
+        [moduloId]
+      )
 
       res.json({
         message: "Módulo actualizado correctamente",
         modulo: result.rows[0]
-      });
+      })
 
     } catch (err) {
-      console.error("Error al actualizar módulo:", err);
-      res.status(500).json({ error: "Error interno al actualizar módulo" });
+      console.error("Error al actualizar módulo:", err)
+      res.status(500).json({ error: "Error interno al actualizar módulo" })
     }
   }
-);
+)
+
+router.delete(
+  "/modulos/:moduloId",
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  validarModuloId,
+  validar,
+  async (req, res) => {
+    try {
+      const { moduloId } = req.params
+
+      const result = await pool.query(
+        "DELETE FROM modulos_curso WHERE id = $1 RETURNING id",
+        [moduloId]
+      )
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Módulo no encontrado" })
+      }
+
+      await registrarLog(
+        req.user.id,
+        "Eliminó módulo de curso",
+        "modulos_curso",
+        moduloId,
+        "Módulo eliminado"
+      )
+
+      res.json({ message: "Módulo eliminado correctamente" })
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: "Error eliminando módulo" })
+    }
+  }
+)
 
 
 //////////////////////
@@ -423,13 +479,11 @@ router.put(
         return res.status(400).json({ error: 'tipos_modulo debe ser un array' })
       }
 
-      // 1️⃣ borrar relaciones actuales
       await pool.query(
         'DELETE FROM formadores_tipos_modulo WHERE formador_id = $1',
         [id]
       )
 
-      // 2️⃣ insertar nuevas
       for (const tipoId of tipos_modulo) {
         await pool.query(`
           INSERT INTO formadores_tipos_modulo (formador_id, tipo_modulo_id)
@@ -453,7 +507,7 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params
-      const { tipos_modulo } = req.body // array de IDs
+      const { tipos_modulo } = req.body 
 
       if (!Array.isArray(tipos_modulo)) {
         return res.status(400).json({ error: 'tipos_modulo debe ser un array' })
@@ -642,33 +696,47 @@ router.post('/formadores/:id/tipos-modulo', verifyToken, authorizeRoles(...ROLES
 
 
 //
-// 🟣 ASISTENCIAS
+// ASISTENCIAS
 //
-router.get("/modulos/:moduloId/asistencias", verifyToken, authorizeRoles(...ROLES_FORM), validarModuloId, validar, async (req, res) => {
-  try {
-    const { moduloId } = req.params;
+router.get(
+  "/modulos/:moduloId/asistencias",
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  validarModuloId,
+  validar,
+  async (req, res) => {
+    try {
+      const { moduloId } = req.params;
 
-    const modulo = await pool.query("SELECT id, titulo FROM modulos_curso WHERE id = $1", [moduloId]);
-    if (modulo.rowCount === 0) {
-      return res.status(404).json({ error: "Módulo no encontrado" });
+      const modulo = await pool.query(
+        "SELECT id FROM modulos_curso WHERE id = $1",
+        [moduloId]
+      );
+
+      if (modulo.rowCount === 0) {
+        return res.status(404).json({ error: "Módulo no encontrado" });
+      }
+
+      const result = await pool.query(
+        `SELECT 
+          a.*,
+          m.titulo AS modulo_nombre,
+          c.nombre AS curso_nombre
+        FROM asistencias a
+        JOIN modulos_curso m ON m.id = a.modulos_curso_id
+        JOIN cursos c ON c.id = m.curso_id
+        WHERE a.modulos_curso_id = $1
+        ORDER BY a.id ASC`,
+        [moduloId]
+      );
+
+      res.json(result.rows);
+    } catch (err) {
+      console.error("Error al obtener asistencias:", err);
+      res.status(500).json({ error: "Error al obtener asistencias" });
     }
-
-    const result = await pool.query(
-      `
-      SELECT a.*
-      FROM asistencias a
-      WHERE a.modulos_curso_id = $1
-      ORDER BY a.id ASC
-      `,
-      [moduloId]
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error al obtener asistencias:", err);
-    res.status(500).json({ error: "Error al obtener asistencias" });
   }
-});
+);
 
 router.post("/asistencias", verifyToken, authorizeRoles(...ROLES_FORM), validarAsistencia, validar, async (req, res) => {
   try {

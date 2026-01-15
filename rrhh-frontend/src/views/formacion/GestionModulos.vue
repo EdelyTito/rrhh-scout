@@ -52,7 +52,7 @@
                     Nombre del módulo
                   </th>
                   <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Dirigente responsable
+                    Formador responsable
                   </th>
                   <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Duración
@@ -72,7 +72,7 @@
                     <div class="text-xs text-gray-500">{{ modulo.descripcion }}</div>
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {{ modulo.dirigente }}
+                    {{ modulo.formador }}
                   </td>
                   <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                     {{ modulo.duracion }}
@@ -111,10 +111,10 @@
           </div>
         </div>
 
-        <!-- Formulario para agregar/editar módulo -->
+        <!-- Formulario para agregar módulo -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 class="text-lg font-semibold text-gray-800 mb-6">
-            {{ modoEdicion ? 'Editar Módulo' : 'Agregar Nuevo Módulo' }}
+            Agregar nuevo módulo
           </h2>
           
           <form @submit.prevent="guardarModulo" class="space-y-4">
@@ -124,34 +124,73 @@
                   Nombre del módulo *
                 </label>
                 <input 
-                  v-model="formulario.nombre"
+                  v-model="formularioNuevo.nombre"
                   type="text" 
                   required
                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
                   placeholder="Ej: Liderazgo Scout"
                 >
               </div>
-              
+
+              <!-- Tipo de módulo -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Dirigente responsable *
+                  Tipo de módulo *
                 </label>
-                <input 
-                  v-model="formulario.dirigente"
-                  type="text" 
+                <select
+                  v-model="formularioNuevo.tipo_modulo_id"
                   required
-                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                  placeholder="Ej: Juan Pérez"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2
+                        focus:outline-none focus:ring-2 focus:ring-[#009d71]"
                 >
+                  <option value="">Seleccione tipo de módulo</option>
+                  <option v-for="t in tiposModulo" :key="t.id" :value="t.id">
+                    {{ t.nombre }}
+                  </option>
+                </select>
               </div>
+
             </div>
             
+            <!-- Formador -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Formador responsable *
+              </label>
+
+              <select
+                v-model="formularioNuevo.formador_id"
+                required
+                :disabled="!formularioNuevo.tipo_modulo_id || cargandoFormadores"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2
+                      focus:outline-none focus:ring-2 focus:ring-[#009d71]
+                      disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {{ !formularioNuevo.tipo_modulo_id
+                    ? 'Seleccione primero el tipo de módulo'
+                    : cargandoFormadores
+                      ? 'Cargando formadores...'
+                      : 'Seleccione formador'
+                  }}
+                </option>
+
+                <option
+                  v-for="f in formadoresFiltrados"
+                  :key="f.id"
+                  :value="f.id"
+                >
+                  {{ f.nombre }}
+                </option>
+              </select>
+            </div>
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Descripción *
               </label>
               <textarea 
-                v-model="formulario.descripcion"
+                v-model="formularioNuevo.descripcion"
                 rows="2"
                 required
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
@@ -165,7 +204,7 @@
                   Duración (horas) *
                 </label>
                 <input 
-                  v-model="formulario.duracion"
+                  v-model="formularioNuevo.duracion"
                   type="number" 
                   min="1"
                   required
@@ -176,14 +215,7 @@
             </div>
             
             <div class="flex justify-end space-x-4 pt-4">
-              <button 
-                type="button"
-                @click="cancelarEdicion"
-                class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
-                v-if="modoEdicion"
-              >
-                Cancelar
-              </button>
+
               
               <button 
                 type="submit"
@@ -197,8 +229,8 @@
                   </svg>
                   Guardando...
                 </span>
-                <span v-else>
-                  {{ modoEdicion ? 'Actualizar' : 'Agregar' }} Módulo
+                <span>
+                  Agregar módulo
                 </span>
               </button>
             </div>
@@ -214,12 +246,127 @@
       </div>
     </main>
   </div>
+
+  <!-- Modal Editar Módulo -->
+  <div
+    v-if="mostrarModalEdicion"
+    class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-lg w-full max-w-2xl p-6">
+
+      <h3 class="text-lg font-semibold mb-6">
+        Editar Módulo
+      </h3>
+
+      <form @submit.prevent="guardarModulo" class="space-y-4">
+
+        <!-- Nombre -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Nombre del módulo *
+          </label>
+          <input
+            v-model="formularioEdicion.nombre"
+            required
+            class="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+
+        <!-- Tipo de módulo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Tipo de módulo *
+          </label>
+          <select
+            v-model="formularioEdicion.tipo_modulo_id"
+            required
+            class="w-full border rounded-lg px-3 py-2"
+          >
+            <option value="">Seleccione tipo</option>
+            <option v-for="t in tiposModulo" :key="t.id" :value="t.id">
+              {{ t.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Formador -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Formador responsable *
+          </label>
+          <select
+            v-model="formularioEdicion.formador_id"
+            required
+            :disabled="!formularioEdicion.tipo_modulo_id || cargandoFormadores"
+            class="w-full border rounded-lg px-3 py-2 disabled:bg-gray-100"
+          >
+            <option value="">
+              {{ cargandoFormadores ? 'Cargando...' : 'Seleccione formador' }}
+            </option>
+            <option v-for="f in formadoresFiltrados" :key="f.id" :value="f.id">
+              {{ f.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Descripción -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Descripción *
+          </label>
+          <textarea
+            v-model="formularioEdicion.descripcion"
+            rows="3"
+            required
+            class="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+
+        <!-- Duración -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Duración (horas) *
+          </label>
+          <input
+            v-model="formularioEdicion.duracion"
+            type="number"
+            min="1"
+            required
+            class="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex justify-end gap-3 pt-6">
+          <button
+            type="button"
+            @click="cancelarEdicion"
+            class="px-4 py-2 text-gray-700"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="bg-[#009d71] text-white px-5 py-2 rounded-lg"
+          >
+            Guardar cambios
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
+import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
+import FormacionNav from '../../components/formacion/FormacionNav.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
+import { watch } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -232,12 +379,39 @@ const modulos = ref([])
 const cargando = ref(false)
 const error = ref('')
 const guardando = ref(false)
+const mostrarModalEdicion = ref(false)
 
-const formulario = ref({
+const moduloEditandoId = ref(null)
+
+const formadores = ref([])
+const tiposModulo = ref([])
+
+const formadoresFiltrados = ref([])
+const cargandoFormadores = ref(false)
+
+const cargarCatalogos = async () => {
+  const [fRes, tRes] = await Promise.all([
+    formacionService.getFormadores(),
+    formacionService.getTiposModulo()
+  ])
+  formadores.value = fRes.data
+  tiposModulo.value = tRes.data
+}
+
+const formularioNuevo = ref({
   nombre: '',
   descripcion: '',
-  duracion: '', 
-  dirigente: ''
+  duracion: '',
+  tipo_modulo_id: '',
+  formador_id: ''
+})
+
+const formularioEdicion = ref({
+  nombre: '',
+  descripcion: '',
+  duracion: '',
+  tipo_modulo_id: '',
+  formador_id: ''
 })
 
 const cursoId = computed(() => route.params.cursoId || route.params.id) 
@@ -245,10 +419,11 @@ const cursoId = computed(() => route.params.cursoId || route.params.id)
 function mapModuloBackendToUI(m) {
   return {
     id: m.id,
-    nombre: m.titulo ?? m.nombre ?? 'Sin título',
-    descripcion: m.descripcion ?? '',
-    duracion: m.duracion_horas ? `${m.duracion_horas} h` : (m.duracion ?? ''),
-    dirigente: m.dirigente ?? m.responsable ?? '—'
+    nombre: m.titulo,
+    descripcion: m.descripcion,
+    duracion: `${m.duracion_horas} h`,
+    tipo: m.tipo_modulo,
+    formador: m.formador
   }
 }
 
@@ -281,58 +456,149 @@ onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Responsable de Formación'
   cargarDatos()
+  cargarCatalogos()
 })
 
-
 const guardarModulo = async () => {
-  if (!formulario.value.nombre || !formulario.value.duracion) {
-    alert('Debe completar el nombre del módulo y la duración (horas).')
+  const form = moduloEditandoId.value
+    ? formularioEdicion.value
+    : formularioNuevo.value
+
+  if (
+    !form.nombre ||
+    !form.duracion ||
+    !form.tipo_modulo_id ||
+    !form.formador_id
+  ) {
+    alert('Complete todos los campos obligatorios')
     return
   }
 
   guardando.value = true
+
+  const payload = {
+    titulo: form.nombre,
+    descripcion: form.descripcion || '',
+    duracion_horas: Number(form.duracion),
+    tipo_modulo_id: Number(form.tipo_modulo_id),
+    formador_id: Number(form.formador_id)
+  }
+
   try {
-    const payload = {
-      titulo: formulario.value.nombre,
-      descripcion: formulario.value.descripcion || '',
-      duracion_horas: Number(formulario.value.duracion)
+    let res
+
+    if (moduloEditandoId.value) {
+      res = await formacionService.updateModulo(
+        moduloEditandoId.value,
+        payload
+      )
+
+      const idx = modulos.value.findIndex(
+        m => m.id === moduloEditandoId.value
+      )
+      if (idx !== -1) {
+        modulos.value[idx] = mapModuloBackendToUI(res.data.modulo)
+      }
+
+    } else {
+      res = await formacionService.createModulo(cursoId.value, payload)
+      modulos.value.push(mapModuloBackendToUI(res.data))
     }
 
-    const res = await formacionService.createModulo(cursoId.value, payload)
+    cancelarEdicion()
 
-    const nuevoModuloBackend = res.data
-    const nuevoUI = mapModuloBackendToUI(nuevoModuloBackend)
-
-    modulos.value.push(nuevoUI)
-    curso.value.modulos = modulos.value
-
-    formulario.value = { nombre: '', descripcion: '', duracion: '', dirigente: '' }
   } catch (err) {
-    console.error('Error creando módulo:', err)
-    alert(err.response?.data?.error || 'Error al crear módulo.')
+    console.error(err)
+    alert(err.response?.data?.error || 'Error guardando módulo')
   } finally {
     guardando.value = false
   }
 }
 
-const editarModulo = (moduloId) => {
-  alert('Edición de módulo aún no implementada en backend.')
-}
-const eliminarModulo = (moduloId) => {
-  if (!confirm('¿Seguro eliminar módulo? (simulado en frontend)')) return
-  modulos.value = modulos.value.filter(m => m.id !== moduloId)
-  curso.value.modulos = modulos.value
+const cargarFormadoresPorTipo = async (tipoModuloId) => {
+  if (!tipoModuloId) {
+    formadoresFiltrados.value = []
+
+    if (moduloEditandoId.value) {
+      formularioEdicion.value.formador_id = ''
+    } else {
+      formularioNuevo.value.formador_id = ''
+    }
+    return
+  }
+
+  cargandoFormadores.value = true
+
+  if (moduloEditandoId.value) {
+    formularioEdicion.value.formador_id = ''
+  } else {
+    formularioNuevo.value.formador_id = ''
+  }
+
+  try {
+    const res = await formacionService.getFormadoresPorTipoModulo(tipoModuloId)
+    formadoresFiltrados.value = res.data
+  } catch (err) {
+    console.error('Error cargando formadores por tipo:', err)
+    formadoresFiltrados.value = []
+  } finally {
+    cargandoFormadores.value = false
+  }
 }
 
+const editarModulo = async (moduloId) => {
+  const m = modulos.value.find(x => x.id === moduloId)
+  if (!m) return
 
-const registrarAsistencias = (modulo) => {
-  router.push({ name: 'RegistroAsistenciasFormacion', params: { moduloId: String(moduloId) } })
+  formularioEdicion.value = {
+    nombre: m.nombre,
+    descripcion: m.descripcion,
+    duracion: parseInt(m.duracion),
+    tipo_modulo_id: tiposModulo.value.find(t => t.nombre === m.tipo)?.id || '',
+    formador_id: ''
+  }
+
+  await cargarFormadoresPorTipo(formularioEdicion.value.tipo_modulo_id)
+
+  formularioEdicion.value.formador_id =
+    formadoresFiltrados.value.find(f => f.nombre === m.formador)?.id || ''
+
+  moduloEditandoId.value = moduloId
+  mostrarModalEdicion.value = true
 }
 
+const cancelarEdicion = () => {
+  moduloEditandoId.value = null
+  mostrarModalEdicion.value = false
+  formularioEdicion.value = {
+    nombre: '',
+    descripcion: '',
+    duracion: '',
+    tipo_modulo_id: '',
+    formador_id: ''
+  }
+}
+
+const eliminarModulo = async (moduloId) => {
+  if (!confirm('¿Seguro que desea eliminar este módulo?')) return
+
+  try {
+    await formacionService.deleteModulo(moduloId)
+    modulos.value = modulos.value.filter(m => m.id !== moduloId)
+  } catch (err) {
+    console.error(err)
+    alert(err.response?.data?.error || 'Error eliminando módulo')
+  }
+}
+
+const registrarAsistencias = (moduloId) => {
+  router.push(`/formacion/modulo/${moduloId}/asistencias`)
+}
 
 const volverAlCurso = () => {
   router.push(`/formacion/detalle-curso/${cursoId.value}`)
 }
+
 const navegarA = (destino) => {
   rutaActiva.value = destino
   if (destino === 'detalle-curso') router.push(`/formacion/detalle-curso/${cursoId.value}`)
@@ -343,6 +609,13 @@ const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   router.push('/login')
 }
+
+watch(
+  () => formularioNuevo.value.tipo_modulo_id,
+  (nuevoTipo) => {
+    cargarFormadoresPorTipo(nuevoTipo)
+    formularioNuevo.value.formador_id = ''
+  }
+)
+
 </script>
-
-

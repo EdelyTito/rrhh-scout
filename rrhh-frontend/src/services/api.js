@@ -96,18 +96,14 @@ export const dirigentesService = {
 }
 
 export const formacionService = {
-  // =====================
   // CURSOS
-  // =====================
   getCursos: () => api.get('/formacion/cursos'),
   getCurso: (id) => api.get(`/formacion/cursos/${id}`),
   createCurso: (data) => api.post('/formacion/cursos', data),
   updateCurso: (id, data) => api.put(`/formacion/cursos/${id}`, data),
-  deleteCurso: (id) => api.delete(`/formacion/cursos/${id}`),
+  updateEstadoCurso: (id, estado) => api.patch(`/formacion/cursos/${id}/estado`, { estado }),
 
-  // =====================
   // MÓDULOS
-  // =====================
   getModulos: (cursoId) =>
     api.get(`/formacion/cursos/${cursoId}/modulos`),
 
@@ -117,18 +113,17 @@ export const formacionService = {
   updateModulo: (moduloId, data) =>
     api.put(`/formacion/modulos/${moduloId}`, data),
 
-  // =====================
+  deleteModulo: (moduloId) =>
+    api.delete(`/formacion/modulos/${moduloId}`),
+
   // ASISTENCIAS
-  // =====================
   getAsistencias: (moduloId) =>
     api.get(`/formacion/modulos/${moduloId}/asistencias`),
 
   registrarAsistencia: (data) =>
     api.post('/formacion/asistencias', data),
 
-  // =====================
   // FORMADORES
-  // =====================
   getFormadores: () =>
     api.get('/formacion/formadores'),
 
@@ -148,18 +143,14 @@ export const formacionService = {
   getTiposModulo: () =>
     api.get('/formacion/tipos-modulo'),
 
-  // =====================
   // TIPOS DE MÓDULO
-  // =====================
   getTiposModulo: () =>
     api.get('/formacion/tipos-modulo'),
 
   createTipoModulo: (data) =>
     api.post('/formacion/tipos-modulo', data),
 
-  // =====================
   // RELACIONES
-  // =====================
   asignarTipoModuloAFormador: (formadorId, tipoModuloId) =>
     api.post(`/formacion/formadores/${formadorId}/tipos-modulo`, {
       tipo_modulo_id: tipoModuloId

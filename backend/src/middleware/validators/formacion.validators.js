@@ -11,9 +11,16 @@ export const validarCursoId = [
   param("cursoId").isInt().withMessage("ID de curso inválido")
 ]
 
-export const validarModuloId = [
-  param("moduloId").isInt().withMessage("ID de módulo inválido")
-]
+export const validarModuloId = (req, res, next) => {
+  const moduloId = req.params.moduloId || req.params.id
+
+  if (!moduloId || isNaN(moduloId)) {
+    return res.status(400).json({ error: 'ID de módulo inválido' })
+  }
+
+  req.params.moduloId = Number(moduloId)
+  next()
+}
 
 /* ============================
    CURSOS

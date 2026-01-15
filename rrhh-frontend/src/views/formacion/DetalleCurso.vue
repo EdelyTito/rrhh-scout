@@ -16,10 +16,30 @@
       <div class="px-4 py-6 sm:px-0">
         <!-- Título y botones de acción -->
         <div class="mb-8 flex justify-between items-center">
+          <div class="flex items-start gap-5">
+          <!-- Flecha volver -->
+          <div class="flex justify-between">
+          <button 
+            @click="volverALista"
+            class="px-6 py-3 rounded-lg transition duration-200 font-medium flex items-center space-x-2"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Volver a lista</span>
+          </button>
+        </div>
+
+          <!-- Título -->
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Curso - {{ curso.nombre }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900">
+              Curso - {{ curso.nombre }}
+            </h1>
             <p class="text-gray-600 mt-1">{{ curso.tipo }}</p>
           </div>
+
+        </div>
+
           <div class="flex space-x-3">
             <button 
               @click="editarCurso"
@@ -29,13 +49,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
               <span>Editar Curso</span>
-            </button>
-            
-            <button 
-              @click="gestionarModulos"
-              class="bg-[#009d71] text-white px-4 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 font-medium flex items-center space-x-2"
-            >
-              <span>Gestionar Módulos</span>
             </button>
           </div>
         </div>
@@ -61,7 +74,23 @@
             </div>
             <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <p class="text-sm font-medium text-gray-700 mb-1">Fecha</p>
-              <p class="text-sm text-gray-900">{{ curso.fecha || 'Por definir' }}</p>
+              <p class="text-sm text-gray-900">{{ fechaCurso }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+              <p class="text-sm font-medium text-gray-700">Modalidad</p>
+              <p class="text-gray-900 capitalize">
+                {{ curso.modalidad || 'Por definir' }}
+              </p>
+            </div>
+
+            <div>
+              <p class="text-sm font-medium text-gray-700">Lugar</p>
+              <p class="text-gray-900">
+                {{ curso.lugar || 'Por definir' }}
+              </p>
             </div>
           </div>
 
@@ -93,7 +122,7 @@
                         <span class="text-sm font-medium text-gray-700">{{ index + 1 }}</span>
                       </div>
                       <div>
-                        <h3 class="font-medium text-gray-900">{{ modulo.nombre }}</h3>
+                        <h3 class="font-medium text-gray-900">{{ modulo.titulo }}</h3>
                         <p class="text-sm text-gray-600 mt-1">{{ modulo.descripcion }}</p>
                       </div>
                     </div>
@@ -109,16 +138,16 @@
                         Ver asistencias
                       </button>
                       <span class="text-xs text-gray-400">•</span>
-                      <button 
-                        @click="editarModulo(modulo.id)"
-                        class="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        Editar
-                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+              <button 
+                @click="gestionarModulos"
+                class="bg-[#009d71] text-white px-4 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 font-medium flex items-center space-x-2"
+              >
+                <span>Gestionar Módulos</span>
+              </button>
             </div>
 
             <!-- Mensaje si no hay módulos -->
@@ -137,28 +166,6 @@
           </div>
         </div>
 
-        <!-- Botones de acción -->
-        <div class="flex justify-between">
-          <button 
-            @click="volverALista"
-            class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition duration-200 font-medium flex items-center space-x-2"
-          >
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-            <span>Volver a lista</span>
-          </button>
-          
-          <div class="flex space-x-3">
-            <button 
-              @click="eliminarCurso"
-              class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition duration-200 font-medium"
-            >
-              Eliminar Curso
-            </button>
-          </div>
-        </div>
-
         <!-- Footer del módulo -->
         <footer class="mt-8 text-center">
           <p class="text-gray-500 text-sm">
@@ -171,6 +178,8 @@
 </template>
 
 <script setup>
+import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
+import FormacionNav from '../../components/formacion/FormacionNav.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
@@ -234,16 +243,6 @@ const verAsistenciasModulo = (moduloId) => {
   router.push(`/formacion/modulo/${moduloId}/asistencias`)
 }
 
-const editarModulo = (moduloId) => {
-  alert('Edición de módulo aún no implementada en backend.')
-}
-
-const eliminarCurso = async () => {
-  if (!confirm('¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.')) return
-  alert('Eliminar curso no implementado en backend — acción simulada.')
-  router.push('/formacion/lista-cursos')
-}
-
 const volverALista = () => {
   router.push('/formacion/lista-cursos')
 }
@@ -253,5 +252,27 @@ const cerrarSesion = () => {
   localStorage.removeItem('usuario')
   router.push('/login')
 }
+
+const fechaCurso = computed(() => {
+  if (!curso.value.fecha_inicio && !curso.value.fecha_fin) return 'Por definir'
+  if (curso.value.fecha_inicio && !curso.value.fecha_fin)
+    return formatISODate(curso.value.fecha_inicio)
+  if (!curso.value.fecha_inicio && curso.value.fecha_fin)
+    return formatISODate(curso.value.fecha_fin)
+  return `${formatISODate(curso.value.fecha_inicio)} al ${formatISODate(curso.value.fecha_fin)}`
+})
+
+const formatISODate = (iso) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d)) return ''
+  return d.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
+}
+
+
 </script>
 

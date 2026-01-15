@@ -19,7 +19,7 @@
           <div class="flex items-center justify-between">
             <h1 class="text-2xl font-bold text-gray-900">Editar Curso</h1>
             <button 
-              @click="volverAlDetalle"
+              @click="cancelar"
               class="text-[#009d71] hover:text-[#007a5c] font-medium flex items-center space-x-2"
             >
               <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,27 +47,34 @@
               >
             </div>
 
-            <!-- Tipo de curso -->
+            <!-- Modalidad -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de curso *
+                Modalidad *
               </label>
-              <select 
-                v-model="formulario.tipo"
+              <select
+                v-model="formulario.modalidad"
                 required
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#009d71]"
               >
-                <option value="">Seleccione el tipo de curso</option>
-                <option value="Batería de módulos">Batería de módulos</option>
-                <option value="Curso Introductorio">Curso Introductorio</option>
-                <option value="IMs Nivel II">IMs Nivel II</option>
-                <option value="IMs Nivel III">IMs Nivel III</option>
-                <option value="Paxtu Nivel Grupo">Paxtu Nivel Grupo</option>
-                <option value="Paxtu Nivel Distrito">Paxtu Nivel Distrito</option>
-                <option value="Koodoo Adjunto">Koodoo Adjunto</option>
-                <option value="Koodoo Director">Koodoo Director</option>
-                <option value="Asesores personales">Asesores personales</option>
+                <option value="">Seleccione modalidad</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Virtual">Virtual</option>
+                <option value="Mixto">Mixto</option>
               </select>
+            </div>
+
+            <!-- Lugar -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Lugar
+              </label>
+              <input
+                v-model="formulario.lugar"
+                type="text"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#009d71]"
+                placeholder="Ej: Casa Scout, Virtual (Zoom), Por definir"
+              />
             </div>
 
             <!-- Estado del curso -->
@@ -84,22 +91,34 @@
                 <option value="planificado">Planificado</option>
                 <option value="activo">Activo</option>
                 <option value="finalizado">Finalizado</option>
-                <option value="cancelado">Cancelado</option>
               </select>
             </div>
 
             <!-- Fecha del curso -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Fecha del curso
-              </label>
-              <input 
-                v-model="formulario.fecha"
-                type="text" 
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                placeholder="Ej: 20 y 21 de febrero"
-              >
-              <p class="text-xs text-gray-500 mt-1">Formato libre: "20 y 21 de febrero" o "por definir"</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Fecha inicio -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha inicio
+                </label>
+                <input
+                  v-model="formulario.fecha_inicio"
+                  type="date"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#009d71]"
+                />
+              </div>
+
+              <!-- Fecha fin -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha fin
+                </label>
+                <input
+                  v-model="formulario.fecha_fin"
+                  type="date"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#009d71]"
+                />
+              </div>
             </div>
 
             <!-- Descripción del curso -->
@@ -118,23 +137,8 @@
 
             <!-- Botones de acción -->
             <div class="flex justify-between pt-6 border-t border-gray-200">
-              <button 
-                type="button"
-                @click="cancelar"
-                class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition duration-200 font-medium"
-              >
-                Cancelar
-              </button>
               
-              <div class="flex space-x-4">
-                <button 
-                  type="button"
-                  @click="eliminarCurso"
-                  class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition duration-200 font-medium"
-                >
-                  Eliminar
-                </button>
-                
+              <div class="flex space-x-1">
                 <button 
                   type="submit"
                   :disabled="guardando"
@@ -168,6 +172,8 @@
 </template>
 
 <script setup>
+import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
+import FormacionNav from '../../components/formacion/FormacionNav.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
@@ -191,15 +197,15 @@ const formulario = ref({
   fecha_fin: '',
   modalidad: '',
   lugar: '',
-  cupo: '',
+  estado: '',
 })
 
 const cargarCurso = async () => {
   cargando.value = true
-  error.value = ''
   try {
     const res = await formacionService.getCurso(cursoId.value)
     const c = res.data
+
     formulario.value = {
       nombre: c.nombre || '',
       descripcion: c.descripcion || '',
@@ -207,10 +213,10 @@ const cargarCurso = async () => {
       fecha_fin: c.fecha_fin ? c.fecha_fin.substring(0, 10) : '',
       modalidad: c.modalidad || '',
       lugar: c.lugar || '',
-      cupo: c.cupo || '',
+      estado: c.estado || 'planificado',
     }
   } catch (err) {
-    console.error('Error cargando curso para edición:', err)
+    console.error(err)
     error.value = 'No se pudo cargar el curso.'
   } finally {
     cargando.value = false
@@ -239,9 +245,9 @@ const guardarCambios = async () => {
       descripcion: formulario.value.descripcion,
       fecha_inicio: formulario.value.fecha_inicio || null,
       fecha_fin: formulario.value.fecha_fin || null,
-      modalidad: formulario.value.modalidad || null,
+      modalidad: formulario.value.modalidad,
       lugar: formulario.value.lugar || null,
-      cupo: formulario.value.cupo ? Number(formulario.value.cupo) : null,
+      estado: formulario.value.estado,
     }
 
     const res = await formacionService.updateCurso(cursoId.value, payload)

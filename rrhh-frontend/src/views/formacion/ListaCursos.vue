@@ -37,6 +37,9 @@
                     Fecha del curso
                   </th>
                   <th scope="col" class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th scope="col" class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -56,36 +59,47 @@
 
                   <!-- FECHA -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ curso.fecha }}</div>
+                    <div class="text-sm text-gray-900">
+                      {{ mostrarRangoFechas(curso) }}
+                    </div>
+                  </td>
+
+                  <!-- ESTADO -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      :class="[
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                        curso.estado === 'activo'
+                          ? 'bg-green-100 text-green-800'
+                          : curso.estado === 'finalizado'
+                          ? 'bg-gray-100 text-gray-800'
+                          : 'bg-blue-100 text-blue-800'
+                      ]"
+                    >
+                      {{ 
+                        curso.estado === 'activo'
+                          ? 'Activo'
+                          : curso.estado === 'finalizado'
+                          ? 'Finalizado'
+                          : 'Planificado'
+                      }}
+                    </span>
                   </td>
 
                   <!-- ACCIONES -->
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button 
-                      @click="verCurso(curso.id)"
-                      class="text-[#009d71] hover:text-[#007a5c] mr-3"
-                    >
-                      Ver
-                    </button>
+                    <div class="flex items-center gap-3">
 
-                    <button 
-                      @click="editarCurso(curso.id)"
-                      class="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      Editar
-                    </button>
-
-                    <button 
-                      @click="eliminarCurso(curso.id)"
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Eliminar
-                    </button>
+                      <button
+                        @click="verCurso(curso.id)"
+                        class="text-[#009d71] hover:underline"
+                      >
+                        Ver
+                      </button>
+                    </div>
                   </td>
-
                 </tr>
               </tbody>
-
             </table>
           </div>
 
@@ -156,7 +170,6 @@ const formatRangoFechas = (fi, ff) => {
   return `${formatISODate(fi)} al ${formatISODate(ff)}`
 }
 
-
 const cargarCursos = async () => {
   cargando.value = true
   error.value = ''
@@ -165,14 +178,13 @@ const cargarCursos = async () => {
     const data = Array.isArray(res.data) ? res.data : []
 
     cursos.value = data.map(curso => {
-      const fecha = formatRangoFechas(curso.fecha_inicio, curso.fecha_fin)
-
       return {
-        id:        curso.id,
-        nombre:    curso.nombre,
-        tipo:      curso.modalidad || 'Curso',
-        fecha,
-        estadoFecha: curso.estado || 'Sin estado',
+        id: curso.id,
+        nombre: curso.nombre,
+        tipo: curso.modalidad || 'Curso',
+        fecha_inicio: curso.fecha_inicio,
+        fecha_fin: curso.fecha_fin,
+        estado: curso.estado,
       }
     })
   } catch (err) {
@@ -183,6 +195,16 @@ const cargarCursos = async () => {
     cargando.value = false
   }
 }
+
+const mostrarRangoFechas = (curso) => {
+  if (!curso.fecha_inicio && !curso.fecha_fin) return 'Por definir'
+  if (curso.fecha_inicio && !curso.fecha_fin)
+    return formatISODate(curso.fecha_inicio)
+  if (!curso.fecha_inicio && curso.fecha_fin)
+    return formatISODate(curso.fecha_fin)
+  return `${formatISODate(curso.fecha_inicio)} al ${formatISODate(curso.fecha_fin)}`
+}
+
 
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
@@ -197,23 +219,12 @@ const navegarA = (destino) => {
       router.push('/formacion')
       break
     case 'lista-cursos':
-      // ya estamos aquí
       break
   }
 }
 
 const verCurso = (id) => {
   router.push(`/formacion/detalle-curso/${id}`)
-}
-
-const editarCurso = (id) => {
-  router.push(`/formacion/editar-curso/${id}`)
-}
-
-const eliminarCurso = async (id) => {
-  if (!confirm('¿Está seguro de eliminar este curso? Esta acción no se puede deshacer.')) return
-  cursos.value = cursos.value.filter(curso => curso.id !== id)
-  console.log(`Curso ${id} eliminado (solo en frontend)`)
 }
 
 const crearNuevoCurso = () => {

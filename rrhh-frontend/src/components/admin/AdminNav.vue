@@ -25,10 +25,10 @@
             class="absolute left-0 mt-1 w-64 bg-white rounded-md shadow-lg border z-10"
           >
             <button
-              @click="irAComision('/admin/seguimiento')"
-              :class="dropdownClass('/admin/seguimiento')"
+              @click="irAComision('/admin/registro')"
+              :class="dropdownClass('/admin/registro')"
             >
-              Seguimiento
+              Registro y Habilitación
             </button>
 
             <button
@@ -37,13 +37,14 @@
             >
               Formación
             </button>
-
+            
             <button
-              @click="irAComision('/admin/registro')"
-              :class="dropdownClass('/admin/registro')"
+              @click="irAComision('/admin/seguimiento')"
+              :class="dropdownClass('/admin/seguimiento')"
             >
-              Registro y Habilitación
+              Seguimiento
             </button>
+
           </div>
         </div>
 

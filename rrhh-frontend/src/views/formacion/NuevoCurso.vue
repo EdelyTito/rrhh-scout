@@ -14,7 +14,16 @@
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
-        <!-- Título con saludo -->
+          <button 
+            @click="volverALista"
+            class="px-6 py-3 rounded-lg transition duration-200 font-medium flex items-center space-x-2"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Volver a lista</span>
+          </button>
+        <!-- Título -->
         <div class="mb-8">
           <h1 class="text-2xl font-bold text-gray-900">Formulario para la creación de cursos</h1>
         </div>
@@ -37,56 +46,58 @@
               >
             </div>
 
-            <!-- Tipo de curso -->
+            <!-- Modalidad -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de curso
+                Modalidad *
               </label>
-              <select 
-                v-model="formulario.tipo"
+              <select
+                v-model="formulario.modalidad"
                 required
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#009d71]"
               >
-                <option value="">Seleccione el tipo de curso</option>
-                <option value="Batería de módulos">Batería de módulos</option>
-                <option value="Curso Introductorio">Curso Introductorio</option>
-                <option value="IMs Nivel II">IMs Nivel II</option>
-                <option value="IMs Nivel III">IMs Nivel III</option>
-                <option value="Paxtu Nivel Grupo">Paxtu Nivel Grupo</option>
-                <option value="Paxtu Nivel Distrito">Paxtu Nivel Distrito</option>
-                <option value="Koodoo Adjunto">Koodoo Adjunto</option>
-                <option value="Koodoo Director">Koodoo Director</option>
-                <option value="Asesores personales">Asesores personales</option>
+                <option value="">Seleccione modalidad</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Virtual">Virtual</option>
+                <option value="Mixto">Mixto</option>
               </select>
             </div>
 
-            <!-- Cantidad de módulos y paralelos -->
+            <!-- Lugar -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Cantidad de módulos y paralelos
+                Lugar
               </label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <input 
-                    v-model="formulario.cantidadModulos"
-                    type="number" 
-                    min="1"
-                    required
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                    placeholder="Ej: 10"
-                  >
-                  <p class="text-xs text-gray-500 mt-1">Cantidad de módulos</p>
-                </div>
-                <div>
-                  <input 
-                    v-model="formulario.cantidadParalelos"
-                    type="number" 
-                    min="0"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                    placeholder="Ej: 2"
-                  >
-                  <p class="text-xs text-gray-500 mt-1">Cantidad de paralelos (opcional)</p>
-                </div>
+              <input
+                v-model="formulario.lugar"
+                type="text"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-[#009d71]"
+                placeholder="Ej: Casa Scout, Zoom, Por definir"
+              />
+            </div>
+
+            <!-- Fechas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha inicio
+                </label>
+                <input
+                  v-model="formulario.fecha_inicio"
+                  type="date"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha fin
+                </label>
+                <input
+                  v-model="formulario.fecha_fin"
+                  type="date"
+                  class="w-full border border-gray-300 rounded-lg px-3 py-2"
+                />
               </div>
             </div>
 
@@ -103,97 +114,7 @@
                 placeholder="Describa el contenido y objetivos del curso..."
               ></textarea>
             </div>
-
-            <!-- Lista de módulos y dirigentes -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Lista de módulos y de dirigentes que los darán
-              </label>
-              <div class="space-y-4">
-                <!-- Módulo 1 -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-medium text-gray-800">Módulo 1</h3>
-                    <button 
-                      type="button"
-                      @click="eliminarModulo(0)"
-                      class="text-red-600 hover:text-red-800 text-sm"
-                      v-if="formulario.modulos.length > 1"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <input 
-                        v-model="formulario.modulos[0].nombre"
-                        type="text" 
-                        required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                        placeholder="Nombre del módulo"
-                      >
-                    </div>
-                    <div>
-                      <input 
-                        v-model="formulario.modulos[0].dirigente"
-                        type="text" 
-                        required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                        placeholder="Dirigente responsable"
-                      >
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Módulos adicionales -->
-                <div v-for="(modulo, index) in formulario.modulos.slice(1)" :key="index" 
-                     class="border border-gray-200 rounded-lg p-4">
-                  <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-medium text-gray-800">Módulo {{ index + 2 }}</h3>
-                    <button 
-                      type="button"
-                      @click="eliminarModulo(index + 1)"
-                      class="text-red-600 hover:text-red-800 text-sm"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <input 
-                        v-model="formulario.modulos[index + 1].nombre"
-                        type="text" 
-                        required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                        placeholder="Nombre del módulo"
-                      >
-                    </div>
-                    <div>
-                      <input 
-                        v-model="formulario.modulos[index + 1].dirigente"
-                        type="text" 
-                        required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                        placeholder="Dirigente responsable"
-                      >
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Botón para agregar más módulos -->
-                <button 
-                  type="button"
-                  @click="agregarModulo"
-                  class="flex items-center space-x-2 text-[#009d71] hover:text-[#007a5c] font-medium"
-                >
-                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                  </svg>
-                  <span>Agregar módulo</span>
-                </button>
-              </div>
-            </div>
-
+            
             <!-- Botones de acción -->
             <div class="flex justify-between pt-6 border-t border-gray-200">
               <button 
@@ -236,6 +157,8 @@
 </template>
 
 <script setup>
+import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
+import FormacionNav from '../../components/formacion/FormacionNav.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
@@ -245,15 +168,17 @@ const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('nuevo-curso')
 const guardando = ref(false)
 
+const volverALista = () => {
+  router.push('/formacion/lista-cursos')
+}
+
 const formulario = ref({
   nombre: '',
-  tipo: '',
-  cantidadModulos: '',
-  cantidadParalelos: '',
   descripcion: '',
-  modulos: [
-    { nombre: '', dirigente: '' }
-  ]
+  modalidad: '',
+  lugar: '',
+  fecha_inicio: '',
+  fecha_fin: ''
 })
 
 onMounted(() => {
@@ -273,53 +198,39 @@ const navegarA = (destino) => {
   }
 }
 
-const agregarModulo = () => {
-  formulario.value.modulos.push({ nombre: '', dirigente: '' })
-}
-
-const eliminarModulo = (index) => {
-  if (formulario.value.modulos.length === 1) return
-  formulario.value.modulos.splice(index, 1)
-}
-
 const guardarCurso = async () => {
-  if (!formulario.value.nombre || !formulario.value.tipo || !formulario.value.descripcion) {
-    alert('Por favor completa al menos nombre, tipo y descripción del curso.')
+  if (
+    !formulario.value.nombre ||
+    !formulario.value.descripcion ||
+    !formulario.value.modalidad
+  ) {
+    alert('Nombre, descripción y modalidad son obligatorios.')
     return
   }
 
   guardando.value = true
+
   try {
-    const descripcionExtendida = `
-${formulario.value.descripcion}
-
-Tipo: ${formulario.value.tipo}
-Cantidad de módulos: ${formulario.value.cantidadModulos || 'N/D'}
-Cantidad de paralelos: ${formulario.value.cantidadParalelos || '0'}
-
-Módulos:
-${formulario.value.modulos.map((m, i) => `  ${i + 1}. ${m.nombre} - ${m.dirigente}`).join('\n')}
-`.trim()
-
     const payload = {
       nombre: formulario.value.nombre,
-      descripcion: descripcionExtendida,
-      fecha_inicio: null,
-      fecha_fin: null,
-      modalidad: formulario.value.tipo,
-      lugar: null,
-      cupo: formulario.value.cantidadModulos ? Number(formulario.value.cantidadModulos) : null,
+      descripcion: formulario.value.descripcion,
+      modalidad: formulario.value.modalidad,
+      lugar: formulario.value.lugar || null,
+      fecha_inicio: formulario.value.fecha_inicio || null,
+      fecha_fin: formulario.value.fecha_fin || null
     }
 
     const res = await formacionService.createCurso(payload)
-    console.log('Curso creado:', res.data)
 
-    alert('¡Curso creado correctamente!')
-    router.push('/formacion/lista-cursos')
+    const cursoId = res.data.curso.id
 
-  } catch (error) {
-    console.error('Error al crear curso:', error)
-    alert(error.response?.data?.error || 'Error al crear el curso')
+    alert('Curso creado correctamente')
+
+    router.push(`/formacion/lista-modulos/${cursoId}`)
+
+  } catch (err) {
+    console.error(err)
+    alert(err.response?.data?.error || 'Error creando curso')
   } finally {
     guardando.value = false
   }

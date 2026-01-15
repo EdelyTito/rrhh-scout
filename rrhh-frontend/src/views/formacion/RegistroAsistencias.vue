@@ -38,28 +38,12 @@
 
         <!-- Información del módulo -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
               <input 
                 v-model="fechaAsistencia"
                 type="date"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-              >
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Hora inicio</label>
-              <input 
-                v-model="horaInicio"
-                type="time"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-              >
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Hora fin</label>
-              <input 
-                v-model="horaFin"
-                type="time"
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]"
               >
             </div>
@@ -72,6 +56,49 @@
           </div>
         </div>
 
+        <!-- Registrar asistencia -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <h2 class="text-lg font-semibold mb-4">Registrar asistencia</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <input
+              v-model="nuevoRegistro.nombre_participante"
+              placeholder="Nombre del participante"
+              class="border rounded-lg px-3 py-2"
+            />
+
+            <input
+              v-model="nuevoRegistro.grupo"
+              placeholder="Grupo"
+              class="border rounded-lg px-3 py-2"
+            />
+
+            <select v-model="nuevoRegistro.presente" class="border rounded-lg px-3 py-2">
+              <option :value="true">Presente</option>
+              <option :value="false">Ausente</option>
+            </select>
+
+            <label class="flex items-center space-x-2">
+              <input type="checkbox" v-model="nuevoRegistro.pago_cuota" />
+              <span>Pagó cuota</span>
+            </label>
+
+            <input
+              v-model="nuevoRegistro.observaciones"
+              placeholder="Observaciones"
+              class="border rounded-lg px-3 py-2"
+            />
+
+            <button
+              @click="registrarAsistencia"
+              :disabled="registrando"
+              class="bg-[#009d71] text-white rounded-lg px-4 py-2"
+            >
+              Registrar
+            </button>
+          </div>
+        </div>
+
         <!-- Lista de asistentes -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
@@ -81,13 +108,6 @@
                 <span class="text-sm text-gray-600">
                   {{ asistentesPresentes }} presentes / {{ totalAsistentes }} total
                 </span>
-
-                <button 
-                  @click="marcarTodosPresentes"
-                  class="text-sm text-[#009d71] hover:text-[#007a5c] font-medium"
-                >
-                  Marcar todos presentes
-                </button>
               </div>
             </div>
           </div>
@@ -107,55 +127,53 @@
                     Asistencia
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pago cuota
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fecha asistencia
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Observaciones
                   </th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="asistente in asistentes" :key="asistente.id" class="hover:bg-gray-50 transition duration-150">
+                <tr v-for="asistente in asistencias" :key="asistente.id" class="hover:bg-gray-50 transition duration-150">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span class="text-sm font-medium text-gray-700">{{ asistente.iniciales }}</span>
-                      </div>
                       <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">{{ asistente.nombre }}</div>
-                        <div class="text-xs text-gray-500">{{ asistente.email }}</div>
+                        <div class="text-sm font-medium text-gray-900">{{ asistente.nombre_participante }}</div>
                       </div>
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {{ asistente.grupo }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center space-x-4">
-                      <label class="flex items-center">
-                        <input 
-                          type="radio" 
-                          :value="true"
-                          v-model="asistente.presente"
-                          class="h-4 w-4 text-[#009d71] focus:ring-[#009d71] border-gray-300"
-                        >
-                        <span class="ml-2 text-sm text-gray-700">Presente</span>
-                      </label>
-                      <label class="flex items-center">
-                        <input 
-                          type="radio" 
-                          :value="false"
-                          v-model="asistente.presente"
-                          class="h-4 w-4 text-red-600 focus:ring-red-600 border-gray-300"
-                        >
-                        <span class="ml-2 text-sm text-gray-700">Ausente</span>
-                      </label>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <input 
-                      v-model="asistente.observaciones"
-                      type="text"
-                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#009d71]"
-                      placeholder="Observaciones..."
+
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span
+                      :class="asistente.presente
+                        ? 'text-green-600 font-semibold'
+                        : 'text-red-600 font-semibold'"
                     >
+                      {{ asistente.presente ? 'Presente' : 'Ausente' }}
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-4 text-sm">
+                    <span
+                      :class="asistente.pago_cuota ? 'text-green-600' : 'text-red-600'"
+                    >
+                      {{ asistente.pago_cuota ? 'Sí' : 'No' }}
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-4 text-sm text-gray-700">
+                    {{ formatearFecha(asistente.fecha_asistencia)}}
+                  </td>
+
+                  <td class="px-6 py-4 text-sm text-gray-700">
+                    {{ asistente.observaciones || '—' }}
                   </td>
                 </tr>
               </tbody>
@@ -174,32 +192,6 @@
             </svg>
             <span>Generar Reporte</span>
           </button>
-          
-          <div class="flex space-x-4">
-            <button 
-              @click="limpiarRegistro"
-              class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition duration-200 font-medium"
-            >
-              Limpiar
-            </button>
-            
-            <button 
-              @click="guardarAsistencias"
-              :disabled="guardando"
-              class="bg-[#009d71] text-white px-8 py-3 rounded-lg hover:bg-[#007a5c] transition duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span v-if="guardando">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Guardando...
-              </span>
-              <span v-else>
-                Guardar Asistencias
-              </span>
-            </button>
-          </div>
         </div>
 
         <!-- Footer -->
@@ -214,6 +206,8 @@
 </template>
 
 <script setup>
+import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
+import FormacionNav from '../../components/formacion/FormacionNav.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
@@ -257,9 +251,10 @@ const cargarAsistencias = async () => {
 
     modulo.value = {
       id: moduloId.value,
-      nombre: route.query.moduloNombre || (res.data && res.data[0] ? (res.data[0].modulo_nombre || '') : ''),
-      cursoNombre: route.query.cursoNombre || ''
+      nombre: res.data[0]?.modulo_nombre || '',
+      cursoNombre: res.data[0]?.curso_nombre || ''
     }
+
   } catch (err) {
     console.error('Error cargando asistencias:', err)
     error.value = err.response?.data?.error || 'No se pudo cargar la lista de asistencias.'
@@ -268,6 +263,16 @@ const cargarAsistencias = async () => {
     cargando.value = false
   }
 }
+
+const fechaAsistencia = ref(
+  new Date().toISOString().substring(0, 10)
+)
+
+const formatearFecha = (fecha) => {
+  if (!fecha) return '—'
+  return new Date(fecha).toLocaleDateString('es-BO')
+}
+
 
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
@@ -307,24 +312,6 @@ const registrarAsistencia = async () => {
   } finally {
     registrando.value = false
   }
-}
-
-const marcarTodosPresentes = () => {
-  asistencias.value = asistencias.value.map(a => ({ ...a, presente: true }))
-}
-
-const limpiarRegistro = () => {
-  nuevoRegistro.value = {
-    nombre_participante: '',
-    grupo: '',
-    presente: true,
-    pago_cuota: false,
-    observaciones: '',
-  }
-}
-
-const guardarAsistencias = async () => {
-  alert('Guardar masivo no implementado. Actualmente las asistencias se guardan una por una.')
 }
 
 const volverAModulos = () => {
