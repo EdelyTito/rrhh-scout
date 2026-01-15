@@ -79,7 +79,7 @@
                   <tr>
                     <th class="border px-3 py-2 leading-snug text-left">Nombre</th>
                     <th class="border px-3 py-2 leading-snug text-left">Contacto</th>
-                    <th class="border px-3 py-2 leading-snug text-left">Formación</th>
+                    <th class="border px-3 py-2 leading-snug text-left">Módulos</th>
                     <th class="border px-3 py-2 leading-snug text-left">Estado</th>
                     <th class="border px-3 py-2 leading-snug text-center">Acciones</th>
                   </tr>
@@ -97,10 +97,26 @@
                       <span v-if="!f.telefono && !f.email" class="text-gray-400">—</span>
                     </td>
 
-                    <td class="border px-3 py-2 leading-snug">
-                      <div><b>Programa:</b> {{ f.nivel_programa }}</div>
-                      <div><b>Formador:</b> {{ f.nivel_formador }}</div>
-                      <div><b>Gestión:</b> {{ f.nivel_gestion }}</div>
+                    <td class="border px-3 py-2 leading-snug align-top">
+                      <ul v-if="f.modulos.length" class="space-y-0.5 text-xs text-gray-700">
+                        <li
+                          v-for="m in f.modulos.slice(0, 3)"
+                          :key="m.id"
+                          class="flex items-start"
+                        >
+                          <span class="mr-1">•</span>
+                          <span class="leading-tight">{{ m.nombre }}</span>
+                        </li>
+
+                        <li
+                          v-if="f.modulos.length > 3"
+                          class="text-gray-500 italic"
+                        >
+                          +{{ f.modulos.length - 3 }} más
+                        </li>
+                      </ul>
+
+                      <span v-else class="text-gray-400 text-xs">—</span>
                     </td>
 
                     <td class="border px-3 py-2 leading-snug text-center">
@@ -148,12 +164,15 @@
     </main>
   </div>
 
-  <!-- ====MODAL FORMADOR======== -->
+  <!-- ====MODAL EDITAR FORMADOR======== -->
   <div
     v-if="mostrarModalFormador"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    class="fixed inset-0 z-50 flex justify-center bg-black/40 overflow-y-auto"
   >
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+    <div
+      class="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 my-10
+            max-h-[90vh] overflow-y-auto"
+    >
 
       <h2 class="text-xl font-semibold mb-4">
         {{ formadorEditando ? 'Editar formador' : 'Nuevo formador' }}
@@ -275,49 +294,67 @@
   <!-- ===== MODAL VER FORMADOR ===== -->
   <div
     v-if="mostrarModalVerFormador"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    class="fixed inset-0 z-50 flex justify-center bg-black/40 overflow-y-auto"
   >
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-      <h2 class="text-xl font-semibold mb-4">Detalle del formador</h2>
+    <div
+      class="bg-white rounded-lg shadow-xl w-full max-w-xl
+            p-6 my-6 h-fit max-h-[85vh] overflow-y-auto"
+    >
 
-      <p><b>Nombre:</b> {{ formadorVer.nombre }}</p>
-      <p><b>Teléfono:</b> {{ formadorVer.telefono || '—' }}</p>
-      <p><b>Email:</b> {{ formadorVer.email || '—' }}</p>
+      <h2 class="text-xl font-semibold mb-6">Detalle del formador</h2>
 
-      <hr class="my-3">
+      <div class="flex flex-col gap-4">
+        <!-- Datos básicos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <p><b>Nombre:</b> {{ formadorVer.nombre }}</p>
+          <p><b>Teléfono:</b> {{ formadorVer.telefono || '—' }}</p>
+          <p><b>Email:</b> {{ formadorVer.email || '—' }}</p>
+          <p>
+            <b>Estado:</b>
+            <span
+              v-if="formadorVer.activo"
+              class="inline-block ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800"
+            >
+              Activo
+            </span>
+            <span
+              v-else
+              class="inline-block ml-2 px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700"
+            >
+              Inactivo
+            </span>
+          </p>
+        </div>
+      </div>
 
-      <p class="font-semibold">Módulos que puede dictar:</p>
+      <hr class="my-4">
 
-      <ul class="list-disc list-inside mt-2">
-        <li v-for="m in formadorVer.modulos" :key="m.id">
-          {{ m.nombre }}
-        </li>
-        <li v-if="formadorVer.modulos.length === 0" class="text-gray-400">
-          No tiene módulos asignados
-        </li>
-      </ul>
+      <!-- Módulos -->
+      <div class="mb-4">
+        <p class="font-bold mb-2">Módulos que puede dictar</p>
 
-      <p><b>Programa:</b> {{ formadorVer.nivel_programa }}</p>
-      <p><b>Formador:</b> {{ formadorVer.nivel_formador }}</p>
-      <p><b>Gestión:</b> {{ formadorVer.nivel_gestion }}</p>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1 list-disc list-inside">
+          <li v-for="m in formadorVer.modulos" :key="m.id">
+            {{ m.nombre }}
+          </li>
+          <li v-if="formadorVer.modulos.length === 0" class="text-gray-400">
+            No tiene módulos asignados
+          </li>
+        </ul>
+      </div>
 
-      <p class="mt-2">
-        <b>Estado:</b>
-        <span
-          v-if="formadorVer.activo"
-          class="inline-block ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800"
-        >
-          Activo
-        </span>
-        <span
-          v-else
-          class="inline-block ml-2 px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-700"
-        >
-          Inactivo
-        </span>
-      </p>
+      <hr class="my-4">
 
-      <div class="flex justify-end mt-4">
+      <!-- Formación -->
+      <div class="mb-4">
+        <p class="font-bold mb-3">Formación Scout:</p>
+
+        <p><b>Programa:</b> {{ formadorVer.nivel_programa }}</p>
+        <p><b>Formador:</b> {{ formadorVer.nivel_formador }}</p>
+        <p><b>Gestión:</b> {{ formadorVer.nivel_gestion }}</p>
+      </div>
+
+      <div class="flex justify-end mt-6">
         <button
           class="px-4 py-2 border rounded"
           @click="mostrarModalVerFormador = false"
@@ -381,16 +418,25 @@ const cargarDirigentes = async () => {
     const res = await formacionService.getFormadores()
     const formadores = Array.isArray(res.data) ? res.data : []
 
-    dirigentes.value = formadores.map(f => ({
-      id: f.id,
-      nombre: f.nombre,
-      telefono: f.telefono,
-      email: f.email,
-      nivel_programa: f.nivel_programa || 'Ninguno',
-      nivel_formador: f.nivel_formador || 'Ninguno',
-      nivel_gestion: f.nivel_gestion || 'Ninguno',
-      activo: f.activo
-    }))
+    dirigentes.value = await Promise.all(
+      formadores.map(async f => {
+        const modulosRes = await formacionService.getModulosFormador(f.id)
+
+        return {
+          id: f.id,
+          nombre: f.nombre,
+          telefono: f.telefono,
+          email: f.email,
+          activo: f.activo,
+
+          nivel_programa: f.nivel_programa || '—',
+          nivel_formador: f.nivel_formador || '—',
+          nivel_gestion: f.nivel_gestion || '—',
+
+          modulos: modulosRes.data || []
+        }
+      })
+    )
   } catch (err) {
     console.error('Error cargando formadores:', err)
     dirigentes.value = []
@@ -409,7 +455,8 @@ const formadorForm = ref({
   nivel_gestion: 'Ninguno',
   telefono: '',
   email: '',
-  activo: true
+  activo: true,
+  modulos: []
 })
 
 const abrirNuevoFormador = () => {
@@ -420,7 +467,9 @@ const abrirNuevoFormador = () => {
     nivel_formador: 'Ninguno',
     nivel_gestion: 'Ninguno',
     telefono: '',
-    email: ''
+    email: '',
+    activo: true,
+    modulos: []
   }
   mostrarModalFormador.value = true
 }

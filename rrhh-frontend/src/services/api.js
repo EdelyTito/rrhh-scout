@@ -140,10 +140,10 @@ export const formacionService = {
 
   // FORMADORES - MÓDULOS
   getModulosFormador: (id) =>
-    api.get(`/formacion/formadores/${id}/tipos-modulo`),
+    api.get(`/formacion/formadores/${id}/modulos`),
 
   updateModulosFormador: (id, data) =>
-    api.put(`/formacion/formadores/${id}/tipos-modulo`, data),
+    api.put(`/formacion/formadores/${id}/modulos`, data),
 
   getTiposModulo: () =>
     api.get('/formacion/tipos-modulo'),

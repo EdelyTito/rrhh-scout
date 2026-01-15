@@ -385,6 +385,67 @@ router.post('/formadores', verifyToken, authorizeRoles(...ROLES_FORM), async (re
   }
 })
 
+router.get(
+  '/formadores/:id/modulos',
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+
+      const result = await pool.query(`
+        SELECT tm.id, tm.nombre
+        FROM tipos_modulo tm
+        JOIN formadores_tipos_modulo ftm
+          ON ftm.tipo_modulo_id = tm.id
+        WHERE ftm.formador_id = $1
+        ORDER BY tm.nombre
+      `, [id])
+
+      res.json(result.rows)
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error obteniendo módulos del formador' })
+    }
+  }
+)
+
+router.put(
+  '/formadores/:id/modulos',
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+      const { tipos_modulo } = req.body
+
+      if (!Array.isArray(tipos_modulo)) {
+        return res.status(400).json({ error: 'tipos_modulo debe ser un array' })
+      }
+
+      // 1️⃣ borrar relaciones actuales
+      await pool.query(
+        'DELETE FROM formadores_tipos_modulo WHERE formador_id = $1',
+        [id]
+      )
+
+      // 2️⃣ insertar nuevas
+      for (const tipoId of tipos_modulo) {
+        await pool.query(`
+          INSERT INTO formadores_tipos_modulo (formador_id, tipo_modulo_id)
+          VALUES ($1, $2)
+        `, [id, tipoId])
+      }
+
+      res.json({ message: 'Módulos del formador actualizados correctamente' })
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error actualizando módulos del formador' })
+    }
+  }
+)
+
+
 router.put(
   '/formadores/:id/tipos-modulo',
   verifyToken,
@@ -415,6 +476,60 @@ router.put(
     } catch (err) {
       console.error(err)
       res.status(500).json({ error: 'Error actualizando módulos del formador' })
+    }
+  }
+)
+
+router.put(
+  '/formadores/:id',
+  verifyToken,
+  authorizeRoles(...ROLES_FORM),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+      const {
+        nombre,
+        nivel_programa,
+        nivel_formador,
+        nivel_gestion,
+        telefono,
+        email,
+        activo
+      } = req.body
+
+      const result = await pool.query(
+        `
+        UPDATE formadores
+        SET nombre = $1,
+            nivel_programa = $2,
+            nivel_formador = $3,
+            nivel_gestion = $4,
+            telefono = $5,
+            email = $6,
+            activo = $7
+        WHERE id = $8
+        RETURNING *
+        `,
+        [
+          nombre,
+          nivel_programa,
+          nivel_formador,
+          nivel_gestion,
+          telefono,
+          email,
+          activo,
+          id
+        ]
+      )
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Formador no encontrado' })
+      }
+
+      res.json(result.rows[0])
+    } catch (err) {
+      console.error('Error actualizando formador:', err)
+      res.status(500).json({ error: 'Error actualizando formador' })
     }
   }
 )
