@@ -1,0 +1,34 @@
+# =========================
+# Node / dependencies
+# =========================
+node_modules/
+**/node_modules/
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+backend/.env
+backend/.env.*
+rrhh-frontend/.env
+rrhh-frontend/.env.*
+rrhh-frontend/.env.local
+rrhh-frontend/.env.production
+
+# =========================
+# Build outputs
+# =========================
+dist/
+build/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+.vscode/
