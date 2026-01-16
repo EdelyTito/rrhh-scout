@@ -111,13 +111,12 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
             <select v-model="filtros.estado" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
               <option value="">Todos los estados</option>
-              <option value="pendiente">Pendiente</option>
-              <option value="revision">En revisión</option>
-              <option value="observado">Observado</option>
-              <option value="aprobado">Aprobado</option>
-              <option value="rechazado">Rechazado</option>
-              <option value="en proceso">En proceso</option>
+              <option value="primera entrega">Primera entrega</option>
+              <option value="devolución 1">Devolución 1</option>
+              <option value="segunda entrega">Segunda entrega</option>
+              <option value="devolución 2">Devolución 2</option>
               <option value="entrega final">Entrega final</option>
+              <option value="en entrevista">En entrevista</option>
             </select>
           </div>
 
@@ -247,21 +246,7 @@
                       @click="verDetalle(solicitud.id)"
                       class="text-blue-600 hover:text-blue-900 font-semibold"
                     >
-                      Ver
-                    </button>
-                    <button
-                      v-if="['primera entrega', 'en proceso'].includes(solicitud.estado)"
-                      @click="aprobarSolicitud(solicitud.id)"
-                      class="text-green-600 hover:text-green-900 font-semibold"
-                    >
-                      Aprobar
-                    </button>
-                    <button
-                      v-if="['primera entrega', 'en proceso'].includes(solicitud.estado)"
-                      @click="rechazarSolicitud(solicitud.id)"
-                      class="text-red-600 hover:text-red-900 font-semibold"
-                    >
-                      Rechazar
+                      Ver/Revisar
                     </button>
                   </div>
                 </td>
@@ -452,14 +437,16 @@ export default {
       return niveles[codigo] || codigo
     }
 
-    // Convertir códigos de estado a texto legible
     const getEstadoTexto = (estado) => {
       const estados = {
-        'primera entrega': 'Pendiente',
-        'en proceso': 'En revisión',
-        'entrega final': 'Finalizado',
+        'primera entrega': 'Primera entrega',
+        'devolución 1': 'Devuelto (1)',
+        'segunda entrega': 'Segunda entrega',
+        'devolución 2': 'Devuelto (2)',
+        'entrega final': 'Entrega final',
+        'en entrevista': 'En entrevista',
         'aprobado': 'Aprobado',
-        'rechazado': 'Rechazado'
+        'no aprobó': 'No aprobó'
       }
       return estados[estado] || estado
     }
@@ -478,17 +465,17 @@ export default {
     }
 
     const estadoBadgeClass = (estado) => {
-      const estadoTexto = getEstadoTexto(estado)
       const classes = {
-        'Pendiente': 'bg-yellow-100 text-yellow-800',
-        'En revisión': 'bg-blue-100 text-blue-800',
-        'Observado': 'bg-red-100 text-red-800',
-        'Aprobado': 'bg-green-100 text-green-800',
-        'Rechazado': 'bg-red-100 text-red-800',
-        'Finalizado': 'bg-purple-100 text-purple-800',
-        'En proceso': 'bg-blue-100 text-blue-800'
+        'primera entrega': 'bg-yellow-100 text-yellow-800',
+        'devolución 1': 'bg-red-100 text-red-800',
+        'segunda entrega': 'bg-blue-100 text-blue-800',
+        'devolución 2': 'bg-red-100 text-red-800',
+        'entrega final': 'bg-purple-100 text-purple-800',
+        'en entrevista': 'bg-indigo-100 text-indigo-800',
+        'aprobado': 'bg-green-100 text-green-800',
+        'no aprobó': 'bg-gray-200 text-gray-800'
       }
-      return classes[estadoTexto] || 'bg-gray-100 text-gray-800'
+      return classes[estado] || 'bg-gray-100 text-gray-800'
     }
 
     const formatFecha = (fecha) => {
@@ -512,52 +499,6 @@ export default {
       console.log('Ver detalle de seguimiento:', id)
       // Navegar a la página de detalle del seguimiento
       router.push(`/seguimiento/detalle/${id}`)
-    }
-
-    const aprobarSolicitud = async (id) => {
-      if (confirm('¿Estás seguro de aprobar esta solicitud?')) {
-        try {
-          // Actualizar resultado final usando seguimientoService
-          await seguimientoService.actualizarResultado(id, { 
-            resultado_final: 'Aprobado' 
-          })
-          
-          // Actualizar localmente
-          const index = solicitudes.value.findIndex(s => s.id === id)
-          if (index !== -1) {
-            solicitudes.value[index].resultado_final = 'Aprobado'
-            solicitudes.value[index].estado = 'entrega final'
-          }
-          
-          alert('Solicitud aprobada correctamente')
-        } catch (err) {
-          console.error('Error al aprobar solicitud:', err)
-          alert('Error al aprobar la solicitud')
-        }
-      }
-    }
-
-    const rechazarSolicitud = async (id) => {
-      if (confirm('¿Estás seguro de rechazar esta solicitud?')) {
-        try {
-          // Actualizar resultado final usando seguimientoService
-          await seguimientoService.actualizarResultado(id, { 
-            resultado_final: 'Rechazado' 
-          })
-          
-          // Actualizar localmente
-          const index = solicitudes.value.findIndex(s => s.id === id)
-          if (index !== -1) {
-            solicitudes.value[index].resultado_final = 'Rechazado'
-            solicitudes.value[index].estado = 'entrega final'
-          }
-          
-          alert('Solicitud rechazada correctamente')
-        } catch (err) {
-          console.error('Error al rechazar solicitud:', err)
-          alert('Error al rechazar la solicitud')
-        }
-      }
     }
 
     const exportarExcel = () => {
@@ -604,8 +545,6 @@ export default {
       aplicarFiltros,
       limpiarFiltros,
       verDetalle,
-      aprobarSolicitud,
-      rechazarSolicitud,
       exportarExcel,
       fetchSolicitudes,
       navegarA,

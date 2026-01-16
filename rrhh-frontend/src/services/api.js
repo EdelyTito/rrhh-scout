@@ -169,7 +169,9 @@ export const seguimientoService = {
   getReincorporaciones: () => api.get('/seguimiento/reincorporacion'),
   enviarFormularioPublico: (data) => api.post('/seguimiento/public', data),
   enviarReincorporacion: (data) => api.post('/seguimiento/reincorporacion', data),
-  getEstadisticas: () => api.get('/seguimiento/estadisticas')
+  getEstadisticas: () => api.get('/seguimiento/estadisticas'),
+  getSeguimientos: () => api.get('/seguimiento'),
+  getPendientes: () => api.get('/seguimiento?estado=primera entrega')
 }
 
 export const registroService = {

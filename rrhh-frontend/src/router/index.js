@@ -19,6 +19,7 @@ import SeguimientoDashboard from '../views/seguimiento/SeguimientoDashboard.vue'
 import ListaDirigentes from '../views/seguimiento/ListaDirigentes.vue'
 import PeriodoPruebaLista from '../views/seguimiento/PeriodoPruebaLista.vue'
 import SolicitudesPendientes from '../views/seguimiento/SolicitudesPendientes.vue'
+import DetalleSeguimiento from '../views/seguimiento/DetalleSeguimiento.vue'
 
 // REGISTRO
 import RegistroDashboard from '../views/registro/RegistroDashboard.vue'
@@ -181,10 +182,46 @@ const routes = [
   },
 
   /* ---------- SEGUIMIENTO ---------- */
-  { path: '/seguimiento', component: SeguimientoDashboard },
-  { path: '/seguimiento/lista-dirigentes', component: ListaDirigentes },
-  { path: '/seguimiento/periodo-prueba', component: PeriodoPruebaLista },
-  { path: '/seguimiento/solicitudes-pendientes', component: SolicitudesPendientes },
+  { 
+    path: '/seguimiento', 
+    component: SeguimientoDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'admin']
+    } 
+  },
+  { 
+    path: '/seguimiento/solicitudes-pendientes', 
+    component: SolicitudesPendientes,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'admin']
+    }
+  },
+  { 
+    path: '/seguimiento/detalle/:id',
+    component: DetalleSeguimiento,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'admin']
+    }
+  },
+  { 
+    path: '/seguimiento/lista-dirigentes', 
+    component: ListaDirigentes,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'admin']
+    }
+  },
+  { 
+    path: '/seguimiento/periodo-prueba', 
+    component: PeriodoPruebaLista,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'admin']
+    }
+  },
 
   /* ---------- 404 ---------- */
   { path: '/:pathMatch(.*)*', redirect: '/' }

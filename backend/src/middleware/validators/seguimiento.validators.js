@@ -14,17 +14,15 @@ export const validarId = [
 ============================ */
 export const validarSeguimientoPublico = [
   body("nombre_participante")
-    .trim()
-    .notEmpty().withMessage("Nombre obligatorio")
+    .optional()
     .isLength({ max: 150 }),
 
   body("grupo")
-    .trim()
-    .notEmpty().withMessage("Grupo obligatorio")
+    .optional()
     .isLength({ max: 100 }),
 
   body("correo")
-    .optional()
+    .notEmpty().withMessage("Correo obligatorio")
     .isEmail().withMessage("Correo inválido"),
 
   body("rama_scout")
@@ -32,11 +30,18 @@ export const validarSeguimientoPublico = [
     .isLength({ max: 50 }),
 
   body("tipo_im")
-    .isIn(["IM1", "IM2", "IM3", "Paxtu", "Koodoo"])
+    .isIn([
+      "IM2",
+      "IM3",
+      "PaxtuGrupo",
+      "PaxtuDistrito",
+      "KoodooAdjunto",
+      "KoodooDirector"
+    ])
     .withMessage("Tipo IM no válido"),
 
   body("tipo_proceso")
-    .isIn(["primera vez", "revalidacion"])
+    .isIn(["aprobacion", "revalidacion"])
     .withMessage("Tipo de proceso no válido"),
 
   body("documento_url")
@@ -72,16 +77,15 @@ export const validarReincorporacion = [
     .isLength({ max: 500 }),
 
   body("correo")
-    .optional()
-    .isEmail(),
+  .notEmpty().withMessage("Correo obligatorio")
+  .isEmail().withMessage("Correo inválido"),
 
   body("telefono")
     .optional()
     .isLength({ max: 20 }),
 
   body("documento_url")
-    .optional()
-    .isURL(),
+    .optional(),
 
   body("fecha_inicio")
     .optional()
@@ -98,20 +102,16 @@ export const validarReincorporacion = [
 export const validarEntrega = [
   body("etapa")
     .isIn([
-      "primera entrega",
+      "devolución 1",
       "segunda entrega",
-      "observado",
-      "entrega final"
+      "devolución 2",
+      "entrega final",
+      "en entrevista"
     ])
     .withMessage("Etapa no válida"),
 
-  body("documento_url")
-    .optional()
-    .isURL(),
-
-  body("observaciones")
-    .optional()
-    .isLength({ max: 500 })
+  body("documento_url").optional(),
+  body("observaciones").optional().isLength({ max: 500 })
 ]
 
 /* ============================
@@ -119,6 +119,7 @@ export const validarEntrega = [
 ============================ */
 export const validarResultadoFinal = [
   body("resultado_final")
-    .isIn(["aprobado", "rechazado"])
+    .isIn(["aprobado", "no aprobó"])
     .withMessage("Resultado final inválido")
 ]
+
