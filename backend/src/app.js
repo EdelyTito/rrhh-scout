@@ -44,8 +44,15 @@ app.use(cors({
   exposedHeaders: ['Authorization']
 }));
 
-app.use(express.json({ type: ["application/json", "application/*+json"] }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({
+  limit: '20mb',
+  type: ['application/json', 'application/*+json']
+}));
+
+app.use(express.urlencoded({
+  extended: true,
+  limit: '20mb'
+}));
 
 // --------------------------------------------------
 // Rutas públicas / healthchecks

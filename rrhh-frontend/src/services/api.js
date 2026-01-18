@@ -163,15 +163,37 @@ export const formacionService = {
 
 export const seguimientoService = {
   getSeguimientos: () => api.get('/seguimiento'),
-  getSeguimiento: (id) => api.get(`/seguimiento/${id}`),
-  crearEntrega: (id, data) => api.post(`/seguimiento/${id}/entregas`, data),
-  actualizarResultado: (id, data) => api.put(`/seguimiento/${id}/resultado`, data),
-  getReincorporaciones: () => api.get('/seguimiento/reincorporacion'),
-  enviarFormularioPublico: (data) => api.post('/seguimiento/public', data),
-  enviarReincorporacion: (data) => api.post('/seguimiento/reincorporacion', data),
-  getEstadisticas: () => api.get('/seguimiento/estadisticas'),
-  getSeguimientos: () => api.get('/seguimiento'),
-  getPendientes: () => api.get('/seguimiento?estado=primera entrega')
+
+  crearSeguimiento: (data) =>
+    api.post('/seguimiento/public', data),
+
+  subirArchivo: (data) =>
+    api.post('/seguimiento/archivo', data),
+
+  actualizarResultado: (id, data) =>
+    api.put(`/seguimiento/${id}/resultado`, data),
+
+  cambiarEstado: (id, data) =>
+    api.put(`/seguimiento/${id}/estado`, data),
+
+  getReincorporaciones: () =>
+    api.get('/seguimiento/reincorporacion'),
+
+  getEstadisticas: () =>
+    api.get('/seguimiento/estadisticas'),
+
+  getDetalleCompleto: (id) =>
+    api.get(`/seguimiento/${id}/detalle-completo`),
+
+  descargarArchivo(id) {
+    return api.get(`/seguimiento/archivo/${id}`, {
+      responseType: 'blob'
+    })
+  },
+
+  devolverSeguimiento: (id, data) =>
+    apiFormData.post(`/seguimiento/${id}/devolver`, data),
+
 }
 
 export const registroService = {

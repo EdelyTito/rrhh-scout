@@ -1,77 +1,15 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header con color verde -->
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- Logo y título -->
-          <div class="flex items-center space-x-4">
-            <img 
-              src="/images/rraa.png" 
-              alt="Logo Distrito Scout"
-              class="h-10 w-auto"
-            >
-            <h1 class="text-2xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-            <button 
-              @click="cerrarSesion"
-              class="bg-white text-[#009d71] px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-200 font-semibold"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
 
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-          <button 
-            @click="navegarA('inicio')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'inicio' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Inicio
-          </button>
-          
-          <button 
-            @click="navegarA('solicitudes-pendientes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'solicitudes-pendientes' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Solicitudes Pendientes
-          </button>
-          
-          <button 
-            @click="navegarA('lista-dirigentes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'lista-dirigentes' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Lista de Dirigentes
-          </button>
-          
-          <button 
-            @click="navegarA('periodo-prueba')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'periodo-prueba' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Período de Prueba
-          </button>
-        </div>
-      </div>
-    </nav>
+    <SeguimientoHeader
+    :nombre="nombreResponsable"
+    @logout="cerrarSesion"
+    />
+
+    <SeguimientoNav
+    :ruta-activa="rutaActiva"
+    @navegar="navegarA"
+    />
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -206,14 +144,22 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue'
+<script setup>
+import SeguimientoHeader from '../../components/seguimiento/SeguimientoHeader.vue';
+import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue';
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
 
-export default {
-  name: 'SeguimientoDashboard',
-  setup() {
+    const props = defineProps({
+      embebido: {
+        type: Boolean,
+        default: false
+      }
+    })
+
+    const esAdmin = computed(() => props.embebido === true)
+
     const router = useRouter()
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('inicio')
@@ -356,30 +302,16 @@ export default {
     }
     
     const cerrarSesion = () => {
-      localStorage.removeItem('usuario')
-      localStorage.removeItem('token')
-      router.push('/login')
+      localStorage.clear()
+      router.push('/')
     }
     
     onMounted(() => {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
       nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
       
-      // Cargar datos reales del dashboard
       cargarDatosDashboard()
     })
-    
-    return {
-      nombreResponsable,
-      rutaActiva,
-      stats,
-      aprobadosNivelII,
-      aprobadosRamas,
-      nombramientos,
-      navegarA,
-      cerrarSesion
-    }
-  }
-}
+
 </script>
 

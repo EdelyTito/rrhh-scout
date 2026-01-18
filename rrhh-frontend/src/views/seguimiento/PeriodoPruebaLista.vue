@@ -1,91 +1,33 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header con color verde -->
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- Logo y título -->
-          <div class="flex items-center space-x-4">
-            <img 
-              src="/images/rraa.png" 
-              alt="Logo Distrito Scout"
-              class="h-10 w-auto"
-            >
-            <h1 class="text-2xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-            <button 
-              @click="cerrarSesion"
-              class="bg-white text-[#009d71] px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-200 font-semibold"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    
+    <SeguimientoHeader
+    :nombre="nombreResponsable"
+    @logout="cerrarSesion"
+    />
 
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-          <button 
-            @click="navegarA('inicio')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'inicio' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Inicio
-          </button>
-          
-          <button 
-            @click="navegarA('solicitudes-pendientes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'solicitudes-pendientes' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Solicitudes Pendientes
-          </button>
-          
-          <button 
-            @click="navegarA('lista-dirigentes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'lista-dirigentes' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Lista de Dirigentes
-          </button>
-          
-          <button 
-            @click="navegarA('periodo-prueba')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'periodo-prueba' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Período de Prueba
-          </button>
-        </div>
-      </div>
-    </nav>
+    <SeguimientoNav
+    :ruta-activa="rutaActiva"
+    @navegar="navegarA"
+    />
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
         <!-- Header Section -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-200">
           <div class="flex justify-between items-center">
             <div>
-              <h1 class="text-2xl font-bold text-gray-800 mb-2">Período de Prueba y Reincorporación</h1>
-              <p class="text-gray-600">Gestiona los registros de período de prueba y reincorporación de dirigentes</p>
+              <h1 class="text-xl font-bold text-gray-800 mb-1">
+                Período de Prueba y Reincorporación
+              </h1>
+              <p class="text-sm text-gray-600">
+                Gestiona los registros de período de prueba y reincorporación de dirigentes
+              </p>
             </div>
             <button 
               @click="nuevoRegistro"
-              class="bg-[#009d71] text-white px-6 py-3 rounded-lg hover:bg-[#007a5c] transition duration-200 font-semibold"
+              class="bg-[#009d71] text-white px-5 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 font-semibold"
             >
               Nuevo Registro
             </button>
@@ -348,14 +290,23 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import SeguimientoHeader from '../../components/seguimiento/SeguimientoHeader.vue';
+import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
 
-export default {
-  name: 'PeriodoPruebaLista',
-  setup() {
+
+    const props = defineProps({
+      embebido: {
+        type: Boolean,
+        default: false
+      }
+    })
+
+    const esAdmin = computed(() => props.embebido === true)
+
     const router = useRouter()
     
     const nombreResponsable = ref('Responsable de Seguimiento')
@@ -648,9 +599,8 @@ export default {
     }
 
     const cerrarSesion = () => {
-      localStorage.removeItem('usuario')
-      localStorage.removeItem('token')
-      router.push('/login')
+      localStorage.clear()
+      router.push('/')
     }
 
     onMounted(() => {
@@ -661,35 +611,4 @@ export default {
       fetchReincorporaciones()
     })
 
-    return {
-      nombreResponsable,
-      rutaActiva,
-      filtros,
-      registros,
-      grupos,
-      registrosFiltrados,
-      totalRegistros,
-      isLoading,
-      error,
-      contarPorTipo,
-      contarPorEstado,
-      getTipoTexto,
-      getEstadoTexto,
-      tipoBadgeClass,
-      estadoBadgeClass,
-      formatFecha,
-      aplicarFiltros,
-      limpiarFiltros,
-      verRegistro,
-      aprobarRegistro,
-      rechazarRegistro,
-      finalizarPeriodo,
-      nuevoRegistro,
-      exportarExcel,
-      fetchReincorporaciones,
-      navegarA,
-      cerrarSesion
-    }
-  }
-}
 </script>

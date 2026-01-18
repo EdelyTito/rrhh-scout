@@ -156,10 +156,10 @@
                           focus:outline-none focus:ring-2 focus:ring-[#009d71]"
                   >
                     <option value="">No aplica</option>
-                    <option value="Manada">Lobatos</option>
-                    <option value="Unidad Scout">Exploradores</option>
-                    <option value="Unidad de Caminantes">Pioneross</option>
-                    <option value="Clan Rover">Rovers</option>
+                    <option value="lobatos">Lobatos</option>
+                    <option value="exploradores">Exploradores</option>
+                    <option value="pioneros">Pioneros</option>
+                    <option value="rovers">Rovers</option>
                   </select>
                 </div>
               </div>
@@ -500,8 +500,8 @@ export default {
         return false
       }
 
-      if (esPrimeraEntrega.value && !formulario.value.grupoScout) {
-        alert('Seleccione su grupo scout')
+      if (!formulario.value.correo) {
+        alert('Ingrese su correo')
         return false
       }
 
@@ -511,30 +511,13 @@ export default {
       }
 
       if (esPrimeraEntrega.value) {
-        if (!archivos.value.cuadernillo) {
-          alert('Debe subir el cuadernillo')
+        if (!formulario.value.nombreCompleto) {
+          alert('Ingrese su nombre completo')
           return false
         }
 
-        if (!archivos.value.cartaRespaldo) {
-          alert('Debe subir la carta de respaldo')
-          return false
-        }
-
-        if (archivos.value.certificados.length === 0) {
-          alert('Debe subir los certificados')
-          return false
-        }
-
-        if (!formulario.value.correo) {
-          alert('Ingrese su correo')
-          return false
-        }
-        if (
-          ['PaxtuGrupo', 'PaxtuDistrito'].includes(formulario.value.nivelAprobacion) &&
-          archivos.value.mediosVerificacion.length === 0
-        ) {
-          alert('Debe subir los medios de verificación')
+        if (!formulario.value.grupoScout) {
+          alert('Seleccione su grupo scout')
           return false
         }
       }
@@ -544,66 +527,103 @@ export default {
 
     const enviarFormulario = async () => {
       if (!validarFormulario()) return
-      
+      if (enviando.value) return
+
       enviando.value = true
-      
+
+      const mapaTipoIM = {
+        IM2: 'IM2',
+        IM3: 'IM3',
+        PaxtuGrupo: 'Paxtu Grupo',
+        PaxtuDistrito: 'Paxtu Distrito',
+        KoodooAdjunto: 'Koodoo Formación',
+        KoodooDirector: 'Koodoo Director'
+      }
+
       try {
-        const formData = new FormData()
-        
-        formData.append('nombre_participante', formulario.value.nombreCompleto)
-        formData.append('grupo', formulario.value.grupoScout)
-        formData.append('correo', formulario.value.correo)
-        formData.append('tipo_im', formulario.value.nivelAprobacion)
-        formData.append('tipo_proceso', 'aprobacion')
-        formData.append('observaciones', 'Solicitud enviada desde formulario público')
-        formData.append('tipo_entrega', formulario.value.tipoEntrega)
-        
-        if (formulario.value.ramaScout) {
-          formData.append('rama_scout', formulario.value.ramaScout)
-        }
-
-        if (archivos.value.cuadernillo) {
-          formData.append('cuadernillo', archivos.value.cuadernillo)
-        }
-        
-        if (archivos.value.cartaRespaldo) {
-          formData.append('cartaRespaldo', archivos.value.cartaRespaldo)
-        }
-
-        archivos.value.certificados.forEach(file => {
-          formData.append('certificados', file)
+        const res = await seguimientoService.crearSeguimiento({
+          nombre_participante: formulario.value.nombreCompleto,
+          correo: formulario.value.correo,
+          grupo: formulario.value.grupoScout,
+          rama_scout: formulario.value.ramaScout,
+          tipo_im: mapaTipoIM[formulario.value.nivelAprobacion],
+          tipo_proceso: 'aprobacion',
+          observaciones: 'Formulario público',
+          tipo_entrega: formulario.value.tipoEntrega
         })
 
-        archivos.value.mediosVerificacion.forEach(file => {
-          formData.append('mediosVerificacion', file)
-        })
+        const { seguimiento_id, entrega_id } = res.data
 
-        archivos.value.informesCursos.forEach(file => {
-          formData.append('informesCursos', file)
-        })
-        
-        const response = await seguimientoService.enviarFormularioPublico(formData)
-        
-        console.log('Respuesta del servidor:', response.data)
+        const subirArchivo = async (file, tipo) => {
+          if (!file) return
+          if (!file.name || !file.type) {
+            console.warn('Archivo inválido omitido', tipo, file)
+            return
+          }
+
+          const base64 = await toBase64(file)
+
+          try {
+            await seguimientoService.subirArchivo({
+              seguimiento_id,
+              entrega_id,
+              tipo_documento: tipo,
+              nombre_archivo: file.name,
+              mime_type: file.type,
+              archivo_base64: base64
+            })
+          } catch (err) {
+            if (err.response?.status === 409) {
+              console.warn(`Archivo ${tipo} ya existe, se omite`)
+              // NO lanzamos error
+            } else {
+              throw err
+            }
+          }
+        }
+
+        const toBase64 = (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result.split(',')[1])
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+          })
+
+
+        await subirArchivo(archivos.value.cuadernillo, 'cuadernillo')
+        await subirArchivo(archivos.value.cartaRespaldo, 'carta_respaldo')
+        await subirArchivo(archivos.value.informePractica, 'informe_practica')
+        await subirArchivo(archivos.value.formularioKoodoo, 'formulario_koodoo')
+
+        if (Array.isArray(archivos.value.certificados)){
+          for (const f of archivos.value.certificados) {
+            await subirArchivo(f, 'certificado')
+          }
+        }
+
+        if (Array.isArray(archivos.value.mediosVerificacion)){
+          for (const f of archivos.value.mediosVerificacion) {
+            await subirArchivo(f, 'medio_verificacion')
+          }
+        }
+
+        if (Array.isArray(archivos.value.informesCursos)){
+          for (const f of archivos.value.informesCursos) {
+            await subirArchivo(f, 'informe_curso')
+          }
+        }
+
         alert('¡Solicitud enviada con éxito!')
         limpiarFormulario()
-        
+
       } catch (error) {
-        console.error('Error completo:', error)
-        
-        if (error.response?.data?.error) {
-          alert(`Error del servidor: ${error.response.data.error}`)
-        } else if (error.message) {
-          alert(`Error de conexión: ${error.message}`)
-        } else {
-          alert('Error desconocido al enviar el formulario.')
-        }
+        console.error(error)
+        alert('Error al enviar el formulario')
       } finally {
         enviando.value = false
       }
     }
-
-    
 
     const limpiarFormulario = () => {
       formulario.value = {

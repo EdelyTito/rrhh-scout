@@ -1,76 +1,29 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
-        <div class="flex items-center space-x-4">
-          <img src="/images/rraa.png" class="h-10" />
-          <h1 class="text-xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-        </div>
-        <div class="flex items-center space-x-4">
-          <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-          <button @click="cerrarSesion"
-            class="bg-white text-[#009d71] px-4 py-2 rounded-lg font-semibold">
-            Cerrar Sesión
-          </button>
-        </div>
-      </div>
-    </header>
 
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-            <button
-            @click="navegarA('inicio')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200',
-                rutaActiva === 'inicio'
-                ? 'border-[#009d71] text-[#009d71]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-            >
-            Inicio
-            </button>
-            <button
-            @click="navegarA('solicitudes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200',
-                rutaActiva === 'solicitudes'
-                ? 'border-[#009d71] text-[#009d71]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-            >
-            Solicitudes Pendientes
-            </button>
-            <button
-            @click="navegarA('lista-dirigentes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200',
-                rutaActiva === 'lista-dirigentes'
-                ? 'border-[#009d71] text-[#009d71]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-            >
-            Lista de Dirigentes
-            </button>
-            <button
-            @click="navegarA('periodo-prueba')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200',
-                rutaActiva === 'periodo-prueba'
-                ? 'border-[#009d71] text-[#009d71]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-            >
-            Periodo de Prueba
-            </button>
-        </div>
-        </div>
-    </nav>
+    <SeguimientoHeader
+    :nombre="nombreResponsable"
+    @logout="cerrarSesion"
+    />
 
-    <!-- Volver -->
-    <nav class="bg-white shadow-sm px-6 py-3">
-      <button @click="volver"
-        class="text-[#009d71] font-medium flex items-center gap-1 py-4">
-        ← Volver a solicitudes
-      </button>
-    </nav>
+    <SeguimientoNav
+    :ruta-activa="rutaActiva"
+    @navegar="navegarA"
+    />
+
+    
 
     <!-- Main -->
     <main class="max-w-6xl mx-auto py-6 px-4">
+
+        <!-- Volver -->
+        <nav class="bg-white shadow-sm px-6 py-3">
+            <button @click="volver"
+                class="text-[#009d71] font-medium flex items-center gap-1 py-4">
+                ← Volver a solicitudes
+            </button>
+        </nav>
+
       <div v-if="loading" class="text-center text-gray-500 py-12">
         Cargando seguimiento...
       </div>
@@ -94,51 +47,140 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <p><strong>Correo:</strong> {{ seguimiento.correo || '-' }}</p>
-            <p><strong>Grupo:</strong> {{ seguimiento.grupo }}</p>
-            <p><strong>Tipo IM:</strong> {{ nivelTexto(seguimiento.tipo_im) }}</p>
-            <p><strong>Proceso:</strong> {{ seguimiento.tipo_proceso }}</p>
-            <p><strong>Fecha:</strong> {{ formatFecha(seguimiento.fecha_creacion) }}</p>
-            <p><strong>Resultado final:</strong> {{ seguimiento.resultado_final || '—' }}</p>
-          </div>
+            <p><strong>Grupo:</strong> {{ seguimiento.grupo || '-' }}</p>
+
+            <p><strong>Rama:</strong> {{ ramaTexto(seguimiento.rama_scout) }}</p>
+            <p><strong>Tipo aprobación:</strong> {{ nivelTexto(seguimiento.tipo_im) }}</p>
+
+            <p><strong>Fecha creación:</strong> {{ formatFecha(seguimiento.fecha_creacion) }}</p>
+            <p><strong>Última actualización:</strong> {{ formatFecha(seguimiento.fecha_actualizacion) }}</p>
+
+            <p v-if="seguimiento.fecha_entrevista">
+                <strong>Fecha entrevista:</strong> {{ formatFecha(seguimiento.fecha_entrevista) }}
+            </p>
+
         </div>
+        </div>
+
 
         <!-- Acciones finales -->
         <div
-          v-if="puedeEntrevistar"
-          class="bg-white p-6 rounded-lg shadow border flex gap-4">
-          <button @click="finalizar('aprobado')"
-            class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">
-            Aprobar
-          </button>
-          <button @click="finalizar('rechazado')"
-            class="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold">
-            No aprobó
-          </button>
+            v-if="puedeMostrarAcciones && puedePasarAEntrevista"
+            class="bg-white p-6 rounded-lg shadow border flex justify-end gap-3"
+        >
+            <button
+                @click="noPasaEntrevista"
+                class="px-5 py-2 rounded-lg text-sm font-medium
+                    bg-red-100 text-red-700 hover:bg-red-200"
+            >
+                No pasa a entrevista
+            </button>
+
+            <button
+                @click="pasarAEntrevista"
+                class="px-5 py-2 rounded-lg text-sm font-semibold
+                    bg-blue-600 text-white hover:bg-blue-700"
+            >
+                Pasar a entrevista
+            </button>
         </div>
+
+        <div
+        v-if="puedeMostrarAcciones && puedeAprobar"
+        class="bg-white p-6 rounded-lg shadow border flex justify-end gap-3"
+        >
+            <button
+                @click="finalizar('no aprobó')"
+                 class="px-5 py-2 rounded-lg text-sm font-medium
+                bg-red-600 text-white hover:bg-red-700"
+            >
+            No aprobó
+            </button>
+
+            <button
+                @click="finalizar('aprobado')"
+                class="px-5 py-2 rounded-lg text-sm font-semibold
+                bg-green-600 text-white hover:bg-green-700"
+            >
+            Aprobar
+            </button>
+        </div>
+
 
         <!-- Historial -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h3 class="text-lg font-semibold mb-4">Historial de entregas</h3>
+          <h3 class="text-lg font-semibold mb-4 border-b pb-2">
+            Historial de entregas
+          </h3>
+
 
           <ul class="space-y-3">
             <li v-for="entrega in entregas" :key="entrega.id"
               class="border border-gray-200 rounded-lg p-4">
-              <p class="font-medium text-gray-800">{{ entrega.etapa }}</p>
+              <p class="font-medium text-gray-800">{{ entrega.observaciones || 'Sin observaciones' }}</p>
               <p class="text-sm text-gray-600">
                 {{ formatFecha(entrega.fecha) }}
               </p>
-              <p class="text-sm mt-1">
-                {{ entrega.observaciones || 'Sin observaciones' }}
-              </p>
-              <a v-if="entrega.documento_url"
-                :href="entrega.documento_url"
-                target="_blank"
-                class="text-[#009d71] text-sm font-medium">
-                Ver documento
-              </a>
+
+              <div v-if="entrega.archivos.length" class="mt-3 space-y-1">
+                <p class="font-semibold text-sm">Documentos:</p>
+
+                <ul class="list-disc ml-5 text-sm">
+                    <li
+                    v-for="archivo in entrega.archivos"
+                    :key="archivo.id"
+                    class="flex items-center justify-between"
+                    >
+                    <span>
+                        {{ archivo.tipo }} — {{ archivo.nombre }}
+                    </span>
+
+                    <button
+                        @click="verArchivo(archivo)"
+                        class="px-3 py-1 rounded-md text-xs font-bold
+                            bg-green-100 text-gray-700 hover:bg-gray-200"
+                    >
+                        {{ archivo.mime.includes('pdf') ? 'Ver' : 'Descargar' }}
+                    </button>
+                    </li>
+                </ul>
+            </div>
             </li>
           </ul>
         </div>
+
+        <div
+        v-if="puedeDevolver"
+        class="bg-white p-6 rounded-lg shadow border"
+        >
+        <h3 class="font-semibold text-gray-800 mb-2">
+            Enviar observaciones al dirigente
+        </h3>
+
+        <textarea
+            v-model="textoObservaciones"
+            rows="4"
+            placeholder="Escriba las observaciones..."
+            class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#009d71]"
+        />
+
+        <input
+            type="file"
+            multiple
+            @change="onArchivosObservados"
+            class="mt-2 text-sm"
+        />
+
+        <div class="mt-3 flex justify-end">
+            <button
+            @click="enviarObservaciones"
+            class="bg-[#009d71] text-white px-5 py-2 rounded-lg hover:bg-[#007a5c]"
+            >
+            Enviar observaciones
+            </button>
+        </div>
+        </div>
+
       </div>
     </main>
 
@@ -149,9 +191,20 @@
 </template>
 
 <script setup>
+import SeguimientoHeader from '../../components/seguimiento/SeguimientoHeader.vue';
+import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
+
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const esAdmin = computed(() => props.embebido === true)
 
 const route = useRoute()
 const router = useRouter()
@@ -161,15 +214,19 @@ const seguimiento = ref({})
 const entregas = ref([])
 const loading = ref(false)
 const error = ref(null)
-const rutaActiva = ref('solicitudes')
+const rutaActiva = ref('solicitudes-pendientes')
+
+const textoObservaciones = ref('')
+
+const archivosObservados = ref([])
 
 const fetchDetalle = async () => {
   loading.value = true
   try {
-    const { data } = await seguimientoService.getSeguimiento(route.params.id)
+    const { data } = await seguimientoService.getDetalleCompleto(route.params.id)
     seguimiento.value = data.seguimiento
     entregas.value = data.entregas
-  } catch {
+  } catch (e) {
     error.value = 'No se pudo cargar el seguimiento'
   } finally {
     loading.value = false
@@ -187,28 +244,117 @@ const finalizar = async (resultado) => {
   seguimiento.value.estado = resultado === 'aprobado' ? 'aprobado' : 'no aprobó'
 }
 
-const estadoLogico = computed(() => {
-  if (seguimiento.value.resultado_final === 'aprobado') return 'aprobado'
-  if (seguimiento.value.resultado_final === 'no aprobó') return 'no aprobó'
-  if (puedeEntrevistar.value) return 'en entrevista'
-  return seguimiento.value.estado
-})
-
 
 const volver = () => {
   router.push('/seguimiento/solicitudes-pendientes')
 }
 
 const esUltimaEntrega = computed(() => {
-  return entregas.value.some(e => e.etapa === 'entrega final')
+  if (!entregas.value.length) return false
+  const ultima = entregas.value[entregas.value.length - 1]
+  return ultima.etapa === 'entrega final'
 })
 
-const puedeEntrevistar = computed(() => {
-  return (
-    esUltimaEntrega.value &&
-    !seguimiento.value.resultado_final
-  )
+const puedePasarAEntrevista = computed(() =>
+  seguimiento.value.estado === 'entrega final'
+)
+
+const puedeAprobar = computed(() =>
+  seguimiento.value.estado === 'en entrevista'
+)
+
+const puedeMostrarAcciones = computed(() => {
+  return entregas.value.length > 0
 })
+
+const estadoLogico = computed(() => {
+  return seguimiento.value.estado || '—'
+})
+
+const pasarAEntrevista = async () => {
+  await seguimientoService.cambiarEstado(route.params.id, {
+    estado: 'en entrevista'
+  })
+  seguimiento.value.estado = 'en entrevista'
+}
+
+const noPasaEntrevista = async () => {
+  if (!confirm('¿Marcar como no aprobado?')) return
+
+  await seguimientoService.actualizarResultado(route.params.id, {
+    resultado_final: 'no aprobó'
+  })
+
+  seguimiento.value.estado = 'no aprobó'
+}
+
+const puedeDevolver = computed(() =>
+  ['primera entrega', 'segunda entrega'].includes(seguimiento.value.estado)
+)
+
+const enviarObservaciones = async () => {
+  if (!textoObservaciones.value.trim()) {
+    alert('Debe escribir observaciones')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('observaciones', textoObservaciones.value)
+
+  archivosObservados.value.forEach(file => {
+    formData.append('archivos', file)
+  })
+
+  await seguimientoService.devolverSeguimiento(
+    route.params.id,
+    formData
+  )
+
+  textoObservaciones.value = ''
+  archivosObservados.value = []
+  await fetchDetalle()
+
+  alert('Observaciones enviadas correctamente')
+}
+
+const onArchivosObservados = (e) => {
+  archivosObservados.value = Array.from(e.target.files)
+}
+
+const verArchivo = async (archivo) => {
+  try {
+    const response = await seguimientoService.descargarArchivo(archivo.id)
+
+    const blob = new Blob([response.data], { type: archivo.mime })
+    const url = window.URL.createObjectURL(blob)
+
+    // Si es PDF o imagen → abrir
+    if (
+      archivo.mime.includes('pdf') ||
+      archivo.mime.includes('image')
+    ) {
+      window.open(url, '_blank')
+    } 
+    // Si es Word / Excel → descargar
+    else {
+      const a = document.createElement('a')
+      a.href = url
+      a.download = archivo.nombre
+      a.click()
+    }
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } catch (e) {
+    alert('No se pudo abrir el archivo')
+  }
+}
+
+const ramaTexto = (r) => ({
+  lobatos: 'Lobatos',
+  exploradores: 'Exploradores',
+  pioneros: 'Pioneros',
+  rovers: 'Rovers'
+}[r] || r || '—')
 
 const cerrarSesion = () => {
   localStorage.clear()
@@ -226,7 +372,9 @@ const nivelTexto = (v) => ({
 
 const estadoTexto = (e) => ({
   'primera entrega': 'Primera entrega',
+  'devolución 1': 'Observaciones (1)',
   'segunda entrega': 'Segunda entrega',
+  'devolución 2': 'Observaciones (2)',
   'entrega final': 'Entrega final',
   'en entrevista': 'En entrevista',
   'aprobado': 'Aprobado',
@@ -235,10 +383,14 @@ const estadoTexto = (e) => ({
 
 const estadoBadgeClass = (e) => ({
   'primera entrega': 'bg-yellow-100 text-yellow-800',
+  'devolución 1': 'bg-orange-100 text-orange-800',
+  'segunda entrega': 'bg-yellow-100 text-yellow-800',
+  'devolución 2': 'bg-orange-100 text-orange-800',
+  'entrega final': 'bg-indigo-100 text-indigo-800',
   'en entrevista': 'bg-blue-100 text-blue-800',
   'aprobado': 'bg-green-100 text-green-800',
   'no aprobó': 'bg-red-100 text-red-800'
-}[e] || 'bg-gray-100')
+}[e] || 'bg-gray-100 text-gray-800')
 
 const formatFecha = (f) =>
   f ? new Date(f).toLocaleDateString('es-ES') : '-'

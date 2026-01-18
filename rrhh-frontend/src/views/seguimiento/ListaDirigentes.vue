@@ -1,85 +1,27 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header con color verde -->
-    <header class="bg-[#009d71] shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <!-- Logo y título -->
-          <div class="flex items-center space-x-4">
-            <img 
-              src="/images/rraa.png" 
-              alt="Logo Distrito Scout"
-              class="h-10 w-auto"
-            >
-            <h1 class="text-2xl font-bold text-white">Sistema RRHH - Distrito Scout</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-white">¡Hola {{ nombreResponsable }}!</span>
-            <button 
-              @click="cerrarSesion"
-              class="bg-white text-[#009d71] px-4 py-2 rounded-lg hover:bg-gray-100 transition duration-200 font-semibold"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    
+    <SeguimientoHeader
+    :nombre="nombreResponsable"
+    @logout="cerrarSesion"
+    />
 
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex space-x-8">
-          <button 
-            @click="navegarA('inicio')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'inicio' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Inicio
-          </button>
-          
-          <button 
-            @click="navegarA('solicitudes-pendientes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'solicitudes-pendientes' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Solicitudes Pendientes
-          </button>
-          
-          <button 
-            @click="navegarA('lista-dirigentes')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'lista-dirigentes' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Lista de Dirigentes
-          </button>
-          
-          <button 
-            @click="navegarA('periodo-prueba')"
-            :class="['py-4 px-2 border-b-2 font-medium text-sm transition duration-200', 
-                    rutaActiva === 'periodo-prueba' 
-                    ? 'border-[#009d71] text-[#009d71]' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
-          >
-            Período de Prueba
-          </button>
-        </div>
-      </div>
-    </nav>
+    <SeguimientoNav
+    :ruta-activa="rutaActiva"
+    @navegar="navegarA"
+    />
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
         <!-- Header Section -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
-          <h1 class="text-2xl font-bold text-gray-800 mb-2">Lista de Dirigentes</h1>
-          <p class="text-gray-600">Consulta y gestiona la información de todos los dirigentes</p>
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-200">
+          <h1 class="text-xl font-bold text-gray-800 mb-1">
+            Lista de dirigentes
+          </h1>
+          <p class="text-sm text-gray-600">
+            Consulta y gestiona la información de todos los dirigentes
+          </p>
         </div>
 
         <!-- Indicador de carga -->
@@ -169,24 +111,42 @@
           </div>
 
           <!-- Estadísticas rápidas -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div class="text-2xl font-bold text-[#009d71]">{{ totalDirigentes }}</div>
-              <div class="text-sm text-gray-600">Total Dirigentes</div>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div class="text-2xl font-bold text-blue-600">{{ contarPorNivel('IM Nivel II') }}</div>
+          <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+
+            <!-- IM -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div class="text-2xl font-bold text-blue-600">{{ contarTipo('IM2') }}</div>
               <div class="text-sm text-gray-600">IM Nivel II</div>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div class="text-2xl font-bold text-green-600">{{ contarPorNivel('IM Nivel III') }}</div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div class="text-2xl font-bold text-green-600">{{ contarTipo('IM3') }}</div>
               <div class="text-sm text-gray-600">IM Nivel III</div>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div class="text-2xl font-bold text-purple-600">{{ contarPorNivel('Paxtu') + contarPorNivel('Koodoo') }}</div>
-              <div class="text-sm text-gray-600">Nombramientos</div>
+
+            <!-- Paxtu -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div class="text-2xl font-bold text-purple-600">{{ contarTipo('Paxtu Grupo') }}</div>
+              <div class="text-sm text-gray-600">Paxtu Grupo</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div class="text-2xl font-bold text-purple-600">{{ contarTipo('Paxtu Distrito') }}</div>
+              <div class="text-sm text-gray-600">Paxtu Distrito</div>
+            </div>
+
+            <!-- Koodoo -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div class="text-2xl font-bold text-orange-600">{{ contarTipo('Koodoo Formacion') }}</div>
+              <div class="text-sm text-gray-600">Koodoo Adjunto</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border text-center">
+              <div class="text-2xl font-bold text-orange-600">{{ contarTipo('Koodoo Director') }}</div>
+              <div class="text-sm text-gray-600">Koodoo Director</div>
             </div>
           </div>
+
 
           <!-- Tabla de Dirigentes -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -201,12 +161,6 @@
                   >
                     Exportar Excel
                   </button>
-                  <button 
-                    @click="nuevoDirigente"
-                    class="bg-[#009d71] text-white px-4 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 text-sm font-semibold"
-                  >
-                    Nuevo Dirigente
-                  </button>
                 </div>
               </div>
             </div>
@@ -216,106 +170,73 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Dirigente
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Grupo
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Programa de Jóvenes
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Tipo de aprobación
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Formador de Líderes
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Estado
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gestión Institucional
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Acciones
                     </th>
                   </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  <tr v-for="dirigente in dirigentesFiltrados" :key="dirigente.id" 
-                      class="hover:bg-gray-50 transition duration-150">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex items-center">
-                        <div class="flex-shrink-0 h-10 w-10 bg-[#009d71] rounded-full flex items-center justify-center">
-                          <span class="text-white font-semibold text-sm">
-                            {{ getIniciales(dirigente.nombre_participante) }}
-                          </span>
-                        </div>
-                        <div class="ml-4">
-                          <div class="text-sm font-medium text-gray-900">
-                            {{ dirigente.nombre_participante }}
-                          </div>
-                          <div class="text-sm text-gray-500">
-                            {{ dirigente.correo }}
-                          </div>
-                        </div>
-                      </div>
+
+                <tbody class="divide-y divide-gray-200">
+                  <tr v-for="d in dirigentesFiltrados" :key="d.id">
+                    
+                    <!-- Nombre -->
+                    <td class="px-6 py-4">
+                      <div class="font-medium text-gray-900">{{ d.nombre_participante }}</div>
+                      <div class="text-sm text-gray-500">{{ d.correo }}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ dirigente.grupo }}
+
+                    <!-- Grupo -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      {{ d.grupo }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span v-if="dirigente.programaJovenes" 
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {{ dirigente.programaJovenes }}
+
+                    <!-- Tipo -->
+                    <td class="px-6 py-4">
+                      <span
+                        class="px-2 py-1 rounded-full text-xs font-semibold"
+                        :class="badgeTipo(d.tipo_im)"
+                      >
+                        {{ getNivelTexto(d.tipo_im) }}
                       </span>
-                      <span v-else-if="esProgramaJovenes(dirigente.tipo_im)" 
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {{ getNivelTexto(dirigente.tipo_im) }}
-                      </span>
-                      <span v-else class="text-xs text-gray-400">-</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span v-if="dirigente.formadorLideres" 
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        {{ dirigente.formadorLideres }}
+
+                    <!-- Estado -->
+                    <td class="px-6 py-4">
+                      <span
+                        class="px-2 py-1 rounded-full text-xs font-semibold"
+                        :class="d.resultado_final === 'aprobado'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'"
+                      >
+                        {{ d.resultado_final }}
                       </span>
-                      <span v-else-if="esFormadorLideres(dirigente.tipo_im)" 
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        {{ getNivelTexto(dirigente.tipo_im) }}
-                      </span>
-                      <span v-else class="text-xs text-gray-400">-</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span v-if="dirigente.gestionInstitucional" 
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                        {{ dirigente.gestionInstitucional }}
-                      </span>
-                      <span v-else-if="esGestionInstitucional(dirigente.tipo_im)" 
-                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                        {{ getNivelTexto(dirigente.tipo_im) }}
-                      </span>
-                      <span v-else class="text-xs text-gray-400">-</span>
+
+                    <!-- Acciones -->
+                    <td class="px-6 py-4">
+                      <button
+                        @click="verDirigente(d.id)"
+                        class="text-blue-600 hover:underline font-semibold"
+                      >
+                        Ver
+                      </button>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div class="flex space-x-2">
-                        <button 
-                          @click="verDirigente(dirigente.id)"
-                          class="text-blue-600 hover:text-blue-900 font-semibold"
-                        >
-                          Ver
-                        </button>
-                        <button 
-                          @click="editarDirigente(dirigente.id)"
-                          class="text-green-600 hover:text-green-900 font-semibold"
-                        >
-                          Editar
-                        </button>
-                        <button 
-                          @click="eliminarDirigente(dirigente.id)"
-                          class="text-red-600 hover:text-red-900 font-semibold"
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
+
                   </tr>
                 </tbody>
+
               </table>
             </div>
 
@@ -365,309 +286,138 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import SeguimientoHeader from '../../components/seguimiento/SeguimientoHeader.vue'
+import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { seguimientoService } from '../../services/api';
+import { seguimientoService } from '../../services/api'
 
-export default {
-  name: 'ListaDirigentes',
-  setup() {
-    const router = useRouter()
-    
-    const nombreResponsable = ref('Responsable de Seguimiento')
-    const rutaActiva = ref('lista-dirigentes')
-    const isLoading = ref(false)
-    const error = ref(null)
+const router = useRouter()
 
-    const filtros = ref({
-      busqueda: '',
-      nivel: '',
-      grupo: ''
-    })
+const nombreResponsable = ref('Responsable de Seguimiento')
+const rutaActiva = ref('lista-dirigentes')
+const isLoading = ref(false)
+const error = ref(null)
 
-    const dirigentes = ref([])
+const filtros = ref({
+  busqueda: '',
+  nivel: '',
+  grupo: ''
+})
 
-    // Obtener dirigentes desde el backend
-    const fetchDirigentes = async () => {
-      isLoading.value = true
-      error.value = null
-      
-      try {
-        // Obtener todos los seguimientos (que contienen información de dirigentes)
-        const response = await seguimientoService.getSeguimientos()
-        
-        // Mapear los datos del backend a la estructura del frontend
-        dirigentes.value = response.data.map(item => ({
-          id: item.id,
-          nombre_participante: item.nombre_participante || 'Sin nombre',
-          correo: item.correo || 'Sin correo',
-          grupo: item.grupo || 'Sin grupo',
-          tipo_im: item.tipo_im || '',
-          estado: item.estado || '',
-          resultado_final: item.resultado_final || '',
-          fecha_creacion: item.fecha_creacion || '',
-          rama_scout: item.rama_scout || '',
-          // Solo mostrar en la categoría correspondiente si está aprobado
-          programaJovenes: item.resultado_final === 'Aprobado' && ['IM2', 'IM3'].includes(item.tipo_im) ? getNivelTexto(item.tipo_im) : '',
-          formadorLideres: item.resultado_final === 'Aprobado' && ['PaxtuGrupo', 'PaxtuDistrito'].includes(item.tipo_im) ? getNivelTexto(item.tipo_im) : '',
-          gestionInstitucional: item.resultado_final === 'Aprobado' && ['KoodooAdjunto', 'KoodooDirector'].includes(item.tipo_im) ? getNivelTexto(item.tipo_im) : ''
-        }))
-        
-      } catch (err) {
-        console.error('Error al obtener dirigentes:', err)
-        error.value = 'Error al cargar los dirigentes. Intenta nuevamente.'
-        
-        // Datos de ejemplo en caso de error
-        dirigentes.value = [
-          {
-            id: 1,
-            nombre_participante: 'Felipe Alejandro Lopez',
-            correo: 'felipe@ejemplo.com',
-            grupo: 'Boliviano Israelita',
-            tipo_im: 'IM2',
-            resultado_final: 'Aprobado',
-            programaJovenes: 'IM Nivel II',
-            formadorLideres: '',
-            gestionInstitucional: ''
-          },
-          {
-            id: 2,
-            nombre_participante: 'Alejandra Calles',
-            correo: 'alejandra@ejemplo.com',
-            grupo: 'Amerinst 301',
-            tipo_im: 'IM3',
-            resultado_final: 'Aprobado',
-            programaJovenes: 'IM Nivel III',
-            formadorLideres: 'Paxtu Distrito',
-            gestionInstitucional: ''
-          },
-          {
-            id: 3,
-            nombre_participante: 'Luciana Montes',
-            correo: 'luciana@ejemplo.com',
-            grupo: 'San Calixto',
-            tipo_im: 'PaxtuGrupo',
-            resultado_final: 'Aprobado',
-            programaJovenes: '',
-            formadorLideres: 'Paxtu Grupo',
-            gestionInstitucional: ''
-          },
-          {
-            id: 4,
-            nombre_participante: 'Rodrigo Llano',
-            correo: 'rodrigo@ejemplo.com',
-            grupo: 'Boliviano Israelita',
-            tipo_im: 'KoodooAdjunto',
-            resultado_final: 'Aprobado',
-            programaJovenes: '',
-            formadorLideres: '',
-            gestionInstitucional: 'Koodoo Adjunto'
-          },
-          {
-            id: 5,
-            nombre_participante: 'Francisco Santos',
-            correo: 'francisco@ejemplo.com',
-            grupo: 'Amerinst 301',
-            tipo_im: 'KoodooDirector',
-            resultado_final: 'Aprobado',
-            programaJovenes: '',
-            formadorLideres: '',
-            gestionInstitucional: 'Koodoo Director'
-          }
-        ]
-      } finally {
-        isLoading.value = false
-      }
-    }
+const dirigentes = ref([])
 
-    const grupos = computed(() => {
-      return [...new Set(dirigentes.value.map(d => d.grupo))]
-    })
+const fetchDirigentes = async () => {
+  isLoading.value = true
+  error.value = null
 
-    const dirigentesFiltrados = computed(() => {
-      return dirigentes.value.filter(dirigente => {
-        const busquedaMatch = !filtros.value.busqueda || 
-          dirigente.nombre_participante.toLowerCase().includes(filtros.value.busqueda.toLowerCase()) ||
-          dirigente.correo.toLowerCase().includes(filtros.value.busqueda.toLowerCase()) ||
-          dirigente.grupo.toLowerCase().includes(filtros.value.busqueda.toLowerCase())
-        
-        const nivelMatch = !filtros.value.nivel || 
-          dirigente.tipo_im?.toLowerCase().includes(filtros.value.nivel.toLowerCase()) ||
-          dirigente.programaJovenes?.toLowerCase().includes(filtros.value.nivel.toLowerCase()) ||
-          dirigente.formadorLideres?.toLowerCase().includes(filtros.value.nivel.toLowerCase()) ||
-          dirigente.gestionInstitucional?.toLowerCase().includes(filtros.value.nivel.toLowerCase())
-        
-        const grupoMatch = !filtros.value.grupo || dirigente.grupo === filtros.value.grupo
-        
-        return busquedaMatch && nivelMatch && grupoMatch
-      })
-    })
+  try {
+    const response = await seguimientoService.getSeguimientos()
 
-    const totalDirigentes = computed(() => dirigentes.value.length)
+    const data = response.data.filter(item =>
+      ['aprobado', 'no aprobó'].includes(item.resultado_final)
+    )
 
-    const contarPorNivel = (nivel) => {
-      if (nivel === 'Paxtu') {
-        return dirigentes.value.filter(d => 
-          d.formadorLideres?.includes('Paxtu')
-        ).length
-      } else if (nivel === 'Koodoo') {
-        return dirigentes.value.filter(d => 
-          d.gestionInstitucional?.includes('Koodoo')
-        ).length
-      } else {
-        return dirigentes.value.filter(d => 
-          d.programaJovenes?.includes(nivel)
-        ).length
-      }
-    }
+    dirigentes.value = data.map(item => ({
+      id: item.id,
+      nombre_participante: item.nombre_participante,
+      correo: item.correo,
+      grupo: item.grupo,
+      tipo_im: item.tipo_im,
+      resultado_final: item.resultado_final
+    }))
 
-    // Funciones de utilidad
-    const getIniciales = (nombreCompleto) => {
-      if (!nombreCompleto) return '??'
-      const partes = nombreCompleto.split(' ')
-      if (partes.length >= 2) {
-        return partes[0].charAt(0) + partes[1].charAt(0)
-      }
-      return partes[0].charAt(0)
-    }
-
-    const getNivelTexto = (codigo) => {
-      const niveles = {
-        'IM2': 'IM Nivel II',
-        'IM3': 'IM Nivel III',
-        'PaxtuGrupo': 'Paxtu Grupo',
-        'PaxtuDistrito': 'Paxtu Distrito',
-        'KoodooAdjunto': 'Koodoo Adjunto',
-        'KoodooDirector': 'Koodoo Director'
-      }
-      return niveles[codigo] || codigo
-    }
-
-    const esProgramaJovenes = (codigo) => {
-      return ['IM2', 'IM3'].includes(codigo)
-    }
-
-    const esFormadorLideres = (codigo) => {
-      return ['PaxtuGrupo', 'PaxtuDistrito'].includes(codigo)
-    }
-
-    const esGestionInstitucional = (codigo) => {
-      return ['KoodooAdjunto', 'KoodooDirector'].includes(codigo)
-    }
-
-    const aplicarFiltros = () => {
-      console.log('Aplicando filtros:', filtros.value)
-    }
-
-    const limpiarFiltros = () => {
-      filtros.value = {
-        busqueda: '',
-        nivel: '',
-        grupo: ''
-      }
-    }
-
-    const verDirigente = async (id) => {
-      try {
-        // Obtener detalles del dirigente
-        const response = await seguimientoService.getSeguimiento(id)
-        console.log('Detalles del dirigente:', response.data)
-        
-        // Aquí podrías navegar a una página de detalle o mostrar un modal
-        alert(`Ver perfil del dirigente ${id}\nNombre: ${response.data.nombre_participante}`)
-      } catch (err) {
-        console.error('Error al obtener detalles del dirigente:', err)
-        alert('Error al cargar los detalles del dirigente')
-      }
-    }
-
-    const editarDirigente = (id) => {
-      console.log('Editar dirigente:', id)
-      // Aquí podrías navegar a una página de edición
-      alert(`Editar dirigente ${id}`)
-    }
-
-    const eliminarDirigente = async (id) => {
-      if (confirm('¿Estás seguro de eliminar este seguimiento/dirigente?')) {
-        try {
-          await seguimientoService.deleteSeguimiento(id)
-          
-          // Eliminar localmente
-          const index = dirigentes.value.findIndex(d => d.id === id)
-          if (index !== -1) {
-            dirigentes.value.splice(index, 1)
-          }
-          
-          alert('Seguimiento eliminado correctamente')
-        } catch (err) {
-          console.error('Error al eliminar seguimiento:', err)
-          alert('Error al eliminar el seguimiento')
-        }
-      }
-    }
-
-    const nuevoDirigente = () => {
-      console.log('Nuevo dirigente')
-      // Navegar al formulario público de aprobaciones
-      router.push('/public/aprobaciones')
-    }
-
-    const exportarExcel = () => {
-      console.log('Exportando a Excel...')
-      alert('Exportando datos a Excel...')
-    }
-
-    const navegarA = (destino) => {
-      rutaActiva.value = destino
-      if (destino === 'inicio') {
-        router.push('/seguimiento')
-      } else {
-        router.push(`/seguimiento/${destino}`)
-      }
-    }
-
-    const cerrarSesion = () => {
-      localStorage.removeItem('usuario')
-      localStorage.removeItem('token')
-      router.push('/login')
-    }
-
-    onMounted(() => {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-      nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
-      
-      // Cargar dirigentes al montar el componente
-      fetchDirigentes()
-    })
-
-    return {
-      nombreResponsable,
-      rutaActiva,
-      filtros,
-      dirigentes,
-      grupos,
-      dirigentesFiltrados,
-      totalDirigentes,
-      isLoading,
-      error,
-      contarPorNivel,
-      getIniciales,
-      getNivelTexto,
-      esProgramaJovenes,
-      esFormadorLideres,
-      esGestionInstitucional,
-      aplicarFiltros,
-      limpiarFiltros,
-      verDirigente,
-      editarDirigente,
-      eliminarDirigente,
-      nuevoDirigente,
-      exportarExcel,
-      fetchDirigentes,
-      navegarA,
-      cerrarSesion
-    }
+  } catch (e) {
+    error.value = 'Error al cargar los dirigentes'
+  } finally {
+    isLoading.value = false
   }
 }
+
+const grupos = computed(() =>
+  [...new Set(dirigentes.value.map(d => d.grupo))]
+)
+
+const dirigentesFiltrados = computed(() =>
+  dirigentes.value.filter(d => {
+    const busqueda =
+      !filtros.value.busqueda ||
+      d.nombre_participante.toLowerCase().includes(filtros.value.busqueda.toLowerCase()) ||
+      d.correo.toLowerCase().includes(filtros.value.busqueda.toLowerCase()) ||
+      d.grupo.toLowerCase().includes(filtros.value.busqueda.toLowerCase())
+
+    const nivel =
+      !filtros.value.nivel ||
+      d.tipo_im === filtros.value.nivel
+
+    const grupo =
+      !filtros.value.grupo ||
+      d.grupo === filtros.value.grupo
+
+    return busqueda && nivel && grupo
+  })
+)
+
+const totalDirigentes = computed(() => dirigentes.value.length)
+
+const normalizar = (valor) =>
+  valor
+    ?.toString()
+    .toLowerCase()
+    .replace(/\s+/g, '')
+
+
+const contarTipo = (tipo) =>
+  dirigentes.value.filter(
+    d =>
+      normalizar(d.tipo_im) === normalizar(tipo) &&
+      d.resultado_final === 'aprobado'
+  ).length
+
+
+const contarKoodoo = computed(() =>
+  dirigentes.value.filter(d =>
+    ['KoodooAdjunto', 'KoodooDirector'].includes(d.tipo_im)
+  ).length
+)
+
+const getNivelTexto = (codigo) => ({
+  IM2: 'IM Nivel II',
+  IM3: 'IM Nivel III',
+  PaxtuGrupo: 'Paxtu Grupo',
+  PaxtuDistrito: 'Paxtu Distrito',
+  KoodooAdjunto: 'Koodoo Adjunto',
+  KoodooDirector: 'Koodoo Director'
+}[codigo] || codigo)
+
+const badgeTipo = (tipo) => ({
+  IM2: 'bg-blue-100 text-blue-800',
+  IM3: 'bg-green-100 text-green-800',
+  PaxtuGrupo: 'bg-purple-100 text-purple-800',
+  PaxtuDistrito: 'bg-purple-100 text-purple-800',
+  KoodooAdjunto: 'bg-orange-100 text-orange-800',
+  KoodooDirector: 'bg-orange-100 text-orange-800'
+}[tipo] || 'bg-gray-100 text-gray-800')
+
+const verDirigente = (id) => {
+  router.push(`/seguimiento/dirigente/${id}`)
+}
+
+const navegarA = (destino) => {
+  rutaActiva.value = destino
+  router.push(destino === 'inicio' ? '/seguimiento' : `/seguimiento/${destino}`)
+}
+
+const cerrarSesion = () => {
+  localStorage.clear()
+  router.push('/')
+}
+
+onMounted(() => {
+  const u = JSON.parse(localStorage.getItem('usuario') || '{}')
+  nombreResponsable.value = u.nombre || nombreResponsable.value
+  fetchDirigentes()
+})
 </script>
+

@@ -29,16 +29,18 @@ export const validarSeguimientoPublico = [
     .optional()
     .isLength({ max: 50 }),
 
-  body("tipo_im")
+  body('tipo_im')
+    .notEmpty()
+    .withMessage('Tipo IM es obligatorio')
     .isIn([
-      "IM2",
-      "IM3",
-      "PaxtuGrupo",
-      "PaxtuDistrito",
-      "KoodooAdjunto",
-      "KoodooDirector"
+      'IM2',
+      'IM3',
+      'Paxtu Grupo',
+      'Paxtu Distrito',
+      'Koodoo Formación',
+      'Koodoo Director'
     ])
-    .withMessage("Tipo IM no válido"),
+    .withMessage('Tipo IM no válido'),
 
   body("tipo_proceso")
     .isIn(["aprobacion", "revalidacion"])
