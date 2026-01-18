@@ -20,6 +20,7 @@ import ListaDirigentes from '../views/seguimiento/ListaDirigentes.vue'
 import PeriodoPruebaLista from '../views/seguimiento/PeriodoPruebaLista.vue'
 import SolicitudesPendientes from '../views/seguimiento/SolicitudesPendientes.vue'
 import DetalleSeguimiento from '../views/seguimiento/DetalleSeguimiento.vue'
+import DetalleDirigente from '../views/seguimiento/DetalleDirigente.vue'
 
 // REGISTRO
 import RegistroDashboard from '../views/registro/RegistroDashboard.vue'
@@ -217,6 +218,14 @@ const routes = [
   { 
     path: '/seguimiento/periodo-prueba', 
     component: PeriodoPruebaLista,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'admin']
+    }
+  },
+  { 
+    path: '/seguimiento/dirigente/:id',
+    component: DetalleDirigente,
     meta: {
       requiresAuth: true,
       roles: ['responsable_seguimiento', 'admin']
