@@ -58,44 +58,15 @@ export const validarSeguimientoPublico = [
 /* ============================
    REINCORPORACIÓN / PRUEBA
 ============================ */
-export const validarReincorporacion = [
-  body("nombre")
-    .trim()
-    .notEmpty()
-    .isLength({ max: 150 }),
+export const validarPeriodoPrueba = [
+  body('dirigentes').isArray({ min: 1 }),
 
-  body("grupo")
-    .trim()
-    .notEmpty()
-    .isLength({ max: 100 }),
-
-  body("tipo")
-    .isIn(["reincorporacion", "periodo de prueba"])
-    .withMessage("Tipo inválido"),
-
-  body("motivo")
-    .trim()
-    .notEmpty()
-    .isLength({ max: 500 }),
-
-  body("correo")
-  .notEmpty().withMessage("Correo obligatorio")
-  .isEmail().withMessage("Correo inválido"),
-
-  body("telefono")
-    .optional()
-    .isLength({ max: 20 }),
-
-  body("documento_url")
-    .optional(),
-
-  body("fecha_inicio")
-    .optional()
-    .isISO8601(),
-
-  body("fecha_fin")
-    .optional()
-    .isISO8601()
+  body('dirigentes.*.nombre').notEmpty(),
+  body('dirigentes.*.ci').notEmpty(),
+  body('dirigentes.*.grupo').notEmpty(),
+  body('dirigentes.*.tipo').isIn(['periodo de prueba', 'reincorporacion']),
+  body('dirigentes.*.fecha_inicio').isISO8601(),
+  body('dirigentes.*.correo').isEmail()
 ]
 
 /* ============================

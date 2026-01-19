@@ -18,6 +18,22 @@ const apiFormData = axios.create({
   }
 })
 
+const apiBlob = axios.create({
+  baseURL: API_URL,
+  responseType: 'blob',
+  timeout: 60000 // 60 segundos
+})
+
+apiBlob.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers = config.headers || {}
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+
 apiFormData.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -176,8 +192,20 @@ export const seguimientoService = {
   cambiarEstado: (id, data) =>
     api.put(`/seguimiento/${id}/estado`, data),
 
-  getReincorporaciones: () =>
-    api.get('/seguimiento/reincorporacion'),
+  // Periodo de prueba / reincorporaciones
+  getReincorporaciones() {
+    return api.get('/seguimiento/periodos-prueba-reincorporaciones')
+  },
+
+  getPeriodoPruebaDetalle(id) {
+    return api.get(`/seguimiento/periodos-prueba-reincorporaciones/${id}`)
+  },
+
+  descargarDocumentoPP(id) {
+    return apiBlob.get(
+      `/seguimiento/periodos-prueba-reincorporaciones/archivo/${id}`
+    )
+  },
 
   getEstadisticas: () =>
     api.get('/seguimiento/estadisticas'),
@@ -193,6 +221,18 @@ export const seguimientoService = {
 
   devolverSeguimiento: (id, data) =>
     apiFormData.post(`/seguimiento/${id}/devolver`, data),
+
+  crearPeriodoPrueba: (data) =>
+    api.post(
+      '/seguimiento/periodos-prueba-reincorporaciones/public',
+      data
+    ),
+
+  subirArchivoPeriodo: (data) =>
+    api.post(
+      '/seguimiento/periodos-prueba-reincorporaciones/archivo',
+      data
+    ),
 
 }
 

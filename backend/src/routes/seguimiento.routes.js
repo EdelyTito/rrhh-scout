@@ -4,7 +4,7 @@ import { verifyToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/authorize.js";
 import { sendEmail } from "../utils/email.js";
 import { registrarLog } from "../utils/logger.js";
-import { validarSeguimientoPublico, validarReincorporacion, validarEntrega, validarResultadoFinal, validarId} from "../middleware/validators/seguimiento.validators.js"
+import { validarSeguimientoPublico, validarEntrega, validarResultadoFinal, validarId} from "../middleware/validators/seguimiento.validators.js"
 import { validar } from "../middleware/validators/index.js"
 import multer from "multer";
 
@@ -416,123 +416,161 @@ router.post(
 //
 // RUTA PÚBLICA — Reincorporación o Periodo de Prueba
 //
-router.post("/reincorporacion", validarReincorporacion, validar, async (req, res) => {
-  try {
-    const {
-      nombre,
-      grupo,
-      tipo,
-      motivo,
-      archivo_formulario,
-      archivo_carta_respaldo,
-      telefono,
-      correo,
-      fecha_inicio,
-      fecha_fin,
-    } = req.body;
+router.post(
+  '/periodos-prueba-reincorporaciones/public',
+  async (req, res) => {
+    try {
+      const {
+        nombre,
+        ci,
+        grupo,
+        tipo,
+        fecha_inicio,
+        fecha_fin,
+        motivo,
+        telefono,
+        correo
+      } = req.body
 
-    const fechaFinValida = tipo === "periodo de prueba" ? fecha_fin : null;
+      const result = await pool.query(
+        `INSERT INTO periodos_prueba_reincorporaciones
+        (nombre, ci, grupo, tipo, fecha_inicio, fecha_fin, motivo, telefono, correo)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+        RETURNING id`,
+        [
+          nombre,
+          ci,
+          grupo,
+          tipo,
+          fecha_inicio,
+          fecha_fin || null,
+          motivo || null,
+          telefono,
+          correo
+        ]
+      )
 
-    const result = await pool.query(
-      `INSERT INTO reincorporaciones 
-       (nombre, grupo, tipo, motivo, documento_url, archivo_formulario, archivo_carta_respaldo,
-        telefono, correo, fecha_inicio, fecha_fin)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-       RETURNING id`,
-      [nombre, grupo, tipo, motivo, documento_url, archivo_formulario, archivo_carta_respaldo,
-       telefono, correo, fecha_inicio, fechaFinValida]
-    );
+      res.status(201).json({ periodo_id: result.rows[0].id })
 
-    res.status(201).json({
-      message: "Formulario de reincorporación recibido correctamente.",
-      reincorporacion_id: result.rows[0].id,
-    });
-  } catch (err) {
-    console.error("Error al registrar reincorporación:", err);
-    res.status(500).json({ error: "Error al registrar reincorporación" });
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error al registrar dirigente' })
+    }
   }
-});
+)
+
+// POST /api/seguimiento/periodos-prueba-reincorporaciones/archivo
+router.post(
+  '/periodos-prueba-reincorporaciones/archivo',
+  async (req, res) => {
+    try {
+      const {
+        periodo_id,
+        tipo_documento,
+        nombre_archivo,
+        mime_type,
+        archivo_base64
+      } = req.body
+
+      if (!periodo_id || !tipo_documento || !archivo_base64) {
+        return res.status(400).json({ error: 'Datos incompletos' })
+      }
+
+      const buffer = Buffer.from(archivo_base64, 'base64')
+
+      await pool.query(
+        `INSERT INTO documentos_prueba_reincorporacion
+        (registro_id, tipo, nombre_archivo, mime_type, archivo)
+        VALUES ($1,$2,$3,$4,$5)`,
+        [
+          periodo_id,
+          tipo_documento,
+          nombre_archivo,
+          mime_type,
+          buffer
+        ]
+      )
+
+      res.json({ ok: true })
+
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error al subir archivo' })
+    }
+  }
+)
 
 // ESTADÍSTICAS PARA EL DASHBOARD
 router.get("/estadisticas", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
-  
-  const ejecutarConsulta = async (query, defaultValue = 0) => {
-    try {
-      const result = await pool.query(query)
-      const count = result.rows[0]?.count || result.rows[0]?.total || result.rows[0]?.COUNT || defaultValue
-      return parseInt(count) || defaultValue
-    } catch (error) {
-      console.warn(`Consulta fallida (${query.substring(0, 50)}...):`, error.message)
-      return defaultValue
-    }
+
+  const ejecutar = async (sql) => {
+    const r = await pool.query(sql)
+    return parseInt(r.rows[0].count || 0)
   }
 
   try {
-    console.log("Calculando estadísticas...")
-    
-    const totalSolicitudes = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento", 0)
-    const aprobadosNivelII = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento WHERE tipo_im = 'IM2' AND resultado_final = 'aprobado'", 0)
-    const aprobadosNivelIII = await ejecutarConsulta("SELECT COUNT(*) FROM seguimiento WHERE tipo_im = 'IM3' AND resultado_final = 'aprobado'", 0)
-    const enProceso = await ejecutarConsulta(`
-      SELECT COUNT(*) 
-      FROM seguimiento 
-      WHERE estado IN (
-        'primera entrega',
-        'devolución 1',
-        'segunda entrega',
-        'devolución 2',
-        'entrega final',
-        'en entrevista'
-      )
+    console.log("Calculando estadísticas aprobadas...")
+
+    const im2 = await ejecutar(`
+      SELECT COUNT(*) FROM seguimiento
+      WHERE tipo_im = 'IM2' AND estado = 'aprobado'
     `)
 
-    const pendientes = await ejecutarConsulta(`
-      SELECT COUNT(*) 
-      FROM seguimiento 
-      WHERE estado = 'primera entrega'
+    const im3 = await ejecutar(`
+      SELECT COUNT(*) FROM seguimiento
+      WHERE tipo_im = 'IM3' AND estado = 'aprobado'
     `)
 
-    console.log("Estadísticas:", { totalSolicitudes, aprobadosNivelII, aprobadosNivelIII, enProceso, pendientes })
+    const paxtuGrupo = await ejecutar(`
+      SELECT COUNT(*) FROM seguimiento
+      WHERE tipo_im = 'Paxtu Grupo' AND estado = 'aprobado'
+    `)
 
-    res.json({
-      success: true,
-      stats: { totalSolicitudes, aprobadosNivelII, aprobadosNivelIII, enProceso, pendientes }
-    })
-    
+    const paxtuDistrito = await ejecutar(`
+      SELECT COUNT(*) FROM seguimiento
+      WHERE tipo_im = 'Paxtu Distrito' AND estado = 'aprobado'
+    `)
+
+    const koodooAdjunto = await ejecutar(`
+      SELECT COUNT(*) FROM seguimiento
+      WHERE tipo_im = 'Koodoo Formación' AND estado = 'aprobado'
+    `)
+
+    const koodooDirector = await ejecutar(`
+      SELECT COUNT(*) FROM seguimiento
+      WHERE tipo_im = 'Koodoo Director' AND estado = 'aprobado'
+    `)
+
+    const periodosPrueba = await ejecutar(`
+      SELECT COUNT(*) FROM periodos_prueba_reincorporaciones
+      WHERE tipo = 'periodo de prueba'
+    `)
+
+    const reincorporaciones = await ejecutar(`
+      SELECT COUNT(*) FROM periodos_prueba_reincorporaciones
+      WHERE tipo = 'reincorporacion'
+    `)
+
+    const stats = {
+      im2,
+      im3,
+      paxtuGrupo,
+      paxtuDistrito,
+      koodooAdjunto,
+      koodooDirector,
+      periodosPrueba,
+      reincorporaciones
+    }
+
+    console.log("Estadísticas:", stats)
+
+    res.json({ success: true, stats })
+
   } catch (err) {
-    console.error("Error general:", err)
-    res.status(500).json({ 
-      success: false, 
-      error: "Error interno del servidor" 
-    })
+    console.error("Error estadísticas:", err)
+    res.status(500).json({ success: false })
   }
 })
-
-//
-// LISTAR REINCORPORACIONES
-//
-router.get("/reincorporacion", verifyToken, authorizeRoles(1, 4, 7), async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT * FROM reincorporaciones
-      ORDER BY fecha_envio DESC
-    `);
-
-    await registrarLog(
-      req.user.id,
-      "Consultó lista de reincorporaciones",
-      "reincorporaciones",
-      null,
-      "Visualizó listado de reincorporaciones",
-      req.user.rol_nombre
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error al obtener reincorporaciones:", err);
-    res.status(500).json({ error: "Error al obtener reincorporaciones" });
-  }
-});
 
 //
 //LISTAR TODOS LOS SEGUIMIENTOS
@@ -587,6 +625,104 @@ router.post("/:id/entregas", verifyToken, authorizeRoles(1, 4, 7), validarId, va
     res.status(500).json({ error: "Error al registrar entrega" });
   }
 });
+
+// LISTAR periodos de prueba y reincorporaciones
+router.get(
+  '/periodos-prueba-reincorporaciones',
+  verifyToken,
+  authorizeRoles(1, 4, 7),
+  async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT *
+        FROM periodos_prueba_reincorporaciones
+        ORDER BY fecha_envio DESC
+      `)
+
+      res.json(result.rows)
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error al obtener registros' })
+    }
+  }
+)
+
+// DETALLE periodo de prueba / reincorporación
+router.get(
+  '/periodos-prueba-reincorporaciones/:id',
+  verifyToken,
+  authorizeRoles(1, 4, 7),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+
+      const registro = await pool.query(
+        `SELECT *
+         FROM periodos_prueba_reincorporaciones
+         WHERE id = $1`,
+        [id]
+      )
+
+      if (registro.rowCount === 0) {
+        return res.status(404).json({ error: 'Registro no encontrado' })
+      }
+
+      const archivos = await pool.query(
+        `SELECT id, tipo, nombre_archivo, mime_type
+         FROM documentos_prueba_reincorporacion
+         WHERE registro_id = $1
+         ORDER BY fecha_subida ASC`,
+        [id]
+      )
+
+      res.json({
+        registro: registro.rows[0],
+        archivos: archivos.rows
+      })
+
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Error al obtener detalle' })
+    }
+  }
+)
+
+// DESCARGAR DOCUMENTO PERIODO DE PRUEBA / REINCORPORACION
+router.get(
+  '/periodos-prueba-reincorporaciones/archivo/:id',
+  verifyToken,
+  authorizeRoles(1, 4, 7),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+
+      const result = await pool.query(
+        `SELECT nombre_archivo, mime_type, archivo
+         FROM documentos_prueba_reincorporacion
+         WHERE id = $1`,
+        [id]
+      )
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Archivo no encontrado' })
+      }
+
+      const file = result.rows[0]
+
+      res.setHeader('Content-Type', file.mime_type)
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="${file.nombre_archivo}"`
+      )
+
+      res.send(file.archivo)
+
+    } catch (err) {
+      console.error('Error al descargar documento PP:', err)
+      res.status(500).json({ error: 'Error al descargar documento' })
+    }
+  }
+)
 
 //
 //DETALLE DE SEGUIMIENTO (con entregas)

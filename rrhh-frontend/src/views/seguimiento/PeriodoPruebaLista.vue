@@ -25,12 +25,6 @@
                 Gestiona los registros de período de prueba y reincorporación de dirigentes
               </p>
             </div>
-            <button 
-              @click="nuevoRegistro"
-              class="bg-[#009d71] text-white px-5 py-2 rounded-lg hover:bg-[#007a5c] transition duration-200 font-semibold"
-            >
-              Nuevo Registro
-            </button>
           </div>
         </div>
 
@@ -59,7 +53,7 @@
         <!-- Contenido principal -->
         <div v-else>
           <!-- Estadísticas rápidas -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
               <div class="text-2xl font-bold text-[#009d71]">{{ totalRegistros }}</div>
               <div class="text-sm text-gray-600">Total Registros</div>
@@ -72,16 +66,12 @@
               <div class="text-2xl font-bold text-green-600">{{ contarPorTipo('reincorporacion') }}</div>
               <div class="text-sm text-gray-600">Reincorporación</div>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div class="text-2xl font-bold text-orange-600">{{ contarPorEstado('pendiente') }}</div>
-              <div class="text-sm text-gray-600">Pendientes</div>
-            </div>
           </div>
 
           <!-- Filtros -->
           <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Filtros</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Filtro por Tipo -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
@@ -98,18 +88,6 @@
                 <select v-model="filtros.grupo" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
                   <option value="">Todos los grupos</option>
                   <option v-for="grupo in grupos" :key="grupo" :value="grupo">{{ grupo }}</option>
-                </select>
-              </div>
-
-              <!-- Filtro por Estado -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                <select v-model="filtros.estado" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#009d71]">
-                  <option value="">Todos los estados</option>
-                  <option value="pendiente">Pendiente</option>
-                  <option value="aprobado">Aprobado</option>
-                  <option value="rechazado">Rechazado</option>
-                  <option value="completado">Completado</option>
                 </select>
               </div>
 
@@ -154,19 +132,13 @@
                 <thead class="bg-gray-50">
                   <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nombre
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Grupo
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dirigente(s)
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Tipo
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Estado
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Acciones
@@ -176,36 +148,18 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                   <tr v-for="registro in registrosFiltrados" :key="registro.id" 
                       class="hover:bg-gray-50 transition duration-150">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-medium text-gray-900">{{ registro.grupo }}</div>
-                    </td>
                     <td class="px-6 py-4">
-                      <div class="text-sm text-gray-900">
+                      <div class="text-sm font-medium text-gray-900">
                         {{ registro.nombre }} 
-                        <div v-if="registro.telefono" class="text-xs text-gray-500">
-                          Tel: {{ registro.telefono }}
-                        </div>
-                        <div v-if="registro.correo" class="text-xs text-gray-500">
-                          Email: {{ registro.correo }}
-                        </div>
                       </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">{{ registro.grupo }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
                             :class="tipoBadgeClass(registro.tipo)">
                         {{ getTipoTexto(registro.tipo) }}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {{ formatFecha(registro.fecha_inicio) }}
-                      <div v-if="registro.fecha_fin" class="text-xs text-gray-400">
-                        al {{ formatFecha(registro.fecha_fin) }}
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full" 
-                            :class="estadoBadgeClass(registro.estado || 'pendiente')">
-                        {{ getEstadoTexto(registro.estado || 'pendiente') }}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -215,27 +169,6 @@
                           class="text-blue-600 hover:text-blue-900 font-semibold"
                         >
                           Ver
-                        </button>
-                        <button 
-                          v-if="!registro.estado || registro.estado === 'pendiente'"
-                          @click="aprobarRegistro(registro.id)"
-                          class="text-green-600 hover:text-green-900 font-semibold"
-                        >
-                          Aprobar
-                        </button>
-                        <button 
-                          v-if="!registro.estado || registro.estado === 'pendiente'"
-                          @click="rechazarRegistro(registro.id)"
-                          class="text-red-600 hover:text-red-900 font-semibold"
-                        >
-                          Rechazar
-                        </button>
-                        <button 
-                          v-if="registro.estado === 'aprobado' && registro.tipo === 'periodo de prueba'"
-                          @click="finalizarPeriodo(registro.id)"
-                          class="text-purple-600 hover:text-purple-900 font-semibold"
-                        >
-                          Finalizar
                         </button>
                       </div>
                     </td>
@@ -458,32 +391,12 @@ import { seguimientoService } from '../../services/api'
       return tipos[tipo] || tipo
     }
 
-    const getEstadoTexto = (estado) => {
-      const estados = {
-        'pendiente': 'Pendiente',
-        'aprobado': 'Aprobado',
-        'rechazado': 'Rechazado',
-        'completado': 'Completado'
-      }
-      return estados[estado] || estado
-    }
-
     const tipoBadgeClass = (tipo) => {
       const classes = {
         'periodo de prueba': 'bg-blue-100 text-blue-800',
         'reincorporacion': 'bg-green-100 text-green-800'
       }
       return classes[tipo] || 'bg-gray-100 text-gray-800'
-    }
-
-    const estadoBadgeClass = (estado) => {
-      const classes = {
-        'pendiente': 'bg-yellow-100 text-yellow-800',
-        'aprobado': 'bg-green-100 text-green-800',
-        'rechazado': 'bg-red-100 text-red-800',
-        'completado': 'bg-purple-100 text-purple-800'
-      }
-      return classes[estado] || 'bg-gray-100 text-gray-800'
     }
 
     const formatFecha = (fecha) => {
@@ -504,84 +417,7 @@ import { seguimientoService } from '../../services/api'
     }
 
     const verRegistro = (id) => {
-      console.log('Ver registro:', id)
-      // Aquí podrías navegar a una página de detalle o mostrar un modal
-      const registro = registros.value.find(r => r.id === id)
-      if (registro) {
-        alert(`Detalles del registro ${id}:\n
-        Nombre: ${registro.nombre}\n
-        Grupo: ${registro.grupo}\n
-        Tipo: ${getTipoTexto(registro.tipo)}\n
-        Motivo: ${registro.motivo}\n
-        Fecha inicio: ${formatFecha(registro.fecha_inicio)}\n
-        Estado: ${getEstadoTexto(registro.estado)}`)
-      }
-    }
-
-    const aprobarRegistro = async (id) => {
-      if (confirm('¿Estás seguro de aprobar este registro?')) {
-        try {
-          // En un caso real, aquí actualizarías el estado en el backend
-          // await seguimientoService.actualizarReincorporacion(id, { estado: 'aprobado' })
-          
-          // Actualizar localmente
-          const index = registros.value.findIndex(r => r.id === id)
-          if (index !== -1) {
-            registros.value[index].estado = 'aprobado'
-          }
-          
-          alert('Registro aprobado correctamente')
-        } catch (err) {
-          console.error('Error al aprobar registro:', err)
-          alert('Error al aprobar el registro')
-        }
-      }
-    }
-
-    const rechazarRegistro = async (id) => {
-      if (confirm('¿Estás seguro de rechazar este registro?')) {
-        try {
-          // En un caso real, aquí actualizarías el estado en el backend
-          // await seguimientoService.actualizarReincorporacion(id, { estado: 'rechazado' })
-          
-          // Actualizar localmente
-          const index = registros.value.findIndex(r => r.id === id)
-          if (index !== -1) {
-            registros.value[index].estado = 'rechazado'
-          }
-          
-          alert('Registro rechazado correctamente')
-        } catch (err) {
-          console.error('Error al rechazar registro:', err)
-          alert('Error al rechazar el registro')
-        }
-      }
-    }
-
-    const finalizarPeriodo = async (id) => {
-      if (confirm('¿Estás seguro de finalizar este período de prueba?')) {
-        try {
-          // En un caso real, aquí actualizarías el estado en el backend
-          // await seguimientoService.actualizarReincorporacion(id, { estado: 'completado' })
-          
-          // Actualizar localmente
-          const index = registros.value.findIndex(r => r.id === id)
-          if (index !== -1) {
-            registros.value[index].estado = 'completado'
-          }
-          
-          alert('Período de prueba finalizado correctamente')
-        } catch (err) {
-          console.error('Error al finalizar período:', err)
-          alert('Error al finalizar el período de prueba')
-        }
-      }
-    }
-
-    const nuevoRegistro = () => {
-      console.log('Nuevo registro')
-      // Navegar al formulario público de reincorporación
-      router.push('/public/reincorporacion')
+      router.push(`/seguimiento/periodos-prueba-reincorporaciones/${id}`)
     }
 
     const exportarExcel = () => {

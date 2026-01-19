@@ -21,115 +21,58 @@
         </div>
 
         <!-- Statistics Cards - SEGUIMIENTO -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
-          <!-- Total Solicitudes -->
-          <div class="bg-white rounded-lg p-6 border-2 border-black shadow-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Total Solicitudes</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-4xl font-bold text-gray-900">{{ stats.totalSolicitudes }}</p>
-                <p class="text-xs text-gray-500 mt-3">Solicitudes recibidas</p>
-              </div>
-              <div class="bg-blue-100 p-4 rounded-full">
-                <span class="text-2xl">📋</span>
-              </div>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+
+          <div class="bg-white rounded-lg p-6 border-2 border-blue-500 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">IM Nivel II</h3>
+            <p class="text-4xl font-bold">{{ stats.im2 }}</p>
           </div>
 
-          <!-- Aprobados Nivel II -->
-          <div class="bg-white rounded-lg p-6 border-2 border-black shadow-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Aprobados Nivel II</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-4xl font-bold text-gray-900">{{ stats.aprobadosNivelII}}</p>
-                <p class="text-xs text-gray-500 mt-3">Dirigentes aprobados</p>
-              </div>
-              <div class="bg-green-100 p-4 rounded-full">
-                <span class="text-2xl">⭐</span>
-              </div>
-            </div>
+          <div class="bg-white rounded-lg p-6 border-2 border-blue-500 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">IM Nivel III</h3>
+            <p class="text-4xl font-bold">{{ stats.im3 }}</p>
           </div>
 
-          <!-- Aprobados Nivel III -->
-          <div class="bg-white rounded-lg p-6 border-2 border-black shadow-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Aprobados Nivel III</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-4xl font-bold text-gray-900">{{ stats.aprobadosNivelIII }}</p>
-                <p class="text-xs text-gray-500 mt-3">Dirigentes aprobados</p>
-              </div>
-              <div class="bg-green-100 p-4 rounded-full">
-                <span class="text-2xl">⭐</span>
-              </div>
-            </div>
+          <div class="bg-white rounded-lg p-6 border-2 border-green-600 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Paxtu Grupo</h3>
+            <p class="text-4xl font-bold">{{ stats.paxtuGrupo }}</p>
           </div>
 
-          <!-- En Proceso -->
-          <div class="bg-white rounded-lg p-6 border-2 border-black shadow-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">En Proceso</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-4xl font-bold text-gray-900">{{ stats.enProceso }}</p>
-                <p class="text-xs text-gray-500 mt-3">Solicitudes en trámite</p>
-              </div>
-              <div class="bg-yellow-100 p-4 rounded-full">
-                <span class="text-2xl">🔄</span>
-              </div>
-            </div>
+          <div class="bg-white rounded-lg p-6 border-2 border-green-600 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Paxtu Distrito</h3>
+            <p class="text-4xl font-bold">{{ stats.paxtuDistrito }}</p>
           </div>
 
-          <!-- Pendientes -->
-          <div class="bg-white rounded-lg p-6 border-2 border-black shadow-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Pendientes</h3>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-4xl font-bold text-gray-900">{{ stats.pendientes }}</p>
-                <p class="text-xs text-gray-500 mt-3">Por revisar</p>
-              </div>
-              <div class="bg-orange-100 p-4 rounded-full">
-                <span class="text-2xl">⏳</span>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <!-- Main Content Grid - APROBADOS Y NOMBRAMIENTOS -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <!-- Aprobados Nivel II -->
-          <div class="bg-white rounded-lg shadow p-6 border-2 border-black">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Aprobados Nivel II</h2>
-            <div class="space-y-3">
-              <div v-for="rama in aprobadosNivelII" :key="rama.nombre" 
-                  class="flex justify-between items-center p-3 bg-gray-50 rounded border">
-                <span class="font-medium text-gray-700">{{ rama.nombre }}</span>
-                <span class="text-lg font-bold text-blue-600">{{ rama.cantidad }}</span>
-              </div>
-            </div>
-          </div>
-          <!-- Aprobados Nivel III -->
-          <div class="bg-white rounded-lg shadow p-6 border-2 border-black">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Aprobados Nivel III</h2>
-            <div class="space-y-3">
-              <div v-for="rama in aprobadosRamas" :key="rama.nombre" 
-                   class="flex justify-between items-center p-3 bg-gray-50 rounded border">
-                <span class="font-medium text-gray-700">{{ rama.nombre }}</span>
-                <span class="text-lg font-bold text-blue-600">{{ rama.cantidad }}</span>
-              </div>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+
+          <div class="bg-white rounded-lg p-6 border-2 border-purple-600 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Koodoo Adjunto</h3>
+            <p class="text-4xl font-bold">{{ stats.koodooAdjunto }}</p>
           </div>
 
-          <!-- Nombramientos -->
-          <div class="bg-white rounded-lg shadow p-6 border-2 border-black">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Nombramientos</h2>
-            <div class="space-y-3">
-              <div v-for="nombramiento in nombramientos" :key="nombramiento.tipo" 
-                   class="flex justify-between items-center p-3 bg-gray-50 rounded border">
-                <span class="font-medium text-gray-700">{{ nombramiento.tipo }}</span>
-                <span class="text-lg font-bold text-green-600">{{ nombramiento.cantidad }}</span>
-              </div>
-            </div>
+          <div class="bg-white rounded-lg p-6 border-2 border-purple-600 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Koodoo Director</h3>
+            <p class="text-4xl font-bold">{{ stats.koodooDirector }}</p>
           </div>
+
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+
+          <div class="bg-white rounded-lg p-6 border-2 border-yellow-500 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Períodos de Prueba</h3>
+            <p class="text-4xl font-bold">{{ stats.periodosPrueba }}</p>
+          </div>
+
+          <div class="bg-white rounded-lg p-6 border-2 border-orange-500 shadow-lg">
+            <h3 class="text-lg font-bold mb-4">Reincorporaciones</h3>
+            <p class="text-4xl font-bold">{{ stats.reincorporaciones }}</p>
+          </div>
+
+        </div>
+
       </div>
     </main>
 
@@ -163,121 +106,40 @@ import { seguimientoService } from '../../services/api'
     const router = useRouter()
     const nombreResponsable = ref('Responsable de Seguimiento')
     const rutaActiva = ref('inicio')
-    
+  
     const stats = ref({
-      totalSolicitudes: 0,
-      aprobadosNivelII: 0,
-      aprobadosNivelIII: 0,
-      enProceso: 0,
-      pendientes: 0
+      im2: 0,
+      im3: 0,
+      paxtuGrupo: 0,
+      paxtuDistrito: 0,
+      koodooAdjunto: 0,
+      koodooDirector: 0,
+      periodosPrueba: 0,
+      reincorporaciones: 0
     })
-    
-    const aprobadosRamas = ref([])
-    const aprobadosNivelII = ref([]) // ¡Asegúrate que sea "II" mayúscula!
-    const nombramientos = ref([])
-    
+
     const cargarDatosDashboard = async () => {
       try {
-        console.log('Cargando estadísticas del dashboard...')
-        
-        const response = await seguimientoService.getEstadisticas()
-        
-        console.log('Datos completos recibidos:', response.data)
-        
-        if (response.data) {
+        const { data } = await seguimientoService.getEstadisticas()
+
+        console.log('Dashboard recibido:', data)
+
+        if (data?.stats) {
           stats.value = {
-            totalSolicitudes: response.data.totalSolicitudes || 0,
-            aprobadosNivelII: response.data.aprobadosNivelII || 0,
-            aprobadosNivelIII: response.data.aprobadosNivelIII || 0,
-            enProceso: response.data.enProceso || 0,
-            pendientes: response.data.pendientes || 0
+            im2: data.stats.im2,
+            im3: data.stats.im3,
+            paxtuGrupo: data.stats.paxtuGrupo,
+            paxtuDistrito: data.stats.paxtuDistrito,
+            koodooAdjunto: data.stats.koodooAdjunto,
+            koodooDirector: data.stats.koodooDirector,
+            periodosPrueba: data.stats.periodosPrueba,
+            reincorporaciones: data.stats.reincorporaciones
           }
-          
-          if (response.data.aprobadosPorRama && response.data.aprobadosPorRama.length > 0) {
-            aprobadosRamas.value = response.data.aprobadosPorRama
-          } else {
-            aprobadosRamas.value = [
-              { nombre: 'Lobatos', cantidad: Math.floor(stats.value.totalSolicitudes * 0.4) },
-              { nombre: 'Exploradores', cantidad: Math.floor(stats.value.totalSolicitudes * 0.3) },
-              { nombre: 'Pioneros', cantidad: Math.floor(stats.value.totalSolicitudes * 0.2) },
-              { nombre: 'Rovers', cantidad: Math.floor(stats.value.totalSolicitudes * 0.1) }
-            ]
-          }
-          
-          aprobadosNivelII.value = aprobadosRamas.value.map(rama => ({
-            nombre: rama.nombre,
-            cantidad: Math.floor(rama.cantidad * 0.7) // 70% de cada rama son Nivel II
-          }))
-          
-          if (response.data.nombramientos && response.data.nombramientos.length > 0) {
-            nombramientos.value = response.data.nombramientos
-          } else {
-            nombramientos.value = [
-              { tipo: 'Paxtu Grupo', cantidad: Math.floor(stats.value.totalSolicitudes * 0.3) },
-              { tipo: 'Paxtu Distrito', cantidad: Math.floor(stats.value.totalSolicitudes * 0.2) },
-              { tipo: 'Koodoo Adjunto de Formación', cantidad: Math.floor(stats.value.totalSolicitudes * 0.1) },
-              { tipo: 'Koodoo Director', cantidad: Math.floor(stats.value.totalSolicitudes * 0.05) }
-            ]
-          }
-          
-          console.log('Dashboard cargado exitosamente')
         }
-        
-      } catch (error) {
-        console.error('Error:', error)
-        
-        if (error.response?.status === 404) {
-          console.error('Endpoint /seguimiento/estadisticas no encontrado')
-          console.log('Verifica que el endpoint esté definido en tu backend')
-        }
-        
-        cargarDatosEjemplo()
+      } catch (err) {
+        console.error('Error dashboard:', err)
       }
-    }
-    
-    const cargarDatosAdicionales = () => {
-      // Calcular datos para las gráficas basados en stats reales
-      const total = stats.value.totalSolicitudes
-      const aprobadosII = stats.value.aprobadosNivelII
-      
-      // Aprobados por rama (ejemplo - ajusta si tienes estos datos reales)
-      aprobadosRamas.value = [
-        { nombre: 'Lobatos', cantidad: Math.floor(total * 0.4) || 50 },
-        { nombre: 'Exploradores', cantidad: Math.floor(total * 0.3) || 40 },
-        { nombre: 'Pioneros', cantidad: Math.floor(total * 0.2) || 22 },
-        { nombre: 'Rovers', cantidad: Math.floor(total * 0.1) || 10 }
-      ]
-      
-      // Aprobados Nivel II por rama
-      aprobadosNivelII.value = [
-        { nombre: 'Lobatos', cantidad: Math.floor(aprobadosII * 0.4) || 35 },
-        { nombre: 'Exploradores', cantidad: Math.floor(aprobadosII * 0.3) || 28 },
-        { nombre: 'Pioneros', cantidad: Math.floor(aprobadosII * 0.2) || 18 },
-        { nombre: 'Rovers', cantidad: Math.floor(aprobadosII * 0.1) || 12 }
-      ]
-      
-      // Nombramientos (ejemplo)
-      nombramientos.value = [
-        { tipo: 'Paxtu Grupo', cantidad: Math.floor(total * 0.3) || 60 },
-        { tipo: 'Paxtu Distrito', cantidad: Math.floor(total * 0.2) || 40 },
-        { tipo: 'Koodoo Adjunto de Formación', cantidad: Math.floor(total * 0.1) || 15 },
-        { tipo: 'Koodoo Director', cantidad: Math.floor(total * 0.05) || 9 }
-      ]
-    }
-    
-    const cargarDatosEjemplo = () => {
-      console.log('📋 Usando datos de ejemplo...')
-      
-      stats.value = {
-        totalSolicitudes: 10,
-        aprobadosNivelII: 78,
-        aprobadosNivelIII: 115,
-        enProceso: 25,
-        pendientes: 8
-      }
-      
-      cargarDatosAdicionales()
-    }
+    }    
     
     const navegarA = (destino) => {
       rutaActiva.value = destino

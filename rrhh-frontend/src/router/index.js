@@ -21,6 +21,7 @@ import PeriodoPruebaLista from '../views/seguimiento/PeriodoPruebaLista.vue'
 import SolicitudesPendientes from '../views/seguimiento/SolicitudesPendientes.vue'
 import DetalleSeguimiento from '../views/seguimiento/DetalleSeguimiento.vue'
 import DetalleDirigente from '../views/seguimiento/DetalleDirigente.vue'
+import DetallePPoReincorporacion from '../views/seguimiento/DetallePPoReincorporacion.vue'
 
 // REGISTRO
 import RegistroDashboard from '../views/registro/RegistroDashboard.vue'
@@ -224,6 +225,14 @@ const routes = [
     }
   },
   { 
+    path: '/seguimiento/periodos-prueba-reincorporaciones/:id',
+    component: DetallePPoReincorporacion,
+    meta: {
+      requiresAuth: true,
+      roles: ['responsable_seguimiento', 'admin']
+    }
+  },
+  { 
     path: '/seguimiento/dirigente/:id',
     component: DetalleDirigente,
     meta: {
@@ -231,6 +240,7 @@ const routes = [
       roles: ['responsable_seguimiento', 'admin']
     }
   },
+
 
   /* ---------- 404 ---------- */
   { path: '/:pathMatch(.*)*', redirect: '/' }
