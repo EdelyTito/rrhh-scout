@@ -2,13 +2,15 @@
   <div class="min-h-screen bg-gray-50">
     
     <SeguimientoHeader
-    :nombre="nombreResponsable"
-    @logout="cerrarSesion"
+      v-if="!embebido"
+      :nombre="nombreResponsable"
+      @logout="cerrarSesion"
     />
 
     <SeguimientoNav
-    :ruta-activa="rutaActiva"
-    @navegar="navegarA"
+      v-if="!embebido"
+      :ruta-activa="rutaActiva"
+      @navegar="navegarA"
     />
 
     <!-- Main Content -->
@@ -293,6 +295,17 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
 
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/seguimiento' : '/seguimiento'
+)
+
 const router = useRouter()
 
 const nombreResponsable = ref('Responsable de Seguimiento')
@@ -401,12 +414,17 @@ const badgeTipo = (tipo) => ({
 }[tipo] || 'bg-gray-100 text-gray-800')
 
 const verDirigente = (id) => {
-  router.push(`/seguimiento/dirigente/${id}`)
+  router.push(`${baseRuta.value}/dirigente/${id}`)
 }
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  router.push(destino === 'inicio' ? '/seguimiento' : `/seguimiento/${destino}`)
+
+  if (destino === 'inicio') {
+    router.push(baseRuta.value)
+  } else {
+    router.push(`${baseRuta.value}/${destino}`)
+  }
 }
 
 const cerrarSesion = () => {

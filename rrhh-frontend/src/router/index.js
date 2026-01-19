@@ -9,6 +9,7 @@ import PrimerIngreso from '../views/PrimerIngreso.vue'
 import AdminDashboard from '../views/admin/AdminDashboard.vue'
 import AdminRegistro from '../views/admin/dashboard/AdminRegistro.vue'
 import AdminFormacion from '../views/admin/dashboard/AdminFormacion.vue'
+import AdminSeguimiento from '../views/admin/dashboard/AdminSeguimiento.vue'
 import AdminInicio from '../views/admin/dashboard/AdminInicio.vue'
 
 import ListaUsuarios from '../views/admin/ListaUsuarios.vue'
@@ -129,6 +130,48 @@ const routes = [
           {
             path: 'modulo/:moduloId/asistencias',
             component: RegistroAsistencias,
+            props: { embebido: true }
+          }
+        ]
+      },
+      /* ----- ADMIN SEGUIMIENTO ----- */
+      {
+        path: 'seguimiento',
+        component: AdminSeguimiento,
+        children: [
+          {
+            path: '',
+            component: SeguimientoDashboard,
+            props: { embebido: true }
+          },
+          {
+            path: 'solicitudes-pendientes',
+            component: SolicitudesPendientes,
+            props: { embebido: true }
+          },
+          {
+            path: 'lista-dirigentes',
+            component: ListaDirigentes,
+            props: { embebido: true }
+          },
+          {
+            path: 'periodo-prueba',
+            component: PeriodoPruebaLista,
+            props: { embebido: true }
+          },
+          {
+            path: 'detalle/:id',
+            component: DetalleSeguimiento,
+            props: { embebido: true }
+          },
+          {
+            path: 'dirigente/:id',
+            component: DetalleDirigente,
+            props: { embebido: true }
+          },
+          {
+            path: 'periodos-prueba-reincorporaciones/:id',
+            component: DetallePPoReincorporacion,
             props: { embebido: true }
           }
         ]

@@ -2,13 +2,15 @@
   <div class="min-h-screen bg-gray-50">
 
     <SeguimientoHeader
-    :nombre="nombreResponsable"
-    @logout="cerrarSesion"
+      v-if="!embebido"
+      :nombre="nombreResponsable"
+      @logout="cerrarSesion"
     />
 
     <SeguimientoNav
-    :ruta-activa="rutaActiva"
-    @navegar="navegarA"
+      v-if="!embebido"
+      :ruta-activa="rutaActiva"
+      @navegar="navegarA"
     />
 
     <!-- Main Content -->
@@ -94,14 +96,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
 
-    const props = defineProps({
-      embebido: {
-        type: Boolean,
-        default: false
-      }
-    })
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
 
-    const esAdmin = computed(() => props.embebido === true)
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/seguimiento' : '/seguimiento'
+)
 
     const router = useRouter()
     const nombreResponsable = ref('Responsable de Seguimiento')
@@ -122,8 +126,6 @@ import { seguimientoService } from '../../services/api'
       try {
         const { data } = await seguimientoService.getEstadisticas()
 
-        console.log('Dashboard recibido:', data)
-
         if (data?.stats) {
           stats.value = {
             im2: data.stats.im2,
@@ -141,27 +143,15 @@ import { seguimientoService } from '../../services/api'
       }
     }    
     
-    const navegarA = (destino) => {
-      rutaActiva.value = destino
-      
-      if (destino === 'inicio') {
-        return
-      }
-      
-      switch(destino) {
-        case 'solicitudes-pendientes':
-          router.push('/seguimiento/solicitudes-pendientes')
-          break
-        case 'lista-dirigentes':
-          router.push('/seguimiento/lista-dirigentes')
-          break
-        case 'periodo-prueba':
-          router.push('/seguimiento/periodo-prueba')
-          break
-        default:
-          console.warn('Destino no reconocido:', destino)
-      }
-    }
+const navegarA = (destino) => {
+  rutaActiva.value = destino
+
+  if (destino === 'inicio') {
+    router.push(baseRuta.value)
+  } else {
+    router.push(`${baseRuta.value}/${destino}`)
+  }
+}
     
     const cerrarSesion = () => {
       localStorage.clear()

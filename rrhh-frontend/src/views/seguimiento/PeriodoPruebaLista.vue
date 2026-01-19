@@ -2,13 +2,15 @@
   <div class="min-h-screen bg-gray-50">
     
     <SeguimientoHeader
-    :nombre="nombreResponsable"
-    @logout="cerrarSesion"
+      v-if="!embebido"
+      :nombre="nombreResponsable"
+      @logout="cerrarSesion"
     />
 
     <SeguimientoNav
-    :ruta-activa="rutaActiva"
-    @navegar="navegarA"
+      v-if="!embebido"
+      :ruta-activa="rutaActiva"
+      @navegar="navegarA"
     />
 
     <!-- Main Content -->
@@ -230,15 +232,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
 
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
 
-    const props = defineProps({
-      embebido: {
-        type: Boolean,
-        default: false
-      }
-    })
-
-    const esAdmin = computed(() => props.embebido === true)
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/seguimiento' : '/seguimiento'
+)
 
     const router = useRouter()
     
@@ -288,71 +291,7 @@ import { seguimientoService } from '../../services/api'
       } catch (err) {
         console.error('Error al obtener reincorporaciones:', err)
         error.value = 'Error al cargar los registros. Intenta nuevamente.'
-        
-        // Datos de ejemplo en caso de error
-        registros.value = [
-          {
-            id: 1,
-            nombre: 'Felipe Alejandro Lopez',
-            grupo: 'Boliviano Israelita',
-            tipo: 'periodo de prueba',
-            motivo: 'Nuevo dirigente en formación',
-            fecha_inicio: '2025-03-25',
-            fecha_fin: '2025-06-25',
-            telefono: '77777777',
-            correo: 'felipe@ejemplo.com',
-            estado: 'pendiente',
-            dirigentes: [
-              { nombre: 'Felipe Alejandro Lopez', ci: '2065866' }
-            ]
-          },
-          {
-            id: 2,
-            nombre: 'Alejandra Calles',
-            grupo: 'Amerinst 301',
-            tipo: 'reincorporacion',
-            motivo: 'Regreso después de licencia',
-            fecha_inicio: '2025-02-02',
-            fecha_fin: null,
-            telefono: '77777778',
-            correo: 'alejandra@ejemplo.com',
-            estado: 'aprobado',
-            dirigentes: [
-              { nombre: 'Alejandra Calles', ci: '2154876' }
-            ]
-          },
-          {
-            id: 3,
-            nombre: 'Luciana Montes',
-            grupo: 'San Calixto',
-            tipo: 'periodo de prueba',
-            motivo: 'Nueva líder de rama',
-            fecha_inicio: '2025-01-20',
-            fecha_fin: '2025-04-20',
-            telefono: '77777779',
-            correo: 'luciana@ejemplo.com',
-            estado: 'completado',
-            dirigentes: [
-              { nombre: 'Luciana Montes', ci: '1987452' },
-              { nombre: 'Carlos Rodriguez', ci: '2014587' }
-            ]
-          },
-          {
-            id: 4,
-            nombre: 'Rodrigo Llano',
-            grupo: 'Boliviano Israelita',
-            tipo: 'reincorporacion',
-            motivo: 'Reactivación después de inactividad',
-            fecha_inicio: '2025-03-28',
-            fecha_fin: null,
-            telefono: '77777780',
-            correo: 'rodrigo@ejemplo.com',
-            estado: 'rechazado',
-            dirigentes: [
-              { nombre: 'Rodrigo Llano', ci: '2245871' }
-            ]
-          }
-        ]
+        registros.value = []
       } finally {
         isLoading.value = false
       }
@@ -416,23 +355,24 @@ import { seguimientoService } from '../../services/api'
       }
     }
 
-    const verRegistro = (id) => {
-      router.push(`/seguimiento/periodos-prueba-reincorporaciones/${id}`)
-    }
+const verRegistro = (id) => {
+  router.push(`${baseRuta.value}/periodos-prueba-reincorporaciones/${id}`)
+}
 
     const exportarExcel = () => {
       console.log('Exportando a Excel...')
       alert('Exportando datos a Excel...')
     }
 
-    const navegarA = (destino) => {
-      rutaActiva.value = destino
-      if (destino === 'inicio') {
-        router.push('/seguimiento')
-      } else {
-        router.push(`/seguimiento/${destino}`)
-      }
-    }
+const navegarA = (destino) => {
+  rutaActiva.value = destino
+
+  if (destino === 'inicio') {
+    router.push(baseRuta.value)
+  } else {
+    router.push(`${baseRuta.value}/${destino}`)
+  }
+}
 
     const cerrarSesion = () => {
       localStorage.clear()

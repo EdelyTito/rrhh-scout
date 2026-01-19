@@ -27,7 +27,6 @@
               </p>
               <p class="text-xs text-white mt-2">
                 ✔ {{ dashboard.seguimiento.aprobados }} aprobadas<br>
-                ⏳ {{ dashboard.seguimiento.pendientes }} pendientes
               </p>
             </div>
 

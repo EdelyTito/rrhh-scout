@@ -1,11 +1,59 @@
-<!-- AdminSeguimiento.vue -->
 <template>
-  <div class="bg-white p-6 rounded-lg shadow-sm border">
-    <h2 class="text-xl font-bold text-gray-800 mb-2">
-      Seguimiento
-    </h2>
-    <p class="text-gray-500">
-      Módulo en construcción
-    </p>
+  <div>
+    <div class="mb-6 border-b flex gap-6">
+
+      <button
+        @click="irA('/admin/seguimiento')"
+        :class="tabClass('/admin/seguimiento')"
+      >
+        Inicio
+      </button>
+
+      <button
+        @click="irA('/admin/seguimiento/solicitudes-pendientes')"
+        :class="tabClass('/admin/seguimiento/solicitudes-pendientes', true)"
+      >
+        Solicitudes pendientes
+      </button>
+
+      <button
+        @click="irA('/admin/seguimiento/lista-dirigentes')"
+        :class="tabClass('/admin/seguimiento/lista-dirigentes', true)"
+      >
+        Dirigentes
+      </button>
+
+      <button
+        @click="irA('/admin/seguimiento/periodo-prueba')"
+        :class="tabClass('/admin/seguimiento/periodo-prueba', true)"
+      >
+        Períodos de prueba
+      </button>
+
+    </div>
+    <router-view />
   </div>
 </template>
+
+<script setup>
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
+
+const irA = (path) => {
+  router.push(path)
+}
+
+const tabClass = (path, startsWith = false) => {
+  const base = 'pb-2 font-medium transition'
+
+  const activo = startsWith
+    ? route.path.startsWith(path)
+    : route.path === path
+
+  return activo
+    ? `${base} border-b-2 border-[#009d71] text-[#009d71]`
+    : `${base} text-gray-500 hover:text-gray-700`
+}
+</script>

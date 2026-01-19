@@ -2,16 +2,16 @@
   <div class="min-h-screen bg-gray-50">
 
     <SeguimientoHeader
-    :nombre="nombreResponsable"
-    @logout="cerrarSesion"
+      v-if="!embebido"
+      :nombre="nombreResponsable"
+      @logout="cerrarSesion"
     />
 
     <SeguimientoNav
-    :ruta-activa="rutaActiva"
-    @navegar="navegarA"
+      v-if="!embebido"
+      :ruta-activa="rutaActiva"
+      @navegar="navegarA"
     />
-
-    
 
     <!-- Main -->
     <main class="max-w-6xl mx-auto py-6 px-4">
@@ -204,7 +204,9 @@ const props = defineProps({
   }
 })
 
-const esAdmin = computed(() => props.embebido === true)
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/seguimiento' : '/seguimiento'
+)
 
 const route = useRoute()
 const router = useRouter()
@@ -244,9 +246,8 @@ const finalizar = async (resultado) => {
   seguimiento.value.estado = resultado === 'aprobado' ? 'aprobado' : 'no aprobó'
 }
 
-
 const volver = () => {
-  router.push('/seguimiento/solicitudes-pendientes')
+  router.push(`${baseRuta.value}/solicitudes-pendientes`)
 }
 
 const esUltimaEntrega = computed(() => {
@@ -328,14 +329,12 @@ const verArchivo = async (archivo) => {
     const blob = new Blob([response.data], { type: archivo.mime })
     const url = window.URL.createObjectURL(blob)
 
-    // Si es PDF o imagen → abrir
     if (
       archivo.mime.includes('pdf') ||
       archivo.mime.includes('image')
     ) {
       window.open(url, '_blank')
     } 
-    // Si es Word / Excel → descargar
     else {
       const a = document.createElement('a')
       a.href = url
@@ -402,13 +401,13 @@ onMounted(() => {
 })
 
 const navegarA = (destino) => {
-    rutaActiva.value = destino
-    if (destino === 'inicio') {
-        router.push('/seguimiento')
-    } else {
-        router.push(`/seguimiento/${destino}`)
-    }
-}
+  rutaActiva.value = destino
 
+  if (destino === 'inicio') {
+    router.push(baseRuta.value)
+  } else {
+    router.push(`${baseRuta.value}/${destino}`)
+  }
+}
 
 </script>

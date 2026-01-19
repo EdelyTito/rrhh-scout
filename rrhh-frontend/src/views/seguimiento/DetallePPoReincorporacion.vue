@@ -2,11 +2,13 @@
   <div class="min-h-screen bg-gray-50">
 
     <SeguimientoHeader
+      v-if="!embebido"
       :nombre="nombreResponsable"
       @logout="cerrarSesion"
     />
 
     <SeguimientoNav
+      v-if="!embebido"
       :ruta-activa="rutaActiva"
       @navegar="navegarA"
     />
@@ -102,9 +104,20 @@
 <script setup>
 import SeguimientoHeader from '../../components/seguimiento/SeguimientoHeader.vue'
 import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
+
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/seguimiento' : '/seguimiento'
+)
 
 const route = useRoute()
 const router = useRouter()
@@ -131,7 +144,7 @@ const fetchDetalle = async () => {
 }
 
 const volver = () => {
-  router.push('/seguimiento/periodo-prueba')
+  router.push(`${baseRuta.value}/periodo-prueba`)
 }
 
 const abrirArchivo = async (archivo) => {
@@ -164,10 +177,12 @@ const cerrarSesion = () => {
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
-  router.push(destino === 'inicio'
-    ? '/seguimiento'
-    : `/seguimiento/${destino}`
-  )
+
+  if (destino === 'inicio') {
+    router.push(baseRuta.value)
+  } else {
+    router.push(`${baseRuta.value}/${destino}`)
+  }
 }
 
 const tipoTexto = (t) => ({

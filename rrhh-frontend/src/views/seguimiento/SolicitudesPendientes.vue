@@ -2,13 +2,15 @@
 <div class="min-h-screen bg-gray-50">
   
     <SeguimientoHeader
-    :nombre="nombreResponsable"
-    @logout="cerrarSesion"
+      v-if="!embebido"
+      :nombre="nombreResponsable"
+      @logout="cerrarSesion"
     />
 
     <SeguimientoNav
-    :ruta-activa="rutaActiva"
-    @navegar="navegarA"
+      v-if="!embebido"
+      :ruta-activa="rutaActiva"
+      @navegar="navegarA"
     />
 
   <!-- Main Content -->
@@ -257,15 +259,16 @@ import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api';
 import * as XLSX from 'xlsx'
 
-    const props = defineProps({
-      embebido: {
-        type: Boolean,
-        default: false
-      }
-    })
+const props = defineProps({
+  embebido: {
+    type: Boolean,
+    default: false
+  }
+})
 
-    const esAdmin = computed(() => props.embebido === true)
-
+const baseRuta = computed(() =>
+  props.embebido ? '/admin/seguimiento' : '/seguimiento'
+)
 
     const router = useRouter()
     const nombreResponsable = ref('Responsable de Seguimiento')
@@ -286,16 +289,13 @@ import * as XLSX from 'xlsx'
 
     const solicitudes = ref([])
 
-    // Obtener solicitudes del backend usando seguimientoService
     const fetchSolicitudes = async () => {
       isLoading.value = true
       error.value = null
       
       try {
-        // Usar seguimientoService para obtener los seguimientos
         const response = await seguimientoService.getSeguimientos()
         
-        // Mapear los datos del backend a la estructura esperada por el frontend
         solicitudes.value = response.data.map(item => ({
           id: item.id,
           nombre_participante: item.nombre_participante || '',
@@ -313,57 +313,7 @@ import * as XLSX from 'xlsx'
         console.error('Error al obtener seguimientos:', err)
         error.value = 'Error al cargar las solicitudes. Intenta nuevamente.'
         
-        // Datos de ejemplo en caso de error
-        solicitudes.value = [
-          {
-            id: 1,
-            nombre_participante: 'Felipe Alejandro Lopez',
-            correo: 'felipe@ejemplo.com',
-            grupo: 'Boliviano Israelita',
-            tipo_im: 'IM2',
-            estado: 'primera entrega',
-            fecha_creacion: '2025-03-25',
-            resultado_final: null,
-            tipo_proceso: 'aprobacion',
-            rama_scout: 'Exploradores'
-          },
-          {
-            id: 2,
-            nombre_participante: 'Alejandra Calles',
-            correo: 'alejandra@ejemplo.com',
-            grupo: 'Amerinst 301',
-            tipo_im: 'IM3',
-            estado: 'en proceso',
-            fecha_creacion: '2025-02-02',
-            resultado_final: null,
-            tipo_proceso: 'aprobacion',
-            rama_scout: 'Rovers'
-          },
-          {
-            id: 3,
-            nombre_participante: 'Luciana Montes',
-            correo: 'luciana@ejemplo.com',
-            grupo: 'San Calixto',
-            tipo_im: 'PaxtuGrupo',
-            estado: 'primera entrega',
-            fecha_creacion: '2025-01-20',
-            resultado_final: null,
-            tipo_proceso: 'nombramiento',
-            rama_scout: null
-          },
-          {
-            id: 4,
-            nombre_participante: 'Rodrigo Llano',
-            correo: 'rodrigo@ejemplo.com',
-            grupo: 'Boliviano Israelita',
-            tipo_im: 'KoodooAdjunto',
-            estado: 'entrega final',
-            fecha_creacion: '2025-03-28',
-            resultado_final: 'Aprobado',
-            tipo_proceso: 'nombramiento',
-            rama_scout: null
-          }
-        ]
+        solicitudes.value = []
       } finally {
         isLoading.value = false
       }
@@ -390,7 +340,6 @@ import * as XLSX from 'xlsx'
         })
     })
 
-    // Convertir códigos de nivel a texto legible
     const getNivelTexto = (codigo) => {
       const niveles = {
         'IM2': 'IM Nivel II',
@@ -461,11 +410,9 @@ import * as XLSX from 'xlsx'
       }
     }
 
-    const verDetalle = (id) => {
-      console.log('Ver detalle de seguimiento:', id)
-      // Navegar a la página de detalle del seguimiento
-      router.push(`/seguimiento/detalle/${id}`)
-    }
+const verDetalle = (id) => {
+  router.push(`${baseRuta.value}/detalle/${id}`)
+}
 
     const exportarExcel = () => {
       if (solicitudesFiltradas.value.length === 0) {
@@ -499,15 +446,16 @@ import * as XLSX from 'xlsx'
       XLSX.writeFile(workbook, nombreArchivo)
     }
 
-    const navegarA = (destino) => {
-      rutaActiva.value = destino
-      if (destino === 'inicio') {
-        router.push('/seguimiento')
-      } else {
-        router.push(`/seguimiento/${destino}`)
-      }
-    }
-    
+const navegarA = (destino) => {
+  rutaActiva.value = destino
+
+  if (destino === 'inicio') {
+    router.push(baseRuta.value)
+  } else {
+    router.push(`${baseRuta.value}/${destino}`)
+  }
+}
+
     onMounted(() => {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
       nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
