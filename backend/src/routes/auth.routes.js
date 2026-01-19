@@ -42,7 +42,7 @@ router.post("/register", verifyToken, authorizeRoles(1), validarRegistroAdmin, v
       return res.status(400).json({ error: "El correo ya está registrado" });
     }
 
-    // 🔐 generar contraseña segura
+    // generar contraseña segura
     const passwordPlano = generarPasswordSegura();
     const hashed = await bcrypt.hash(passwordPlano, 10);
 
@@ -53,31 +53,40 @@ router.post("/register", verifyToken, authorizeRoles(1), validarRegistroAdmin, v
       [nombre, correo, hashed, cargo, rol_id]
     );
 
-    // 📧 enviar correo
-    await sendEmail(
-      correo,
-      "Acceso al Sistema RRHH – Distrito Scout La Paz",
-      `
-        <p>Hola <b>${nombre}</b>,</p>
+    // enviar correo
+    let emailEnviado = true
 
-        <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
-        
-        <b>Contraseña temporal:</b> ${passwordPlano}</p>
-
-        <p>Ingresa aquí:<br>
-        <a href="https://rrhh-dslp.netlify.app/">https://rrhh-dslp.netlify.app/</a></p>
-
-        <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
-      `
-    );
+    try {
+      await sendEmail(
+        correo,
+        "Acceso al Sistema RRHH – Distrito Scout La Paz",
+        `
+          <p>Hola <b>${nombre}</b>,</p>
+          <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
+          <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
+          <p>
+            Ingresa aquí:<br>
+            <a href="https://rrhh-dslp.netlify.app/">
+              https://rrhh-dslp.netlify.app/
+            </a>
+          </p>
+          <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
+        `
+      )
+    } catch (emailError) {
+      emailEnviado = false
+      console.error("Fallo envío de correo:", emailError)
+    }
 
     res.status(201).json({
-      message: "Usuario creado y correo enviado correctamente"
-    });
+      message: emailEnviado
+        ? "Usuario creado y correo enviado correctamente"
+        : "Usuario creado. No se pudo enviar el correo, el usuario puede recuperar su contraseña."
+    })
 
-  } catch (err) {
-    console.error("Error al registrar usuario:", err);
-    res.status(500).json({ error: "Error al registrar usuario" });
+  } catch (error) {
+    console.error("Error al enviar correo:", error)
+    throw error
   }
 });
 
