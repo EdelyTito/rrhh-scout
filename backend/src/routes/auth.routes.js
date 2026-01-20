@@ -63,22 +63,11 @@ router.post(
         message: "Usuario creado correctamente. El correo se enviará en breve.",
       });
 
-      sendEmail(
-        correo,
-        "Acceso al Sistema RRHH – Distrito Scout La Paz",
-        `
-          <p>Hola <b>${nombre}</b>,</p>
-          <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
-          <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
-          <p>
-            Ingresa aquí:<br>
-            <a href="https://rrhh-dslp.netlify.app/">
-              https://rrhh-dslp.netlify.app/
-            </a>
-          </p>
-          <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
-        `
-      ).catch(err => {
+      sendEmail({
+        to: correo,
+        name: nombre,
+        password: passwordPlano
+      }).catch(err => {
         console.error("Error enviando correo:", err);
       });
 
@@ -461,11 +450,11 @@ router.post("/forgot-password", async (req, res) => {
     const resetLink = `${process.env.FRONTEND_ORIGINS}/reset-password?token=${token}`;
 
     try {
-      await sendEmail(
-        correo,
-        "Recuperación de contraseña – Sistema Scout RRAA",
-        `...`
-      );
+      await sendEmail({
+        to: correo,
+        name: user.nombre,
+        password: resetLink
+      });
 
       res.json({ message: "Correo de recuperación enviado" });
 
