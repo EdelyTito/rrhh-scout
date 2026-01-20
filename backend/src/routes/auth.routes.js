@@ -21,7 +21,6 @@ const router = express.Router();
 //
 // REGISTRO DE USUARIO
 //
-
 router.post(
   "/register",
   verifyToken,
@@ -65,38 +64,40 @@ router.post(
         [nombre, correo, hashed, cargo, rol_id]
       );
 
-      try {
-        await sendEmail(
-          correo,
-          "Acceso al Sistema RRHH – Distrito Scout La Paz",
-          `
-            <p>Hola <b>${nombre}</b>,</p>
-            <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
-            <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
-            <p>
-              Ingresa aquí:<br>
-              <a href="https://rrhh-dslp.netlify.app/">
-                https://rrhh-dslp.netlify.app/
-              </a>
-            </p>
-            <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
-          `
-        );
-      } catch (mailError) {
-        console.error("Error enviando correo:", mailError);
-      }
+      const userId = result.rows[0].id;
 
-      await registrarLog(
+      res.status(201).json({
+        message: "Usuario creado correctamente. El correo se enviará en breve.",
+      });
+
+      sendEmail(
+        correo,
+        "Acceso al Sistema RRHH – Distrito Scout La Paz",
+        `
+          <p>Hola <b>${nombre}</b>,</p>
+          <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
+          <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
+          <p>
+            Ingresa aquí:<br>
+            <a href="https://rrhh-dslp.netlify.app/">
+              https://rrhh-dslp.netlify.app/
+            </a>
+          </p>
+          <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
+        `
+      ).catch(err => {
+        console.error("❌ Error enviando correo:", err);
+      });
+
+      registrarLog(
         req.user.id,
         "Creó usuario",
         "usuarios",
-        result.rows[0].id,
+        userId,
         `Usuario creado: ${correo}`,
         req.user.rol_nombre
-      );
-
-      return res.status(201).json({
-        message: "Usuario creado correctamente.",
+      ).catch(err => {
+        console.error("Error registrando log:", err);
       });
 
     } catch (error) {

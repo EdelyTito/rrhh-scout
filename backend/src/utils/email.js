@@ -1,27 +1,23 @@
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_PASS, 
   },
+  connectionTimeout: 20000,
+  greetingTimeout: 20000,
+  socketTimeout: 20000,
 });
 
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ Error configurando correo:", error);
-  } else {
-    console.log("✅ Servidor de correo listo");
-  }
-});
-
-export const sendEmail = async (to, subject, html, attachments = []) => {
+export const sendEmail = async (to, subject, html) => {
   return transporter.sendMail({
     from: `"Sistema Scout RRAA" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html,
-    attachments,
   });
 };
