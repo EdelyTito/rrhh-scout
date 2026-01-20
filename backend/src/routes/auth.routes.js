@@ -65,10 +65,39 @@ router.post(
 
       sendEmail({
         to: correo,
-        name: nombre,
-        password: passwordPlano
+        subject: "Acceso al Sistema RRHH – Distrito Scout La Paz",
+        html: `
+          <p>Hola <b>${nombre}</b>,</p>
+
+          <p>
+            Se ha creado una cuenta para ti en el
+            <b>Sistema de Recursos Humanos del Distrito Scout La Paz</b>.
+          </p>
+
+          <p>
+            <b>Contraseña temporal:</b><br>
+            <code style="font-size:16px">${passwordPlano}</code>
+          </p>
+
+          <p>
+            Ingresa al sistema desde el siguiente enlace:<br>
+            <a href="https://rrhh-dslp.netlify.app/">
+              https://rrhh-dslp.netlify.app/
+            </a>
+          </p>
+
+          <p>
+            Por seguridad, deberás cambiar tu contraseña en el primer ingreso.
+          </p>
+
+          <hr>
+          <p style="font-size:12px;color:#666">
+            Este correo fue enviado automáticamente.  
+            Por favor, no respondas a este mensaje.
+          </p>
+        `
       }).catch(err => {
-        console.error("Error enviando correo:", err);
+        console.error("Error enviando correo de registro:", err);
       });
 
       registrarLog(
@@ -333,7 +362,6 @@ router.post("/login", validarLogin, validar, async (req, res) => {
         return res.status(401).json({ error: "Credenciales inválidas" });
       }
 
-      // ✅ LOGIN OK → reset
       await pool.query(
         `UPDATE usuarios
          SET intentos_fallidos = 0,
@@ -452,8 +480,34 @@ router.post("/forgot-password", async (req, res) => {
     try {
       await sendEmail({
         to: correo,
-        name: user.nombre,
-        password: resetLink
+        subject: "Recuperación de contraseña – Sistema Scout RRAA",
+        html: `
+          <p>Hola <b>${user.nombre}</b>,</p>
+
+          <p>
+            Hemos recibido una solicitud para restablecer tu contraseña.
+          </p>
+
+          <p>
+            Haz clic en el siguiente enlace para crear una nueva contraseña:
+          </p>
+
+          <p>
+            <a href="${resetLink}">
+              Restablecer contraseña
+            </a>
+          </p>
+
+          <p>
+            Este enlace es válido por <b>1 hora</b>.
+            Si no solicitaste este cambio, puedes ignorar este correo.
+          </p>
+
+          <hr>
+          <p style="font-size:12px;color:#666">
+            Sistema Scout RRAA – Distrito Scout La Paz
+          </p>
+        `
       });
 
       res.json({ message: "Correo de recuperación enviado" });

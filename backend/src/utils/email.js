@@ -1,33 +1,18 @@
-import axios from "axios";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
-export const sendEmail = async ({ to, name, password }) => {
-  const payload = {
-    service_id: process.env.EMAILJS_SERVICE_ID,
-    template_id: process.env.EMAILJS_TEMPLATE_ID,
-    user_id: process.env.EMAILJS_PUBLIC_KEY,
-    template_params: {
-      email: to,
-      name,
-      password
-    }
-  };
+const client = SibApiV3Sdk.ApiClient.instance;
+client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
-  try {
-    await axios.post(
-      "https://api.emailjs.com/api/v1.0/email/send",
-      payload,
-      {
-        headers: {
-          "Content-Type": "application/json"
-        },
-        timeout: 10000
-      }
-    );
-  } catch (error) {
-    console.error(
-      "Error enviando correo con EmailJS:",
-      error.response?.data || error.message
-    );
-    throw error;
-  }
+const api = new SibApiV3Sdk.TransactionalEmailsApi();
+
+export const sendEmail = async ({ to, subject, html }) => {
+  return api.sendTransacEmail({
+    sender: {
+      email: process.env.EMAIL_FROM,
+      name: "Sistema Scout RRAA"
+    },
+    to: [{ email: to }],
+    subject,
+    htmlContent: html
+  });
 };
