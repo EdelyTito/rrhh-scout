@@ -1,4 +1,3 @@
-// utils/email.js
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
@@ -7,6 +6,14 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ Error configurando correo:", error);
+  } else {
+    console.log("✅ Servidor de correo listo");
+  }
 });
 
 export const sendEmail = async (to, subject, html, attachments = []) => {

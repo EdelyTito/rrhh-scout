@@ -21,68 +21,92 @@ const router = express.Router();
 //
 // REGISTRO DE USUARIO
 //
-router.post("/register", verifyToken, authorizeRoles(1), validarRegistroAdmin, validar, async (req, res) => {
-  try {
-    const { nombre, correo, cargo } = req.body;
 
-    const cargoConfig = Object.values(CARGOS)
-      .find(c => c.label === cargo);
+router.post(
+  "/register",
+  verifyToken,
+  authorizeRoles(1),
+  validarRegistroAdmin,
+  validar,
+  async (req, res) => {
+    try {
+      const { nombre, correo, cargo } = req.body;
 
-    if (!cargoConfig) {
-      return res.status(400).json({ error: "Cargo inválido" });
-    }
+      const cargoConfig = Object.values(CARGOS).find(
+        (c) => c.label === cargo
+      );
 
-    const rol_id = cargoConfig.rol_id;
+      if (!cargoConfig) {
+        return res.status(400).json({ error: "Cargo inválido" });
+      }
 
-    const checkUser = await pool.query(
-      "SELECT 1 FROM usuarios WHERE correo = $1",
-      [correo]
-    );
-    if (checkUser.rowCount > 0) {
-      return res.status(400).json({ error: "El correo ya está registrado" });
-    }
+      const rol_id = cargoConfig.rol_id;
 
-    // generar contraseña segura
-    const passwordPlano = generarPasswordSegura();
-    const hashed = await bcrypt.hash(passwordPlano, 8);
+      const checkUser = await pool.query(
+        "SELECT 1 FROM usuarios WHERE correo = $1",
+        [correo]
+      );
 
-    const result = await pool.query(
-      `INSERT INTO usuarios (nombre, correo, contrasena, cargo, rol_id, primer_ingreso)
-       VALUES ($1,$2,$3,$4,$5,true)
-       RETURNING id, nombre, correo, cargo`,
-      [nombre, correo, hashed, cargo, rol_id]
-    );
+      if (checkUser.rowCount > 0) {
+        return res.status(400).json({
+          error: "El correo ya está registrado",
+        });
+      }
 
-    res.status(201).json({
-      message: "Usuario creado correctamente. Se enviará un correo al usuario."
-    })
+      const passwordPlano = generarPasswordSegura();
+      const hashed = await bcrypt.hash(passwordPlano, 8);
 
-    sendEmail(
-      correo,
-      "Acceso al Sistema RRHH – Distrito Scout La Paz",
-      `
-        <p>Hola <b>${nombre}</b>,</p>
-        <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
-        <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
-        <p>
-          Ingresa aquí:<br>
-          <a href="https://rrhh-dslp.netlify.app/">
-            https://rrhh-dslp.netlify.app/
-          </a>
-        </p>
-        <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
-      `
-    ).catch(err => {
-      console.error("Error enviando correo de registro:", err)
-    })
+      const result = await pool.query(
+        `
+        INSERT INTO usuarios (nombre, correo, contrasena, cargo, rol_id, primer_ingreso)
+        VALUES ($1, $2, $3, $4, $5, true)
+        RETURNING id
+        `,
+        [nombre, correo, hashed, cargo, rol_id]
+      );
 
-  } catch (error) {
-      console.error("Error creando usuario:", error)
+      try {
+        await sendEmail(
+          correo,
+          "Acceso al Sistema RRHH – Distrito Scout La Paz",
+          `
+            <p>Hola <b>${nombre}</b>,</p>
+            <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
+            <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
+            <p>
+              Ingresa aquí:<br>
+              <a href="https://rrhh-dslp.netlify.app/">
+                https://rrhh-dslp.netlify.app/
+              </a>
+            </p>
+            <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
+          `
+        );
+      } catch (mailError) {
+        console.error("Error enviando correo:", mailError);
+      }
+
+      await registrarLog(
+        req.user.id,
+        "Creó usuario",
+        "usuarios",
+        result.rows[0].id,
+        `Usuario creado: ${correo}`,
+        req.user.rol_nombre
+      );
+
+      return res.status(201).json({
+        message: "Usuario creado correctamente.",
+      });
+
+    } catch (error) {
+      console.error("Error creando usuario:", error);
       return res.status(500).json({
-        error: "Error interno al crear usuario"
-      })
+        error: "Error interno al crear usuario",
+      });
     }
-});
+  }
+);
 
 router.get("/register", async (req, res) => {
   try {
@@ -446,21 +470,21 @@ router.post("/forgot-password", async (req, res) => {
 
     const resetLink = `${process.env.FRONTEND_ORIGINS}/reset-password?token=${token}`;
 
-    res.json({ message: "Correo de recuperación enviado" })
+    try {
+      await sendEmail(
+        correo,
+        "Recuperación de contraseña – Sistema Scout RRAA",
+        `...`
+      );
 
-    sendEmail(
-      correo,
-      "Recuperación de contraseña – Sistema Scout RRAA",
-      `
-        <p>Hola <b>${user.nombre}</b>,</p>
-        <p>Solicitaste recuperar tu contraseña.</p>
-        <p>Haz clic en el siguiente enlace:</p>
-        <a href="${resetLink}">${resetLink}</a>
-        <p>Este enlace expira en 1 hora.</p>
-      `
-    ).catch(err => {
-      console.error("Error enviando correo recuperación:", err)
-    })
+      res.json({ message: "Correo de recuperación enviado" });
+
+    } catch (err) {
+      console.error("Error enviando correo recuperación:", err);
+      res.status(500).json({
+        error: "No se pudo enviar el correo de recuperación"
+      });
+    }
 
     registrarLog(
       user.id,
