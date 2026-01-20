@@ -1,6 +1,7 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-    <div class="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
+  <div class="login-container" :style="backgroundStyle">
+    <div class="absolute inset-0 bg-blue-900 bg-opacity-60"></div>
+    <div class="relative z-10 bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
       <h2 class="text-2xl font-bold mb-4 text-center">
         Restablecer contraseña
       </h2>
@@ -144,6 +145,15 @@ const error = ref('')
 const showNueva = ref(false)
 const showConfirmar = ref(false)
 
+const backgroundImage = ref('/images/distrito.jpg')
+
+const backgroundStyle = computed(() => ({
+  backgroundImage: `url(${backgroundImage.value})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat'
+}))
+
 const validarPasswordOWASP = (password) => {
   const errores = []
 
@@ -206,3 +216,13 @@ const handleReset = async () => {
   }
 }
 </script>
+
+<style scoped>
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+</style>
