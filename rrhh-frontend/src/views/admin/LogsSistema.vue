@@ -68,37 +68,6 @@
           </div>
         </div>
 
-        <!-- Estadísticas Rápidas -->
-        <div class="grid md:grid-cols-2 gap-4 mb-8">
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <div class="flex items-center">
-              <div class="bg-blue-100 p-2 rounded-full">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-600">Total Logs</p>
-                <p class="text-2xl font-bold text-gray-900">{{ logs.length }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <div class="flex items-center">
-              <div class="bg-green-100 p-2 rounded-full">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-600">Usuarios activos (únicos)</p>
-                <p class="text-2xl font-bold text-gray-900">{{ usuariosUnicos.length }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Loading State -->
         <div v-if="loading" class="text-center py-8">
           <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#009d71]"></div>
@@ -426,7 +395,9 @@ const logsFiltrados = computed(() => {
     let coincideFecha = true
 
     if (fechaDesde.value || fechaHasta.value) {
-      const fechaLog = new Date(log.fecha_accion)
+      const fechaLog = convertirABolivia(log.fecha_accion)
+
+      if (!fechaLog) return false
       fechaLog.setHours(0, 0, 0, 0)
 
       if (fechaDesde.value) {
@@ -460,16 +431,31 @@ const getAccionBadgeClasses = (accion) => {
   return 'bg-gray-100 text-gray-800'
 }
 
+const ZONA_BOLIVIA = 'America/La_Paz'
+
+const convertirABolivia = (fechaStr) => {
+  if (!fechaStr) return null
+  return new Date(
+    new Date(fechaStr).toLocaleString('en-US', {
+      timeZone: ZONA_BOLIVIA
+    })
+  )
+}
+
 const formatFechaSolo = (fechaStr) => {
-  if (!fechaStr) return ''
+  if (!fechaStr) return '—'
   const f = new Date(fechaStr)
-  return f.toLocaleDateString('es-BO')
+  return f.toLocaleDateString('es-BO', { timeZone: ZONA_BOLIVIA })
 }
 
 const formatHora = (fechaStr) => {
-  if (!fechaStr) return ''
+  if (!fechaStr) return '—'
   const f = new Date(fechaStr)
-  return f.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })
+  return f.toLocaleTimeString('es-BO', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: ZONA_BOLIVIA
+  })
 }
 
 const limpiarFiltros = () => {
@@ -543,19 +529,16 @@ const exportarPDF = () => {
     'Nivel'
   ]
 
-  const filas = logsFiltrados.value.map(l => {
-    const fecha = new Date(l.fecha_accion)
-    return [
-      formatFechaSolo(l.fecha_accion),
-      formatHora(l.fecha_accion),
-      l.usuario_nombre || 'Sistema',
-      l.correo || '',
-      l.cargo || '',
-      limpiarAccion(l.accion),
-      l.detalle || '',
-      l.nivel || ''
-    ]
-  })
+  const filas = logsFiltrados.value.map(l => [
+    formatFechaSolo(l.fecha_accion),
+    formatHora(l.fecha_accion),
+    l.usuario_nombre || 'Sistema',
+    l.correo || '',
+    l.cargo || '',
+    limpiarAccion(l.accion),
+    l.detalle || '',
+    l.nivel || ''
+  ])
 
   autoTable(doc, {
     head: [columnas],
@@ -568,7 +551,6 @@ const exportarPDF = () => {
 
   doc.save(`logs_${Date.now()}.pdf`)
 }
-
 
 watch(
   [filtroTabla, filtroUsuario, filtroAccion, fechaDesde, fechaHasta],

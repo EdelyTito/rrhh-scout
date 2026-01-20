@@ -44,7 +44,7 @@ router.post("/register", verifyToken, authorizeRoles(1), validarRegistroAdmin, v
 
     // generar contraseña segura
     const passwordPlano = generarPasswordSegura();
-    const hashed = await bcrypt.hash(passwordPlano, 10);
+    const hashed = await bcrypt.hash(passwordPlano, 8);
 
     const result = await pool.query(
       `INSERT INTO usuarios (nombre, correo, contrasena, cargo, rol_id, primer_ingreso)
@@ -53,41 +53,35 @@ router.post("/register", verifyToken, authorizeRoles(1), validarRegistroAdmin, v
       [nombre, correo, hashed, cargo, rol_id]
     );
 
-    // enviar correo
-    let emailEnviado = true
-
-    try {
-      await sendEmail(
-        correo,
-        "Acceso al Sistema RRHH – Distrito Scout La Paz",
-        `
-          <p>Hola <b>${nombre}</b>,</p>
-          <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
-          <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
-          <p>
-            Ingresa aquí:<br>
-            <a href="https://rrhh-dslp.netlify.app/">
-              https://rrhh-dslp.netlify.app/
-            </a>
-          </p>
-          <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
-        `
-      )
-    } catch (emailError) {
-      emailEnviado = false
-      console.error("Fallo envío de correo:", emailError)
-    }
-
     res.status(201).json({
-      message: emailEnviado
-        ? "Usuario creado y correo enviado correctamente"
-        : "Usuario creado. No se pudo enviar el correo, el usuario puede recuperar su contraseña."
+      message: "Usuario creado correctamente. Se enviará un correo al usuario."
+    })
+
+    sendEmail(
+      correo,
+      "Acceso al Sistema RRHH – Distrito Scout La Paz",
+      `
+        <p>Hola <b>${nombre}</b>,</p>
+        <p>Se ha creado una cuenta para ti en el Sistema de Recursos Humanos.</p>
+        <p><b>Contraseña temporal:</b> ${passwordPlano}</p>
+        <p>
+          Ingresa aquí:<br>
+          <a href="https://rrhh-dslp.netlify.app/">
+            https://rrhh-dslp.netlify.app/
+          </a>
+        </p>
+        <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
+      `
+    ).catch(err => {
+      console.error("Error enviando correo de registro:", err)
     })
 
   } catch (error) {
-    console.error("Error al enviar correo:", error)
-    throw error
-  }
+      console.error("Error creando usuario:", error)
+      return res.status(500).json({
+        error: "Error interno al crear usuario"
+      })
+    }
 });
 
 router.get("/register", async (req, res) => {
@@ -452,7 +446,9 @@ router.post("/forgot-password", async (req, res) => {
 
     const resetLink = `${process.env.FRONTEND_ORIGINS}/reset-password?token=${token}`;
 
-    await sendEmail(
+    res.json({ message: "Correo de recuperación enviado" })
+
+    sendEmail(
       correo,
       "Recuperación de contraseña – Sistema Scout RRAA",
       `
@@ -462,18 +458,20 @@ router.post("/forgot-password", async (req, res) => {
         <a href="${resetLink}">${resetLink}</a>
         <p>Este enlace expira en 1 hora.</p>
       `
-    );
+    ).catch(err => {
+      console.error("Error enviando correo recuperación:", err)
+    })
 
-    await registrarLog(
+    registrarLog(
       user.id,
       "Solicitud de recuperación de contraseña",
       "usuarios",
       user.id,
       `Solicitud enviada a ${correo}`,
       "sistema"
-    );
-
-    res.json({ message: "Correo de recuperación enviado" });
+    ).catch(err => {
+      console.error("Error registrando log:", err)
+    })
 
   } catch (err) {
     console.error("Error forgot-password:", err);
@@ -500,7 +498,7 @@ router.post("/reset-password", async (req, res) => {
       return res.status(400).json({ error: "Token inválido o expirado" });
     }
 
-    const hashed = await bcrypt.hash(nuevaContrasena, 10);
+    const hashed = await bcrypt.hash(nuevaContrasena, 8);
 
     await pool.query(
       `UPDATE usuarios
@@ -538,7 +536,7 @@ router.post("/primer-ingreso", verifyToken, async (req, res) => {
     })
   }
 
-  const hashed = await bcrypt.hash(nuevaContrasena, 10)
+  const hashed = await bcrypt.hash(nuevaContrasena, 8)
 
   await pool.query(
     `UPDATE usuarios

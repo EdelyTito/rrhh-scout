@@ -38,7 +38,7 @@ router.get(
           l.registro_id,
           l.detalle,
           l.nivel,
-          TO_CHAR(l.fecha_accion, 'DD/MM/YYYY HH24:MI') AS fecha_accion
+          l.fecha_accion
         FROM logs l
         LEFT JOIN usuarios u ON l.usuario_id = u.id
         LEFT JOIN roles r ON u.rol_id = r.id
