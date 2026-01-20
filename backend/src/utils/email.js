@@ -1,18 +1,12 @@
-import SibApiV3Sdk from "sib-api-v3-sdk";
+import { Resend } from "resend";
 
-const client = SibApiV3Sdk.ApiClient.instance;
-client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
-
-const api = new SibApiV3Sdk.TransactionalEmailsApi();
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmail = async ({ to, subject, html }) => {
-  return api.sendTransacEmail({
-    sender: {
-      email: process.env.EMAIL_FROM,
-      name: "Sistema Scout RRAA"
-    },
-    to: [{ email: to }],
+  return resend.emails.send({
+    from: `Sistema Scout RRAA <${process.env.EMAIL_FROM}>`,
+    to,
     subject,
-    htmlContent: html
+    html
   });
 };
