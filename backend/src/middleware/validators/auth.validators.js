@@ -6,7 +6,10 @@ export const validarLogin = [
     .trim()
     .isEmail()
     .withMessage("Correo inválido")
-    .normalizeEmail(),
+    .normalizeEmail({
+      gmail_remove_dots: false,
+      gmail_remove_subaddress: false
+    }),
 
   body("contrasena")
     .isString()
@@ -21,9 +24,13 @@ export const validarRegistro = [
     .withMessage("Nombre inválido"),
 
   body("correo")
+    .trim()
     .isEmail()
     .withMessage("Correo inválido")
-    .normalizeEmail(),
+    .normalizeEmail({
+      gmail_remove_dots: false,
+      gmail_remove_subaddress: false
+    }),
 
   body("contrasena")
     .isLength({ min: 12 })

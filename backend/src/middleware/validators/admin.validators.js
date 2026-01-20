@@ -8,9 +8,13 @@ export const validarRegistroAdmin = [
     .withMessage("Nombre inválido"),
 
   body("correo")
+    .trim()
     .isEmail()
     .withMessage("Correo inválido")
-    .normalizeEmail(),
+    .normalizeEmail({
+      gmail_remove_dots: false,
+      gmail_remove_subaddress: false
+    }),
 
   body("cargo")
     .trim()
