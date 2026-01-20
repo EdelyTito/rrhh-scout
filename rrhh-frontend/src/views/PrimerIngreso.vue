@@ -98,18 +98,32 @@
               </svg>
             </button>
           </div>
-          <ul class="text-xs text-gray-500 mt-2 space-y-1">
-            <li>• Mínimo 12 caracteres</li>
-            <li>• Una mayúscula</li>
-            <li>• Una minúscula</li>
-            <li>• Un número</li>
-            <li>• Un símbolo (!@#$%^&*)</li>
+          <ul class="text-xs mt-2 space-y-1">
+            <li :class="reglasPassword.longitud ? 'text-green-600' : 'text-red-500'">
+              • Mínimo 12 caracteres
+            </li>
+            <li :class="reglasPassword.mayuscula ? 'text-green-600' : 'text-red-500'">
+              • Una mayúscula
+            </li>
+            <li :class="reglasPassword.minuscula ? 'text-green-600' : 'text-red-500'">
+              • Una minúscula
+            </li>
+            <li :class="reglasPassword.numero ? 'text-green-600' : 'text-red-500'">
+              • Un número
+            </li>
+            <li :class="reglasPassword.simbolo ? 'text-green-600' : 'text-red-500'">
+              • Un símbolo (!@#$%^&*)
+            </li>
           </ul>
         </div>
 
         <button
           type="submit"
-          class="w-full bg-[#009d71] text-white py-2 rounded-lg hover:bg-[#008060]"
+          :disabled="!passwordValida || nuevaContrasena !== confirmarContrasena"
+          class="w-full py-2 rounded-lg text-white transition
+            bg-[#009d71]
+            hover:bg-[#008060]
+            disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           Cambiar contraseña y continuar
         </button>
@@ -119,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '../services/api'
 
@@ -131,6 +145,22 @@ const loading = ref(false)
 
 const showNueva = ref(false)
 const showConfirmar = ref(false)
+
+const reglasPassword = computed(() => {
+  const pwd = nuevaContrasena.value
+
+  return {
+    longitud: pwd.length >= 12,
+    mayuscula: /[A-Z]/.test(pwd),
+    minuscula: /[a-z]/.test(pwd),
+    numero: /[0-9]/.test(pwd),
+    simbolo: /[!@#$%^&*]/.test(pwd)
+  }
+})
+
+const passwordValida = computed(() =>
+  Object.values(reglasPassword.value).every(v => v)
+)
 
 const validarPasswordOWASP = (password) => {
   const errores = []
