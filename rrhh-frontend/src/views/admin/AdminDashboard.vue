@@ -7,7 +7,7 @@
 
     <AdminNav
       :comisionesAbierto="comisionesAbierto"
-      @toggleComisiones="toggleComisiones"
+      @toggleComisiones="comisionesAbierto = !comisionesAbierto"
       @cerrarComisiones="comisionesAbierto = false"
     />
 

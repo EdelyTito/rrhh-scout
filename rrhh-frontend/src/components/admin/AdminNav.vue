@@ -64,6 +64,7 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
+import { watch } from 'vue'
 
 const emit = defineEmits(['toggleComisiones', 'cerrarComisiones'])
 
@@ -75,6 +76,7 @@ const router = useRouter()
 const route = useRoute()
 
 const irA = (path) => {
+  emit('cerrarComisiones')
   router.push(path)
 }
 
@@ -122,6 +124,12 @@ const irAComision = (path) => {
   router.push(path)
 }
 
+watch(
+  () => route.path,
+  () => {
+    emit('cerrarComisiones')
+  }
+)
 
 </script>
 
