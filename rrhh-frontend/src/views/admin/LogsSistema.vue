@@ -4,7 +4,7 @@
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
         <!-- Header de la página -->
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
           <div>
             <h1 class="text-2xl font-bold text-gray-800">Logs del Sistema</h1>
             <p class="text-gray-600">Registro de actividades y eventos del sistema</p>
@@ -23,12 +23,18 @@
 
         <!-- Filtros -->
         <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Tabla Afectada</label>
-              <select v-model="filtroTabla" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#009d71] focus:border-transparent">
+              <select
+                v-model="filtroTabla"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md
+                      focus:outline-none focus:ring-2 focus:ring-[#009d71]"
+              >
                 <option value="">Todas las tablas</option>
-                <option v-for="t in tablasUnicas" :key="t">{{ t }}</option>
+                <option v-for="t in tablasDisponibles" :key="t" :value="t">
+                  {{ t }}
+                </option>
               </select>
             </div>
 
@@ -45,25 +51,29 @@
                 Fecha (rango)
               </label>
 
-              <div class="flex gap-2">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <input
                   type="date"
-                  v-model="fechaDesde"
+                  v-model="fechaDesdeInput"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md
                         focus:outline-none focus:ring-2 focus:ring-[#009d71]"
                 />
 
                 <input
                   type="date"
-                  v-model="fechaHasta"
+                  v-model="fechaHastaInput"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md
                         focus:outline-none focus:ring-2 focus:ring-[#009d71]"
                 />
+
+                <button
+                  @click="aplicarFiltroFechas"
+                  class="h-[42px] w-full sm:w-auto px-6 bg-[#009d71] text-white rounded-md
+                        text-sm font-medium hover:bg-[#007f5f]"
+                >
+                  Aplicar fechas
+                </button>
               </div>
-
-              <p class="text-xs text-gray-500 mt-1">
-                Desde / Hasta (opcional)
-              </p>
             </div>
           </div>
         </div>
@@ -85,11 +95,10 @@
                   <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Cargo</th>
                   <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Acción</th>
                   <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Detalle</th>
-                  <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase">Nivel</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="log in logsPaginados" :key="log.id" class="hover:bg-gray-50">
+                <tr v-for="log in logs" :key="log.id" class="hover:bg-gray-50">
 
                   <td class="px-4 py-3 text-sm text-gray-700">
                     <div class="font-medium">{{ formatFechaSolo(log.fecha_accion) }}</div>
@@ -126,22 +135,13 @@
                   <td class="px-4 py-3 text-sm text-gray-600 max-w-md">
                     <div class="break-words">{{ log.detalle }}</div>
                   </td>
-
-                  <td class="px-4 py-3">
-                    <span
-                      :class="getNivelBadge(log.nivel)"
-                      class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold"
-                    >
-                      {{ log.nivel }}
-                    </span>
-                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <!-- Empty State -->
-          <div v-if="logsFiltrados.length === 0" class="text-center py-8">
+          <div v-if="!loading && logs.length === 0" class="text-center py-8">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
@@ -158,7 +158,7 @@
           <div class="flex space-x-1 items-center">
             <!-- Primera -->
             <button
-              @click="paginaActual = 1"
+              @click="irAPagina(1)"
               :disabled="paginaActual === 1"
               class="px-3 py-1 border rounded text-sm disabled:opacity-50"
             >
@@ -174,7 +174,7 @@
             <button
               v-for="p in paginasVisibles.paginas"
               :key="p"
-              @click="paginaActual = p"
+              @click="irAPagina(p)"
               :class="[
                 'px-3 py-1 border rounded text-sm',
                 p === paginaActual
@@ -192,7 +192,7 @@
 
             <!-- Última -->
             <button
-              @click="paginaActual = totalPaginas"
+              @click="irAPagina(totalPaginas)"
               :disabled="paginaActual === totalPaginas"
               class="px-3 py-1 border rounded text-sm disabled:opacity-50"
             >
@@ -223,17 +223,31 @@ const loading = ref(false)
 const filtroTabla = ref('')
 const filtroUsuario = ref('')
 const filtroAccion = ref('')
+
+// Inputs (no filtran todavía)
+const fechaDesdeInput = ref('')
+const fechaHastaInput = ref('')
+
+// Fechas aplicadas al filtro
 const fechaDesde = ref('')
 const fechaHasta = ref('')
 
 const logs = ref([])
 
-const limit = 5
 const offset = ref(0)
-const hayMasLogs = ref(true)
+const totalRegistros = ref(0)
+
 
 const paginaActual = ref(1)
 const registrosPorPagina = 5
+
+const tablasDisponibles = ref([])
+
+
+const totalPaginas = computed(() => {
+  const total = Math.ceil(totalRegistros.value / registrosPorPagina)
+  return total > 0 ? total : 1
+})
 
 const maxPaginasVisibles = 5
 
@@ -279,6 +293,18 @@ const navegarA = (destino) => {
   }
   router.push(`/${destino}`)
 }
+
+const aplicarFiltroFechas = () => {
+  fechaDesde.value = fechaDesdeInput.value || ''
+  fechaHasta.value = fechaHastaInput.value || ''
+
+  paginaActual.value = 1
+  offset.value = 0
+  totalRegistros.value = 0  
+
+  cargarLogs(true)
+}
+
 const irAComision = (vista) => {
   comisionesAbierto.value = false
   router.push({
@@ -287,19 +313,10 @@ const irAComision = (vista) => {
   })
 }
 
-const getNivelBadge = (nivel) => {
-  switch ((nivel || '').toUpperCase()) {
-    case 'INFO':
-      return 'bg-blue-100 text-blue-800'
-    case 'WARN':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'ERROR':
-      return 'bg-red-100 text-red-800'
-    case 'SECURITY':
-      return 'bg-purple-100 text-purple-800'
-    default:
-      return 'bg-gray-100 text-gray-800'
-  }
+const irAPagina = (p) => {
+  paginaActual.value = p
+  offset.value = (p - 1) * registrosPorPagina
+  cargarLogs()
 }
 
 const cerrarSesion = () => {
@@ -308,20 +325,10 @@ const cerrarSesion = () => {
   router.push('/') 
 }
 
-const logsPaginados = computed(() => {
-  const inicio = (paginaActual.value - 1) * registrosPorPagina
-  return logsFiltrados.value.slice(inicio, inicio + registrosPorPagina)
-})
-
-const totalPaginas = computed(() =>
-  Math.ceil(logsFiltrados.value.length / registrosPorPagina)
-)
-
 const cargarLogs = async (reset = false) => {
   if (reset) {
     offset.value = 0
     logs.value = []
-    hayMasLogs.value = true
   }
 
   loading.value = true
@@ -329,22 +336,22 @@ const cargarLogs = async (reset = false) => {
     const res = await logsService.getLogs({
       tabla: filtroTabla.value || undefined,
       usuario_id: filtroUsuario.value || undefined,
-      accion: filtroAccion.value || undefined,
-      limit,
+      desde: fechaDesde.value || undefined,
+      hasta: fechaHasta.value || undefined,
+      limit: registrosPorPagina,
       offset: offset.value
     })
 
-    const nuevosLogs = res.data || []
+    logs.value = res.data.data || []
+    totalRegistros.value = res.data.total || 0
 
-    if (nuevosLogs.length < limit) {
-      hayMasLogs.value = false
-    }
-
-    logs.value.push(...nuevosLogs)
-    offset.value += limit
   } catch (err) {
-    console.error('Error cargando logs:', err)
-    alert('No se pudo cargar logs.')
+    if (err.response?.status === 401) {
+      alert('Sesión expirada')
+      router.push('/login')
+    } else {
+      alert('No se pudo cargar logs')
+    }
   } finally {
     loading.value = false
   }
@@ -370,56 +377,6 @@ const tablasUnicas = computed(() => {
     if (l.tabla_afectada) set.add(l.tabla_afectada)
   })
   return Array.from(set).sort()
-})
-
-const logsFiltrados = computed(() => {
-  return logs.value.filter(log => {
-
-    // TABLA
-    const coincideTabla =
-      !filtroTabla.value ||
-      log.tabla_afectada === filtroTabla.value
-
-    // USUARIO
-    const coincideUsuario =
-      !filtroUsuario.value ||
-      String(log.usuario_id) === String(filtroUsuario.value)
-
-    // ACCIÓN (limpia)
-    const accionLimpia = limpiarAccion(log.accion).toLowerCase()
-    const coincideAccion =
-      !filtroAccion.value ||
-      accionLimpia.includes(filtroAccion.value.toLowerCase())
-
-    // FECHA (rango)
-    let coincideFecha = true
-
-    if (fechaDesde.value || fechaHasta.value) {
-      const fechaLog = convertirABolivia(log.fecha_accion)
-
-      if (!fechaLog) return false
-      fechaLog.setHours(0, 0, 0, 0)
-
-      if (fechaDesde.value) {
-        const desde = new Date(fechaDesde.value)
-        desde.setHours(0, 0, 0, 0)
-        if (fechaLog < desde) coincideFecha = false
-      }
-
-      if (fechaHasta.value) {
-        const hasta = new Date(fechaHasta.value)
-        hasta.setHours(23, 59, 59, 999)
-        if (fechaLog > hasta) coincideFecha = false
-      }
-    }
-
-    return (
-      coincideTabla &&
-      coincideUsuario &&
-      coincideAccion &&
-      coincideFecha
-    )
-  })
 })
 
 const getAccionBadgeClasses = (accion) => {
@@ -462,15 +419,36 @@ const limpiarFiltros = () => {
   filtroTabla.value = ''
   filtroUsuario.value = ''
   filtroAccion.value = ''
+
+  fechaDesdeInput.value = ''
+  fechaHastaInput.value = ''
   fechaDesde.value = ''
   fechaHasta.value = ''
+
+  paginaActual.value = 1
+  offset.value = 0
+  cargarLogs(true)
 }
 
 const limpiarAccion = (accion = '') => {
   return accion.replace(/\[.*?\]/g, '').trim()
 }
 
-const exportarCSV = () => {
+const obtenerLogsParaExportar = async () => {
+  const res = await logsService.getLogs({
+    tabla: filtroTabla.value || undefined,
+    usuario_id: filtroUsuario.value || undefined,
+    desde: fechaDesde.value || undefined,
+    hasta: fechaHasta.value || undefined,
+    exportar: true
+  })
+
+  return res.data.data || []
+}
+
+const exportarCSV = async () => {
+  const logsExportar = await obtenerLogsParaExportar()
+
   const headers = [
     'Fecha',
     'Usuario',
@@ -478,19 +456,17 @@ const exportarCSV = () => {
     'Cargo',
     'Rol',
     'Acción',
-    'Detalle',
-    'Nivel'
+    'Detalle'
   ]
 
-  const rows = logsFiltrados.value.map(l => [
+  const rows = logsExportar.map(l => [
     l.fecha_accion,
     l.usuario_nombre || 'Sistema',
     l.correo || '',
     l.cargo || '',
     l.rol_nombre || '',
     limpiarAccion(l.accion),
-    l.detalle || '',
-    l.nivel || ''
+    l.detalle || ''
   ])
 
   const csvContent = [
@@ -509,7 +485,8 @@ const exportarCSV = () => {
   URL.revokeObjectURL(url)
 }
 
-const exportarPDF = () => {
+const exportarPDF = async () => {
+  const logsExportar = await obtenerLogsParaExportar()
   const doc = new jsPDF('landscape')
 
   doc.setFontSize(14)
@@ -525,19 +502,17 @@ const exportarPDF = () => {
     'Correo',
     'Cargo',
     'Acción',
-    'Detalle',
-    'Nivel'
+    'Detalle'
   ]
 
-  const filas = logsFiltrados.value.map(l => [
+  const filas = logsExportar.map(l => [
     formatFechaSolo(l.fecha_accion),
     formatHora(l.fecha_accion),
     l.usuario_nombre || 'Sistema',
     l.correo || '',
     l.cargo || '',
     limpiarAccion(l.accion),
-    l.detalle || '',
-    l.nivel || ''
+    l.detalle || ''
   ])
 
   autoTable(doc, {
@@ -545,23 +520,29 @@ const exportarPDF = () => {
     body: filas,
     startY: 28,
     styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [0, 157, 113] },
-    alternateRowStyles: { fillColor: [245, 245, 245] }
+    headStyles: { fillColor: [0, 157, 113] }
   })
 
   doc.save(`logs_${Date.now()}.pdf`)
 }
 
 watch(
-  [filtroTabla, filtroUsuario, filtroAccion, fechaDesde, fechaHasta],
+  [filtroTabla, filtroUsuario, filtroAccion],
   () => {
     paginaActual.value = 1
-  }
+    offset.value = 0
+    cargarLogs(true)
+  },
+  { flush: 'post' }
 )
 
-onMounted(() => {
+onMounted(async () => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
   nombreResponsable.value = usuario.nombre || 'Administrador'
+
+  const resTablas = await logsService.getTablasLogs()
+  tablasDisponibles.value = resTablas.data
+
   cargarLogs()
 })
 

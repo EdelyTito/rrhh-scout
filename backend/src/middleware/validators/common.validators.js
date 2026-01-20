@@ -11,7 +11,7 @@ export const validar = (req, res, next) => {
 
   if (!errors.isEmpty()) {
 
-    console.log("❌ VALIDATION ERRORS:", errors.array())
+    console.log("VALIDATION ERRORS:", errors.array())
 
     return res.status(400).json({
       error: "Datos inválidos",

@@ -59,7 +59,7 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
+                    #
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nombre
@@ -82,9 +82,9 @@
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="usuario in usuariosPaginados">
+                <tr v-for="(usuario, index) in usuariosPaginados" :key="usuario.id">
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {{ usuario.id }}
+                    {{ usuario.numero }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm font-medium text-gray-900">{{ usuario.nombre }}</div>
@@ -529,17 +529,18 @@ const usuariosFiltrados = computed(() => {
 const usuariosPaginados = computed(() => {
   const inicio = (paginaActual.value - 1) * filasPorPagina
   const fin = inicio + filasPorPagina
-  return usuariosFiltrados.value.slice(inicio, fin)
+  return usuariosNumerados.value.slice(inicio, fin)
 })
 
 const totalPaginas = computed(() =>
-  Math.ceil(usuariosFiltrados.value.length / filasPorPagina)
+  Math.ceil(usuariosNumerados.value.length / filasPorPagina)
 )
 
-watch([filtroBusqueda, filtroRol], () => {
-  paginaActual.value = 1
+watch(usuariosFiltrados, () => {
+  if (paginaActual.value > totalPaginas.value) {
+    paginaActual.value = 1
+  }
 })
-
 
 const resetearContrasena = async () => {
   try {
@@ -749,18 +750,31 @@ const resetearFormulario = () => {
   nuevoUsuario.value = {
     nombre: '',
     correo: '',
-    contrasena: '',
     cargo: ''
 }
   errorMessage.value = ''
   successMessage.value = ''
 }
+
 const cerrarModalEditar = () => {
   mostrarModalEditar.value = false
-  usuarioEditando.value = { id: '', nombre: '', correo: '', cargo: '', rol_id: '' }
+  usuarioEditando.value = {
+    id: '',
+    nombre: '',
+    correo: '',
+    cargo: '',
+    rol_nombre: ''
+  }
   errorMessageEditar.value = ''
   successMessageEditar.value = ''
 }
+
+const usuariosNumerados = computed(() => {
+  return usuariosFiltrados.value.map((usuario, index) => ({
+    ...usuario,
+    numero: index + 1
+  }))
+})
 
 onMounted(() => {
   const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')

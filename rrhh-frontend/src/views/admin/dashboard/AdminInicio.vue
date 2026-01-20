@@ -4,14 +4,14 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-2">
                 Bienvenido Administrador
             </h2>
+            <p class="text-gray-600">
+              Panel de control principal del sistema de Recursos Humanos
+            </p>
             <p class="text-sm text-gray-500 mt-2">
-              Último inicio de sesión:
+              Último acceso registrado:
               <span class="font-medium text-gray-700">
                 {{ formatFechaHora(dashboard.ultimo_login) }}
               </span>
-            </p>
-            <p class="text-gray-600">
-              Panel de control principal del sistema de Recursos Humanos
             </p>
         </div>
 

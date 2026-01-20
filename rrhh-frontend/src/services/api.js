@@ -97,10 +97,21 @@ export const adminService = {
 
 export const logsService = {
   getLogs: (filters = {}) => {
-    const params = new URLSearchParams()
-    if (filters.tabla) params.append('tabla', filters.tabla)
-    if (filters.usuario_id) params.append('usuario_id', filters.usuario_id)
-    return api.get(`/logs?${params.toString()}`)
+    return api.get('/logs', {
+      params: {
+        tabla: filters.tabla,
+        usuario_id: filters.usuario_id,
+        desde: filters.desde,
+        hasta: filters.hasta,
+        limit: filters.limit,
+        offset: filters.offset,
+        exportar: filters.exportar
+      }
+    })
+  },
+
+  getTablasLogs: () => {
+    return api.get('/logs/tablas')
   }
 }
 

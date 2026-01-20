@@ -39,7 +39,7 @@ router.get(
         WHERE usuario_id = $1
           AND accion ILIKE '%inicio de sesión%'
         ORDER BY fecha_accion DESC
-        LIMIT 1
+        LIMIT 1 OFFSET 1
       `, [req.user.id])
 
       res.json({

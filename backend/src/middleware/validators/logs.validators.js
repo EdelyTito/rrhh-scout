@@ -24,18 +24,18 @@ export const validarConsultaLogs = [
     .withMessage("Offset inválido"),
 
   query("nivel")
-  .optional()
-  .isIn(["INFO", "WARN", "SECURITY", "ERROR"])
-  .withMessage("Nivel de log inválido"),
+    .optional()
+    .isIn(["INFO", "WARN", "SECURITY", "ERROR"])
+    .withMessage("Nivel de log inválido"),
 
   query("desde")
-  .optional()
-  .isISO8601()
-  .withMessage("Fecha desde inválida"),
+    .optional()
+    .matches(/^\d{4}-\d{2}-\d{2}$/)
+    .withMessage("Fecha desde inválida"),
 
   query("hasta")
     .optional()
-    .isISO8601()
+    .matches(/^\d{4}-\d{2}-\d{2}$/)
     .withMessage("Fecha hasta inválida"),
 
 ]
