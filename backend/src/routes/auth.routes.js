@@ -31,40 +31,33 @@ router.post(
     try {
       const { nombre, correo, cargo } = req.body;
 
-      const cargoConfig = Object.values(CARGOS).find(
-        (c) => c.label === cargo
-      );
-
+      const cargoConfig = Object.values(CARGOS).find(c => c.label === cargo);
       if (!cargoConfig) {
         return res.status(400).json({ error: "Cargo inválido" });
       }
 
-      const rol_id = cargoConfig.rol_id;
-
-      const checkUser = await pool.query(
+      const existe = await pool.query(
         "SELECT 1 FROM usuarios WHERE correo = $1",
         [correo]
       );
 
-      if (checkUser.rowCount > 0) {
-        return res.status(400).json({
-          error: "El correo ya está registrado",
-        });
+      if (existe.rowCount > 0) {
+        return res.status(400).json({ error: "El correo ya está registrado" });
       }
 
       const passwordPlano = generarPasswordSegura();
       const hashed = await bcrypt.hash(passwordPlano, 8);
 
-      const result = await pool.query(
+      const { rows } = await pool.query(
         `
         INSERT INTO usuarios (nombre, correo, contrasena, cargo, rol_id, primer_ingreso)
         VALUES ($1, $2, $3, $4, $5, true)
         RETURNING id
         `,
-        [nombre, correo, hashed, cargo, rol_id]
+        [nombre, correo, hashed, cargo, cargoConfig.rol_id]
       );
 
-      const userId = result.rows[0].id;
+      const userId = rows[0].id;
 
       res.status(201).json({
         message: "Usuario creado correctamente. El correo se enviará en breve.",
@@ -86,7 +79,7 @@ router.post(
           <p>Por seguridad, deberás cambiar tu contraseña en el primer ingreso.</p>
         `
       ).catch(err => {
-        console.error("❌ Error enviando correo:", err);
+        console.error("Error enviando correo:", err);
       });
 
       registrarLog(
@@ -96,15 +89,11 @@ router.post(
         userId,
         `Usuario creado: ${correo}`,
         req.user.rol_nombre
-      ).catch(err => {
-        console.error("Error registrando log:", err);
-      });
+      ).catch(err => console.error("Error registrando log:", err));
 
     } catch (error) {
       console.error("Error creando usuario:", error);
-      return res.status(500).json({
-        error: "Error interno al crear usuario",
-      });
+      res.status(500).json({ error: "Error interno al crear usuario" });
     }
   }
 );
