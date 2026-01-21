@@ -382,7 +382,7 @@ import FormacionHeader from '../../components/formacion/FormacionHeader.vue'
 import FormacionNav from '../../components/formacion/FormacionNav.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { formacionService} from '../../services/api'
+import { formacionService, authService} from '../../services/api'
 
 const props = defineProps({
   embebido: {

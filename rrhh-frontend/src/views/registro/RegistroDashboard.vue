@@ -14,6 +14,7 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <router-view />
       <div class="px-4 py-6 sm:px-0">
         <!-- Estado de carga -->
         <div v-if="cargando" class="flex justify-center items-center h-64">
@@ -176,7 +177,7 @@ import RegistroHeader from '../../components/registro/RegistroHeader.vue'
 import RegistroNav from '../../components/registro/RegistroNav.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { registroService} from '../../services/api'
+import { registroService, authService} from '../../services/api'
 
 const props = defineProps({
   embebido: {
@@ -269,7 +270,7 @@ onMounted(async () => {
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
 
   await cargarEstadisticas()
-  await cargarultimoLogin()
+  await cargarUltimoLogin()
 })
 
 const cargarEstadisticas = async () => {

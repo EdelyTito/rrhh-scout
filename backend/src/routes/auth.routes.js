@@ -615,11 +615,11 @@ router.get(
     try {
       const { rows } = await pool.query(
         `
-        SELECT fecha
+        SELECT fecha_accion
         FROM logs
         WHERE usuario_id = $1
-          AND accion ILIKE '%login%'
-        ORDER BY fecha DESC
+          AND accion ILIKE '%inicio de sesión%'
+        ORDER BY fecha_accion DESC
         OFFSET 1
         LIMIT 1
         `,
@@ -627,7 +627,7 @@ router.get(
       )
 
       res.json({
-        ultimo_login: rows[0]?.fecha || null
+        ultimo_login: rows[0]?.fecha_accion || null
       })
     } catch (err) {
       console.error(err)

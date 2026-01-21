@@ -103,7 +103,7 @@ import SeguimientoHeader from '../../components/seguimiento/SeguimientoHeader.vu
 import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { seguimientoService } from '../../services/api'
+import { seguimientoService, authService } from '../../services/api'
 
 const ultimoLogin = ref(null)
 

@@ -226,6 +226,28 @@ const routes = [
     ]
   },
 
+    /* ---------- REGISTRO ---------- */
+  {
+    path: '/registro',
+    component: RegistroDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: [
+        'responsable_registro',
+        'subcomisionado_registro',
+        'admin'
+      ]
+    },
+    children: [
+      { path: 'solicitudes-pendientes', component: SolicitudesPendientesRegistro },
+      { path: 'solicitudes-rechazadas', component: SolicitudesRechazadasRegistro },
+      { path: 'dirigentes-habilitados', component: ListaDirigentesHabilitados },
+      { path: 'solicitud/:id', component: DetalleSolicitud },
+      { path: 'dirigente/:id', component: DetalleDirigenteRegistro },
+      { path: 'dirigente/:id/editar', component: EditarDirigenteRegistro }
+    ]
+  },
+
   /* ---------- SEGUIMIENTO ---------- */
   { 
     path: '/seguimiento', 
@@ -284,7 +306,6 @@ const routes = [
     }
   },
 
-
   /* ---------- 404 ---------- */
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
@@ -302,14 +323,11 @@ function rutaPorRol(usuario) {
 
   if (rol === 'admin') return '/admin'
   if (rol.includes('seguimiento')) return '/seguimiento'
-  if (rol.includes('formacion') || rol.includes('formación')) {
-    return '/formacion'
-  }
+  if (rol.includes('formacion') || rol.includes('formación')) {return '/formacion'}
   if (rol.includes('registro')) return '/registro'
 
   return '/'
 }
-
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
