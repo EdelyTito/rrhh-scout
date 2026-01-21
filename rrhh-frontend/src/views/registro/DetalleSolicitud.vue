@@ -159,11 +159,11 @@
                     </p>
 
                     <ul
-                      v-if="documentos.CERTIFICADOS_FORMACION.length"
+                      v-if="documentos.CERTIFICADO_FORMACION.length"
                       class="space-y-2"
                     >
                       <li
-                        v-for="doc in documentos.CERTIFICADOS_FORMACION"
+                        v-for="doc in documentos.CERTIFICADO_FORMACION"
                         :key="doc.id"
                         class="flex items-center justify-between"
                       >
@@ -176,7 +176,7 @@
                         </div>
 
                         <button
-                          v-if="documentos.CERTIFICADOS_FORMACION"
+                          v-if="documentos.CERTIFICADO_FORMACION"
                           @click="descargarArchivo(doc)"
                           class="text-[#009d71] hover:text-[#007a5c] text-sm font-medium"
                         >
@@ -384,8 +384,8 @@ onMounted(async () => {
     const docs = await registroService.getDocumentosPorSolicitud(solicitudId)
 
     docs.data.forEach(doc => {
-      if (doc.tipo_documento === 'CERTIFICADOS_FORMACION') {
-        documentos.value.CERTIFICADOS_FORMACION.push(doc)
+      if (doc.tipo_documento === 'CERTIFICADO_FORMACION') {
+        documentos.value.CERTIFICADO_FORMACION.push(doc)
       } else if (doc.tipo_documento === 'CERTIFICADO_NO_VIOLENCIA') {
         documentos.value.CERTIFICADO_NO_VIOLENCIA = doc
       } else if (doc.tipo_documento === 'VALORACION_PERFIL') {
@@ -458,7 +458,7 @@ const rechazarSolicitud = async () => {
 
 const documentos = ref({
   CERTIFICADO_NO_VIOLENCIA: null,
-  CERTIFICADOS_FORMACION: [],
+  CERTIFICADO_FORMACION: [],
   VALORACION_PERFIL: null
 })
 

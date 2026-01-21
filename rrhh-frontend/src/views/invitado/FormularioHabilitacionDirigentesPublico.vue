@@ -602,7 +602,7 @@
                     @change="manejarArchivos($event, 'certificadosFormacion')"
                     accept=".pdf,.jpg,.jpeg,.png"
                   />
-                  <p class="text-xs text-gray-500 mt-2">Puede subir múltiples archivos en un ZIP si es necesario</p>
+                  <p class="text-xs text-gray-500 mt-2">Puede subir múltiples archivos si es necesario</p>
                 </div>
               </div>
 
@@ -863,7 +863,7 @@ const enviarFormulario = async () => {
 
     if (archivos.value.certificadosFormacion) {
       for (const file of archivos.value.certificadosFormacion) {
-        await subirArchivo(solicitudId, 'CERTIFICADOS_FORMACION', file)
+        await subirArchivo(solicitudId, 'CERTIFICADO_FORMACION', file)
       }
     }
 
