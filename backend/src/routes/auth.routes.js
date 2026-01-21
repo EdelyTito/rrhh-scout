@@ -607,4 +607,32 @@ router.post("/primer-ingreso", verifyToken, async (req, res) => {
   res.json({ message: "Contraseña actualizada correctamente" })
 })
 
+router.get(
+  "/ultimo-login",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const { rows } = await pool.query(
+        `
+        SELECT fecha
+        FROM logs
+        WHERE usuario_id = $1
+          AND accion ILIKE '%login%'
+        ORDER BY fecha DESC
+        OFFSET 1
+        LIMIT 1
+        `,
+        [req.user.id]
+      )
+
+      res.json({
+        ultimo_login: rows[0]?.fecha || null
+      })
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: "Error obteniendo último login" })
+    }
+  }
+)
+
 export default router;

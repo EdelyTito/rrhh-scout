@@ -88,7 +88,8 @@ export const authService = {
   forgotPassword: (correo) => api.post('/auth/forgot-password', { correo }),
   resetPassword: (data) => api.post('/auth/reset-password', data),
   resetPasswordPrimerIngreso: (data) => api.post('/auth/primer-ingreso', data),
-  reactivarUser: (id) => api.patch(`/auth/${id}/reactivar`)
+  reactivarUser: (id) => api.patch(`/auth/${id}/reactivar`),
+  getUltimoLogin: () => api.get('/auth/ultimo-login')
 }
 
 export const adminService = {

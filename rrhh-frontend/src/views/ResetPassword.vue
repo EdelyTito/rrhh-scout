@@ -117,7 +117,7 @@
 
         <button
           type="submit"
-          :disabled="!passwordValida || nuevaContrasena !== confirmarContrasena"
+          :disabled="!passwordValida || nuevaContrasena.value !== confirmarContrasena.value"
           class="w-full py-2 rounded text-white transition
                 bg-[#009d71] hover:bg-[#008060]
                 disabled:bg-gray-400 disabled:cursor-not-allowed"

@@ -19,6 +19,15 @@
         <!-- Bienvenida -->
         <div class="mb-8">
           <h1 class="text-2xl font-bold text-gray-900">Bienvenido a Formación</h1>
+          <p class="text-sm text-gray-500 mt-2">
+            Último inicio de sesión:
+            <span class="font-medium text-gray-700">
+              {{ ultimoLogin
+                ? new Date(ultimoLogin).toLocaleString('es-BO')
+                : '—'
+              }}
+            </span>
+          </p>
         </div>
 
         <!-- Contenido en dos columnas -->
@@ -398,6 +407,17 @@ const router = useRouter()
 const nombreResponsable = ref('Responsable de Formación')
 const rutaActiva = ref('inicio-formacion')
 
+const ultimoLogin = ref(null)
+
+const cargarUltimoLogin = async () => {
+  try {
+    const res = await authService.getUltimoLogin()
+    ultimoLogin.value = res.data.ultimo_login
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 const estadisticasCursos = ref({
   total: 0,
   activos: 0,
@@ -552,6 +572,7 @@ onMounted(() => {
   cargarCursos()
   cargarDirigentes()
   cargarTiposModulo()
+  cargarUltimoLogin()
 })
 
 const navegarA = (destino) => {

@@ -34,7 +34,10 @@
             <p class="text-sm text-gray-500 mt-2">
               Último inicio de sesión:
               <span class="font-medium text-gray-700">
-                Hora y fecha
+                {{ ultimoLogin
+                  ? new Date(ultimoLogin).toLocaleString('es-BO')
+                  : '—'
+                }}
               </span>
             </p>
           </div>
@@ -191,6 +194,17 @@ const nombreResponsable = ref('Responsable de Registro')
 const cargando = ref(true)
 const fechaActualizada = ref('')
 
+const ultimoLogin = ref(null)
+
+const cargarUltimoLogin = async () => {
+  try {
+    const res = await authService.getUltimoLogin()
+    ultimoLogin.value = res.data.ultimo_login
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 // Estadísticas
 const estadisticas = ref({
   totalDirigentes: 0,
@@ -255,6 +269,7 @@ onMounted(async () => {
   nombreResponsable.value = usuario.nombre || 'Responsable de Registro'
 
   await cargarEstadisticas()
+  await cargarultimoLogin()
 })
 
 const cargarEstadisticas = async () => {

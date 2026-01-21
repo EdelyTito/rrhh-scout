@@ -20,6 +20,15 @@
         <div class="bg-white rounded-lg shadow-sm p-6 mb-8 border border-gray-200">
           <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Hola {{ nombreResponsable }}!</h2>
           <p class="text-gray-600">Bienvenido a Seguimiento</p>
+          <p class="text-sm text-gray-500 mt-2">
+            Último inicio de sesión:
+            <span class="font-medium text-gray-700">
+              {{ ultimoLogin
+                ? new Date(ultimoLogin).toLocaleString('es-BO')
+                : '—'
+              }}
+            </span>
+          </p>
         </div>
 
         <!-- Statistics Cards - SEGUIMIENTO -->
@@ -96,6 +105,18 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
 
+const ultimoLogin = ref(null)
+
+const cargarUltimoLogin = async () => {
+  try {
+    const res = await authService.getUltimoLogin()
+    ultimoLogin.value = res.data.ultimo_login
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+
 const props = defineProps({
   embebido: {
     type: Boolean,
@@ -153,17 +174,18 @@ const navegarA = (destino) => {
   }
 }
     
-    const cerrarSesion = () => {
-      localStorage.clear()
-      router.push('/')
-    }
+const cerrarSesion = () => {
+  localStorage.clear()
+  router.push('/')
+}
     
-    onMounted(() => {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-      nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
-      
-      cargarDatosDashboard()
-    })
+onMounted(() => {
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+  nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
+  
+  cargarDatosDashboard()
+  cargarUltimoLogin()
+})
 
 </script>
 
