@@ -466,13 +466,14 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
-
     await pool.query(
-      `UPDATE usuarios
-       SET reset_token = $1, reset_token_expira = $2
-       WHERE id = $3`,
-      [token, expires, user.id]
+      `
+      UPDATE usuarios
+      SET reset_token = $1,
+          reset_token_expira = NOW() + INTERVAL '1 hour'
+      WHERE id = $2
+      `,
+      [token, user.id]
     );
 
     //const resetLink = `${process.env.FRONTEND_ORIGINS}/reset-password?token=${token}`;
