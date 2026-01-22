@@ -36,8 +36,6 @@ const upload = multer({storage: multer.memoryStorage() });
 //
 router.post(
   "/public",
-  validarSeguimientoPublico,
-  validar,
   async (req, res) => {
     try {
       const {
