@@ -137,12 +137,17 @@
                           focus:outline-none focus:ring-2 focus:ring-[#009d71]"
                   >
                     <option value="">Seleccione su grupo</option>
-                    <option value="Boliviano Israelita">Boliviano Israelita</option>
                     <option value="Amerinst 301">Amerinst 301</option>
-                    <option value="San Calixto">San Calixto</option>
-                    <option value="Kantutani">Kantutani</option>
-                    <option value="Illimani">Illimani</option>
-                    <option value="San Miguel">San Miguel</option>
+                    <option value="Boliviano Israelita">Boliviano Israelita</option>
+                    <option value="IMPEESA">IMPEESA</option>
+                    <option value="Los Pinos">Los Pinos</option>
+                    <option value="Los Robles">Los Robles</option>
+                    <option value="Loyola San Calixto">Loyola San Calixto</option>
+                    <option value="Loyola San Ignacio">Loyola San Ignacio</option>
+                    <option value="Naval Crux UENHDP">Naval Crux UENHDP</option>
+                    <option value="Hans Philippsberg Saint Andrews">Hans Philippsberg Saint Andrews</option>
+                    <option value="Naval Almte Mihuel Grau S.">Naval Almte Mihuel Grau S.</option>
+                    <option value="Equipo Distrital">Equipo Distrital</option>
                   </select>
                 </div>
 

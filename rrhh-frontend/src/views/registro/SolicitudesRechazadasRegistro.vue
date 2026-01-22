@@ -350,7 +350,6 @@ const cargarSolicitudes = async () => {
       alert(`Error: ${error.message}`)
     }
     
-    // Datos de prueba en caso de error
     alert('No se pudieron cargar las solicitudes')
 
   } finally {
@@ -358,16 +357,34 @@ const cargarSolicitudes = async () => {
   }
 }
 
+const ordenRamas = [
+  'Lobatos',
+  'Exploradores',
+  'Pioneros',
+  'Rovers',
+  'Institucional'
+]
+
 const solicitudesFiltradas = computed(() => {
   let filtradas = [...solicitudesPendientes.value]
-  
+
   if (filtroGrupo.value) {
     filtradas = filtradas.filter(s => s.grupo === filtroGrupo.value)
   }
-  
+
   if (filtroRama.value) {
     filtradas = filtradas.filter(s => s.rama === filtroRama.value)
   }
+
+  filtradas.sort((a, b) => {
+    const ia = ordenRamas.indexOf(a.rama)
+    const ib = ordenRamas.indexOf(b.rama)
+
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+
+    return ia - ib
+  })
 
   const inicio = (paginaActual.value - 1) * itemsPorPagina
   return filtradas.slice(inicio, inicio + itemsPorPagina)
@@ -379,8 +396,17 @@ const gruposUnicos = computed(() => {
 })
 
 const ramasUnicas = computed(() => {
-  const ramas = solicitudesPendientes.value.map(s => s.rama)
-  return [...new Set(ramas)]
+  const ramas = [...new Set(solicitudesPendientes.value.map(s => s.rama))]
+
+  return ramas.sort((a, b) => {
+    const ia = ordenRamas.indexOf(a)
+    const ib = ordenRamas.indexOf(b)
+
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+
+    return ia - ib
+  })
 })
 
 const totalPaginas = computed(() => {
