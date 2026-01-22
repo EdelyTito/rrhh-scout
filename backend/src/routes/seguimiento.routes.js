@@ -160,7 +160,11 @@ router.post(
         Distrito Scout La Paz
         </p>`
 
-      await sendEmail(correo, asunto, mensaje)
+      await sendEmail({
+        to: correo,
+        subject: asunto,
+        html: mensaje
+      })
 
       res.status(201).json({
         seguimiento_id: seguimientoId,
@@ -408,12 +412,11 @@ router.post(
       </p>
     `
 
-    await sendEmail(
-      seg.rows[0].correo,
-      "Observaciones a tu documentación – Recursos Adultos",
-      mensaje,
-      attachments
-    )
+    await sendEmail({
+      to: seg.rows[0].correo,
+      subject: "Observaciones a tu documentación – Recursos Adultos",
+      html: mensaje
+    })
 
     await registrarLog(
       req.user.id,
