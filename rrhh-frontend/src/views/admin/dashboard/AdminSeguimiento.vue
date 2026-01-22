@@ -27,7 +27,7 @@
         @click="irA('/admin/seguimiento/periodo-prueba')"
         :class="tabClass('/admin/seguimiento/periodo-prueba', true)"
       >
-        Períodos de prueba
+        Reincorporaciones y Periodos de prueba
       </button>
 
     </div>

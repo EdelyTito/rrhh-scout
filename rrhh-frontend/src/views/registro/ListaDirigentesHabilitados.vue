@@ -27,7 +27,7 @@
                 {{ dirigentesHabilitados.length }} dirigentes habilitados
               </span>
               <button 
-                @click="exportarExcel"
+                @click="exportarPDF"
                 class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition duration-200 font-medium flex items-center space-x-2"
               >
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,6 +267,8 @@ import RegistroNav from '../../components/registro/RegistroNav.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { registroService } from '../../services/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const props = defineProps({
   embebido: {
@@ -470,9 +472,49 @@ const cambiarPagina = (nuevaPagina) => {
   }
 }
 
-const exportarExcel = () => {
-  alert('Exportando lista de dirigentes a Excel...')
-  // Aquí iría la lógica para exportar a Excel
+const exportarPDF = () => {
+  if (!dirigentesHabilitados.value.length) {
+    alert('No hay dirigentes para exportar')
+    return
+  }
+
+  const doc = new jsPDF()
+
+  doc.setFontSize(14)
+  doc.text('Reporte de Dirigentes Habilitados', 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(`Total: ${dirigentesHabilitados.value.length}`, 14, 22)
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-BO')}`, 14, 27)
+
+  const columnas = [
+    'Nombre',
+    'CI',
+    'Rama',
+    'Grupo',
+    'Cargo',
+    'Nivel',
+    'Años servicio'
+  ]
+
+  const filas = dirigentesHabilitados.value.map(d => [
+    d.nombre_completo,
+    d.ci || '—',
+    d.rama,
+    d.grupo,
+    d.cargo_grupo_1 || '—',
+    d.nivel_scout || '—',
+    d.anios_servicio ?? '—'
+  ])
+
+  autoTable(doc, {
+    startY: 32,
+    head: [columnas],
+    body: filas,
+    styles: { fontSize: 8 }
+  })
+
+  doc.save('dirigentes_habilitados.pdf')
 }
 
 const cerrarSesion = () => {

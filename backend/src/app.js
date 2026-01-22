@@ -27,6 +27,22 @@ const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGINS || "http://localhost:5173
   .split(",")
   .map(o => o.trim().replace(/\/$/, ""))
 
+  
+app.disable("x-powered-by")
+
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff")
+  next()
+})
+
+app.use((req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'"
+  )
+  next()
+})
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true)
@@ -93,13 +109,16 @@ app.get("/api/privado", verifyToken, (req, res) => {
 // Manejo centralizado de errores (fallback)
 // --------------------------------------------------
 app.use((err, req, res, next) => {
-  console.error("Error no manejado:", err && err.stack ? err.stack : err);
-  // Si el error proviene de CORS (origin no permitido), enviar 403
-  if (err?.message && err.message.includes("CORS - Origin no permitido")) {
-    return res.status(403).json({ error: "Origin no permitido por CORS" });
+  if (process.env.NODE_ENV !== "production") {
+    console.error("Error no manejado:", err)
   }
-  res.status(500).json({ error: "Internal server error" });
-});
+
+  if (err?.message?.includes("CORS - Origin no permitido")) {
+    return res.status(403).json({ error: "Origin no permitido por CORS" })
+  }
+
+  res.status(500).json({ error: "Internal server error" })
+})
 
 // Iniciar servidor
 const PORT = process.env.PORT || 4000;

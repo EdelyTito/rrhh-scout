@@ -27,7 +27,7 @@
                 {{ solicitudesPendientes.length }} solicitudes pendientes
               </span>
               <button 
-                @click="exportarExcel"
+                @click="exportarPDF"
                 class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition duration-200 font-medium flex items-center space-x-2"
               >
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,6 +295,8 @@ import RegistroNav from '../../components/registro/RegistroNav.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { registroService } from '../../services/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const props = defineProps({
   embebido: {
@@ -505,22 +507,39 @@ const cambiarPagina = (nuevaPagina) => {
   }
 }
 
-const exportarExcel = () => {
-  alert('Exportando datos a Excel...')
-}
-
-const descargarFormatos = () => {
-  alert('Descargando formatos de revisión...')
-}
-
-const verGuia = () => {
-  alert('Abriendo guía de habilitación...')
-}
-
-const enviarRecordatorios = () => {
-  if (confirm('¿Enviar recordatorios a todos los solicitantes pendientes?')) {
-    alert('Recordatorios enviados exitosamente')
+const exportarPDF = () => {
+  if (!solicitudesPendientes.value.length) {
+    alert('No hay solicitudes para exportar')
+    return
   }
+
+  const doc = new jsPDF()
+
+  doc.setFontSize(14)
+  doc.text('Reporte de Solicitudes Pendientes', 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(`Total: ${solicitudesPendientes.value.length}`, 14, 22)
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-BO')}`, 14, 27)
+
+  const columnas = ['Nombre', 'CI', 'Rama', 'Grupo', 'Fecha']
+
+  const filas = solicitudesPendientes.value.map(s => [
+    s.nombre,
+    s.ci || '—',
+    s.rama,
+    s.grupo || '—',
+    s.fecha
+  ])
+
+  autoTable(doc, {
+    startY: 32,
+    head: [columnas],
+    body: filas,
+    styles: { fontSize: 8 }
+  })
+
+  doc.save('solicitudes_pendientes.pdf')
 }
 
 const cerrarSesion = () => {

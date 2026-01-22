@@ -157,11 +157,8 @@
               <div class="flex justify-between items-center">
                 <h2 class="text-lg font-semibold text-gray-800">Dirigentes ({{ dirigentesFiltrados.length }})</h2>
                 <div class="flex space-x-2">
-                  <button 
-                    @click="exportarExcel"
-                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 text-sm font-semibold"
-                  >
-                    Exportar Excel
+                  <button @click="exportarPDF" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200 text-sm font-semibold">
+                    Exportar PDF
                   </button>
                 </div>
               </div>
@@ -294,6 +291,8 @@ import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const props = defineProps({
   embebido: {
@@ -394,6 +393,47 @@ const contarKoodoo = computed(() =>
     ['KoodooAdjunto', 'KoodooDirector'].includes(d.tipo_im)
   ).length
 )
+
+const exportarPDF = () => {
+  if (!dirigentesFiltrados.value.length) {
+    alert('No hay dirigentes para exportar')
+    return
+  }
+
+  const doc = new jsPDF()
+
+  doc.setFontSize(14)
+  doc.text('Reporte de Dirigentes – Seguimiento', 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(`Total: ${dirigentesFiltrados.value.length}`, 14, 22)
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-BO')}`, 14, 27)
+
+  const columnas = [
+    'Nombre',
+    'Correo',
+    'Grupo',
+    'Tipo de aprobación',
+    'Estado'
+  ]
+
+  const filas = dirigentesFiltrados.value.map(d => [
+    d.nombre_participante,
+    d.correo,
+    d.grupo,
+    getNivelTexto(d.tipo_im),
+    d.resultado_final
+  ])
+
+  autoTable(doc, {
+    startY: 32,
+    head: [columnas],
+    body: filas,
+    styles: { fontSize: 8 }
+  })
+
+  doc.save('dirigentes_seguimiento.pdf')
+}
 
 const getNivelTexto = (codigo) => ({
   IM2: 'IM Nivel II',

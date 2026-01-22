@@ -118,11 +118,8 @@
               <div class="flex justify-between items-center">
                 <h2 class="text-lg font-semibold text-gray-800">Registros ({{ registrosFiltrados.length }})</h2>
                 <div class="flex space-x-2">
-                  <button 
-                    @click="exportarExcel"
-                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 text-sm font-semibold"
-                  >
-                    Exportar Excel
+                  <button @click="exportarPDF" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm font-semibold">
+                    Exportar PDF
                   </button>
                 </div>
               </div>
@@ -231,6 +228,8 @@ import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const props = defineProps({
   embebido: {
@@ -359,10 +358,44 @@ const verRegistro = (id) => {
   router.push(`${baseRuta.value}/periodos-prueba-reincorporaciones/${id}`)
 }
 
-    const exportarExcel = () => {
-      console.log('Exportando a Excel...')
-      alert('Exportando datos a Excel...')
-    }
+const exportarPDF = () => {
+  if (!registrosFiltrados.value.length) {
+    alert('No hay registros para exportar')
+    return
+  }
+
+  const doc = new jsPDF()
+
+  doc.setFontSize(14)
+  doc.text('Reporte – Período de Prueba y Reincorporación', 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(`Total: ${registrosFiltrados.value.length}`, 14, 22)
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-BO')}`, 14, 27)
+
+  const columnas = [
+    'Nombre',
+    'Grupo',
+    'Tipo',
+    'Estado'
+  ]
+
+  const filas = registrosFiltrados.value.map(r => [
+    r.nombre,
+    r.grupo,
+    getTipoTexto(r.tipo),
+    r.estado
+  ])
+
+  autoTable(doc, {
+    startY: 32,
+    head: [columnas],
+    body: filas,
+    styles: { fontSize: 8 }
+  })
+
+  doc.save('periodo_prueba_reincorporacion.pdf')
+}
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
@@ -374,17 +407,16 @@ const navegarA = (destino) => {
   }
 }
 
-    const cerrarSesion = () => {
-      localStorage.clear()
-      router.push('/')
-    }
+const cerrarSesion = () => {
+  localStorage.clear()
+  router.push('/')
+}
 
-    onMounted(() => {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-      nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
-      
-      // Cargar registros al montar el componente
-      fetchReincorporaciones()
-    })
+onMounted(() => {
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+  nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
+  
+  fetchReincorporaciones()
+})
 
 </script>

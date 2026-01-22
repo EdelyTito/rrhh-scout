@@ -40,7 +40,7 @@
                     ? 'border-[#009d71] text-[#009d71]' 
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300']"
           >
-            Período de Prueba
+            Reincorporaciones y Periodos de prueba
           </button>
         </div>
       </div>

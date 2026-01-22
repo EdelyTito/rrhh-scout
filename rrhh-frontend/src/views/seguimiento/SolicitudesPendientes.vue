@@ -115,13 +115,11 @@
             <h2 class="text-lg font-semibold text-gray-800">Solicitudes ({{ solicitudesFiltradas.length }})</h2>
             <div class="flex space-x-2">
               <button
-                @click="exportarExcel"
+                @click="exportarPDF"
                 :disabled="solicitudesFiltradas.length === 0"
-                class="bg-green-100 text-green-700 px-4 py-2 rounded-lg
-                      hover:bg-green-200 transition text-sm font-semibold
-                      disabled:opacity-50 disabled:cursor-not-allowed"
+                class="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition text-sm font-semibold disabled:opacity-50"
               >
-                Exportar Excel
+                Exportar PDF
               </button>
             </div>
           </div>
@@ -257,7 +255,8 @@ import SeguimientoNav from '../../components/seguimiento/SeguimientoNav.vue';
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { seguimientoService } from '../../services/api';
-import * as XLSX from 'xlsx'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const props = defineProps({
   embebido: {
@@ -414,37 +413,48 @@ const verDetalle = (id) => {
   router.push(`${baseRuta.value}/detalle/${id}`)
 }
 
-    const exportarExcel = () => {
-      if (solicitudesFiltradas.value.length === 0) {
-        alert('No hay datos para exportar')
-        return
-      }
+const exportarPDF = () => {
+  if (!solicitudesFiltradas.value.length) {
+    alert('No hay solicitudes para exportar')
+    return
+  }
 
-      const data = solicitudesFiltradas.value.map((s, index) => ({
-        'N°': index + 1,
-        'Nombre': s.nombre_participante,
-        'Correo': s.correo,
-        'Grupo Scout': s.grupo,
-        'Nivel': getNivelTexto(s.tipo_im),
-        'Rama': s.rama_scout || '—',
-        'Estado': getEstadoTexto(s.estado),
-        'Fecha de creación': formatFecha(s.fecha_creacion)
-      }))
+  const doc = new jsPDF()
 
-      const worksheet = XLSX.utils.json_to_sheet(data)
+  doc.setFontSize(14)
+  doc.text('Reporte de Solicitudes Pendientes – Seguimiento', 14, 15)
 
-      const workbook = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(
-        workbook,
-        worksheet,
-        'Solicitudes pendientes'
-      )
+  doc.setFontSize(10)
+  doc.text(`Total: ${solicitudesFiltradas.value.length}`, 14, 22)
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-BO')}`, 14, 27)
 
-      const fecha = new Date().toISOString().split('T')[0]
-      const nombreArchivo = `solicitudes_pendientes_${fecha}.xlsx`
+  const columnas = [
+    'Nombre',
+    'Correo',
+    'Grupo',
+    'Nivel',
+    'Estado',
+    'Fecha'
+  ]
 
-      XLSX.writeFile(workbook, nombreArchivo)
-    }
+  const filas = solicitudesFiltradas.value.map(s => [
+    s.nombre_participante,
+    s.correo,
+    s.grupo,
+    getNivelTexto(s.tipo_im),
+    getEstadoTexto(s.estado),
+    formatFecha(s.fecha_creacion)
+  ])
+
+  autoTable(doc, {
+    startY: 32,
+    head: [columnas],
+    body: filas,
+    styles: { fontSize: 8 }
+  })
+
+  doc.save('solicitudes_pendientes_seguimiento.pdf')
+}
 
 const navegarA = (destino) => {
   rutaActiva.value = destino
@@ -456,11 +466,11 @@ const navegarA = (destino) => {
   }
 }
 
-    onMounted(() => {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
-      nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
-      
-      fetchSolicitudes()
-    })
+onMounted(() => {
+  const usuario = JSON.parse(localStorage.getItem('usuario') || '{}')
+  nombreResponsable.value = usuario.nombre || 'Responsable de Seguimiento'
+  
+  fetchSolicitudes()
+})
     
 </script>

@@ -213,6 +213,8 @@ import FormacionNav from '../../components/formacion/FormacionNav.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formacionService } from '../../services/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const props = defineProps({
   embebido: {
@@ -277,6 +279,48 @@ const cargarAsistencias = async () => {
   } finally {
     cargando.value = false
   }
+}
+
+const generarReporte = () => {
+  if (!asistencias.value.length) {
+    alert('No hay asistencias para generar el reporte.')
+    return
+  }
+
+  const doc = new jsPDF()
+
+  doc.setFontSize(14)
+  doc.text('Reporte de Asistencias', 14, 15)
+
+  doc.setFontSize(10)
+  doc.text(`Curso: ${modulo.value.cursoNombre || '—'}`, 14, 22)
+  doc.text(`Módulo: ${modulo.value.nombre || '—'}`, 14, 27)
+  doc.text(`Fecha: ${fechaAsistencia.value}`, 14, 32)
+
+  const columnas = [
+    'Participante',
+    'Grupo',
+    'Asistencia',
+    'Pagó cuota',
+    'Observaciones'
+  ]
+
+  const filas = asistencias.value.map(a => [
+    a.nombre_participante,
+    a.grupo || '—',
+    a.presente ? 'Presente' : 'Ausente',
+    a.pago_cuota ? 'Sí' : 'No',
+    a.observaciones || '—'
+  ])
+
+  autoTable(doc, {
+    startY: 38,
+    head: [columnas],
+    body: filas,
+    styles: { fontSize: 9 }
+  })
+
+  doc.save(`reporte_asistencias_modulo_${moduloId.value}.pdf`)
 }
 
 const fechaAsistencia = ref(
