@@ -202,6 +202,15 @@ router.put(
         ]
       )
 
+      await registrarLog(
+        req.user.id,
+        "Actualizó dirigente",
+        "dirigentes",
+        id,
+        `Actualización de datos del dirigente: ${nombre_completo}`,
+        req.user.rol_nombre
+      )
+
       res.json(result.rows[0])
     } catch (err) {
       console.error(err)

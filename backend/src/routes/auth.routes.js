@@ -568,6 +568,15 @@ router.post("/reset-password", async (req, res) => {
       WHERE id = $2`,
       [hashed, userResult.rows[0].id]
     );
+    
+    await registrarLog(
+      userResult.rows[0].id,
+      "Restableció contraseña",
+      "usuarios",
+      userResult.rows[0].id,
+      "Contraseña restablecida mediante enlace de recuperación",
+      "sistema"
+    )
 
     res.json({ message: "Contraseña actualizada correctamente" });
   } catch (err) {

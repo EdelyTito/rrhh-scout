@@ -62,22 +62,25 @@
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <h2 class="text-lg font-semibold mb-4">Registrar asistencia</h2>
 
-          <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <input
               v-model="nuevoRegistro.nombre_participante"
               placeholder="Nombre del participante"
               class="border rounded-lg px-3 py-2"
             />
 
-            <input
+            <select
               v-model="nuevoRegistro.grupo"
-              placeholder="Grupo"
               class="border rounded-lg px-3 py-2"
-            />
-
-            <select v-model="nuevoRegistro.presente" class="border rounded-lg px-3 py-2">
-              <option :value="true">Presente</option>
-              <option :value="false">Ausente</option>
+            >
+              <option value="">Seleccione su grupo</option>
+              <option
+                v-for="grupo in grupos"
+                :key="grupo"
+                :value="grupo"
+              >
+                {{ grupo }}
+              </option>
             </select>
 
             <label class="flex items-center space-x-2">
@@ -126,9 +129,6 @@
                     Grupo
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Asistencia
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pago cuota
                   </th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -150,16 +150,6 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {{ asistente.grupo }}
-                  </td>
-
-                  <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    <span
-                      :class="asistente.presente
-                        ? 'text-green-600 font-semibold'
-                        : 'text-red-600 font-semibold'"
-                    >
-                      {{ asistente.presente ? 'Presente' : 'Ausente' }}
-                    </span>
                   </td>
 
                   <td class="px-6 py-4 text-sm">
@@ -252,6 +242,20 @@ const nuevoRegistro = ref({
   observaciones: '',
 })
 
+const grupos = ref([
+  'Amerinst 301',
+  'Boliviano Israelita',
+  'IMPEESA',
+  'Los Pinos',
+  'Los Robles',
+  'Loyola San Calixto',
+  'Loyola San Ignacio',
+  'Naval Crux UENHDP',
+  'Hans Philippsberg Saint Andrews',
+  'Naval Almte Mihuel Grau S.',
+  'Equipo Distrital'
+])
+
 const totalAsistentes = computed(() => asistencias.value?.length || 0)
 const asistentesPresentes = computed(() => asistencias.value.filter(a => a.presente).length)
 
@@ -340,6 +344,12 @@ onMounted(() => {
 })
 
 const registrarAsistencia = async () => {
+
+  if (!nuevoRegistro.value.grupo) {
+    alert('Debe seleccionar un grupo.')
+    return
+  }
+
   if (!nuevoRegistro.value.nombre_participante) {
     alert('Debe indicar el nombre del participante.')
     return

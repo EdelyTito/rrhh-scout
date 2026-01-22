@@ -64,6 +64,7 @@ router.put("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), validarId,
       modalidad,
       lugar,
       cupo,
+      estado
     } = req.body || {};
 
     if (!nombre || !descripcion) {
@@ -84,11 +85,22 @@ router.put("/cursos/:id", verifyToken, authorizeRoles(...ROLES_FORM), validarId,
           fecha_fin = $4,
           modalidad = $5,
           lugar = $6,
-          cupo = $7
-      WHERE id = $8
+          cupo = $7,
+          estado = $8
+      WHERE id = $9
       RETURNING *
       `,
-      [nombre, descripcion, fecha_inicio, fecha_fin, modalidad, lugar, cupo, id]
+      [
+        nombre,
+        descripcion,
+        fecha_inicio,
+        fecha_fin,
+        modalidad,
+        lugar,
+        cupo,
+        estado,
+        id
+      ]
     );
 
     await registrarLog(
@@ -148,6 +160,16 @@ router.post("/cursos", verifyToken, authorizeRoles(...ROLES_FORM), validarCurso,
 
     const curso = result.rows[0];
     await registrarLog(responsableId, "Creó un nuevo curso", "cursos", curso.id, `Curso: ${nombre}`);
+    
+    await registrarLog(
+      req.user.id,
+      "Creó módulo de curso",
+      "modulos_curso",
+      moduloId,
+      `Módulo: ${titulo}`,
+      req.user.rol_nombre
+    )
+
     res.status(201).json({ id: curso.id, message: "Curso creado correctamente", curso });
   } catch (err) {
     console.error("Error al crear curso:", err);
@@ -339,6 +361,15 @@ router.put(
         [moduloId]
       )
 
+      await registrarLog(
+        req.user.id,
+        "Actualizó módulo de curso",
+        "modulos_curso",
+        moduloId,
+        `Módulo actualizado: ${titulo}`,
+        req.user.rol_nombre
+      )
+
       res.json({
         message: "Módulo actualizado correctamente",
         modulo: result.rows[0]
@@ -434,6 +465,15 @@ router.post('/formadores', verifyToken, authorizeRoles(...ROLES_FORM), async (re
       email
     ])
 
+    await registrarLog(
+      req.user.id,
+      "Creó formador",
+      "formadores",
+      result.rows[0].id,
+      `Formador: ${nombre}`,
+      req.user.rol_nombre
+    )
+
     res.status(201).json(result.rows[0])
   } catch (err) {
     console.error('Error creando formador:', err)
@@ -490,6 +530,15 @@ router.put(
           VALUES ($1, $2)
         `, [id, tipoId])
       }
+
+      await registrarLog(
+        req.user.id,
+        "Actualizó formador",
+        "formadores",
+        id,
+        `Formador actualizado: ${nombre}`,
+        req.user.rol_nombre
+      )
 
       res.json({ message: 'Módulos del formador actualizados correctamente' })
     } catch (err) {

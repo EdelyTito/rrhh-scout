@@ -304,7 +304,7 @@ router.put(
             s.grupo,
             s.rama,
 
-            s.anios_servicio,        // ✅ CLAVE
+            s.anios_servicio,    
 
             s.cargo_distrital,
             s.cargo_grupo_1,
@@ -351,6 +351,29 @@ router.put(
       }
 
       await client.query("COMMIT");
+
+      if (estado === "habilitado") {
+        await registrarLog(
+          req.user.id,
+          "Aprobó solicitud de registro",
+          "solicitudes_registro",
+          id,
+          "Solicitud aprobada y dirigente habilitado",
+          req.user.rol_nombre
+        )
+      }
+
+      if (estado === "rechazado") {
+        await registrarLog(
+          req.user.id,
+          "Rechazó solicitud de registro",
+          "solicitudes_registro",
+          id,
+          `Solicitud rechazada. Obs: ${observaciones || 'sin observaciones'}`,
+          req.user.rol_nombre
+        )
+      }
+
       res.json({ message: "Solicitud actualizada correctamente" });
 
     } catch (err) {
@@ -492,6 +515,15 @@ router.put(
       WHERE id = $${idx}
       `,
       valores
+    )
+
+    await registrarLog(
+      req.user.id,
+      "Actualizó dirigente desde registro",
+      "dirigentes",
+      req.params.id,
+      "Actualización de datos del dirigente",
+      req.user.rol_nombre
     )
 
     res.json({ message: 'Dirigente actualizado correctamente' })

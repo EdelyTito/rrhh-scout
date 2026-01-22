@@ -300,6 +300,15 @@ router.put('/:id/estado', verifyToken, authorizeRoles(1,4,7), async (req, res) =
     [estado, id]
   )
 
+  await registrarLog(
+    req.user.id,
+    "Actualizó estado de seguimiento",
+    "seguimiento",
+    id,
+    `Nuevo estado: ${estado}`,
+    req.user.rol_nombre
+  )
+
   res.json({ ok: true })
 })
 
@@ -406,6 +415,15 @@ router.post(
       "Observaciones a tu documentación – Recursos Adultos",
       mensaje,
       attachments
+    )
+
+    await registrarLog(
+      req.user.id,
+      "Realizó devolución de seguimiento",
+      "seguimiento",
+      id,
+      `Nueva etapa: ${estadoNuevo}`,
+      req.user.rol_nombre
     )
 
     res.json({ ok: true })
